@@ -1,0 +1,23 @@
+services:
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: calibre-web
+    environment:
+      - PUID=${PUID} # Matches your VM user ID
+      - PGID=${PGID} # Matches NAS 'everyone' group
+      - TZ=America/Toronto # Sets your local time
+      - DOCKER_MODS=linuxserver/mods:universal-calibre
+    volumes:
+      - /home/pmoreau/docker-data/calibre/config:/config
+      - /mnt/nas-books:/books
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.calibre.rule=Host(`books.homelab.lan`)"
+      - "traefik.http.services.calibre.loadbalancer.server.port=8083"
+    networks:
+      - traefik-public
+    restart: unless-stopped
+
+networks:
+  traefik-public:
+    external: true

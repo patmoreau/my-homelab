@@ -1,0 +1,33 @@
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage.rule=Host(`home.homelab.lan`)"
+      - "traefik.http.services.homepage.loadbalancer.server.port=3000"
+    environment:
+      - PUID=${PUID} # Matches your VM user ID
+      - PGID=${PGID} # Matches NAS 'everyone' group
+      - TZ=America/Toronto
+      - HOMEPAGE_ALLOWED_HOSTS=home.homelab.lan
+      - HOMEPAGE_VAR_CALIBREWEB_USERNAME=${CALIBREWEB_USERNAME}
+      - HOMEPAGE_VAR_CALIBREWEB_PASSWORD=${CALIBREWEB_PASSWORD}
+      - HOMEPAGE_VAR_JELLYFIN_API_KEY=${JELLYFIN_API_KEY}
+      - HOMEPAGE_VAR_PORTAINER_KEY=${PORTAINER_KEY}
+      - HOMEPAGE_VAR_PROXMOX_USERNAME=${PROXMOX_USERNAME}
+      - HOMEPAGE_VAR_PROXMOX_PASSWORD=${PROXMOX_PASSWORD}
+      - HOMEPAGE_VAR_TRANSMISSION_USERNAME=${TRANSMISSION_USER}
+      - HOMEPAGE_VAR_TRANSMISSION_PASSWORD=${TRANSMISSION_PASS}
+    networks:
+      - traefik-public
+    restart: unless-stopped
+
+networks:
+  traefik-public:
+    external: true

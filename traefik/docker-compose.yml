@@ -1,0 +1,23 @@
+services:
+  traefik:
+    image: traefik:v3
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      # - "443:443" # For future SSL
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik.yml:/traefik.yml:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`traefik.homelab.lan`)"
+      - "traefik.http.routers.api.service=api@internal"
+    environment:
+      - TZ=America/Toronto
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true

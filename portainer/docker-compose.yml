@@ -1,0 +1,26 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:2.33.6-alpine
+    container_name: portainer
+    expose:
+      - 9000
+    volumes:
+      - /home/pmoreau/docker-data/portainer/data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.homelab.lan`)"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+    environment:
+      - PUID=${PUID} # Matches your VM user ID
+      - PGID=${PGID} # Matches NAS 'everyone' group
+      - TZ=America/Toronto
+    networks:
+      - traefik-public
+    restart: unless-stopped
+
+networks:
+  traefik-public:
+    external: true
