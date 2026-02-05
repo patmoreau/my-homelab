@@ -1,0 +1,7 @@
+include:
+  - path: calibre-web/docker-compose.yml
+  - path: homepage/docker-compose.yml
+  - path: jellyfin/docker-compose.yml
+  - path: portainer/docker-compose.yml
+  - path: traefik/docker-compose.yml
+  - path: transmission/docker-compose.yml

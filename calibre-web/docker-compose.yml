@@ -3,9 +3,9 @@ services:
     image: lscr.io/linuxserver/calibre-web:latest
     container_name: calibre-web
     environment:
-      - PUID=${PUID} # Matches your VM user ID
-      - PGID=${PGID} # Matches NAS 'everyone' group
-      - TZ=America/Toronto # Sets your local time
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
       - DOCKER_MODS=linuxserver/mods:universal-calibre
     volumes:
       - /home/pmoreau/docker-data/calibre/config:/config

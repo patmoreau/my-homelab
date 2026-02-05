@@ -14,7 +14,7 @@ services:
       - "traefik.http.routers.api.rule=Host(`traefik.homelab.lan`)"
       - "traefik.http.routers.api.service=api@internal"
     environment:
-      - TZ=America/Toronto
+      - TZ=${TZ} # Sets your local time
     networks:
       - traefik-public
 

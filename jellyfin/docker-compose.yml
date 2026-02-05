@@ -7,9 +7,9 @@ services:
       - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.homelab.lan`)"
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
     environment:
-      - PUID=${PUID} # Matches your VM user ID
-      - PGID=${PGID} # Matches NAS 'everyone' group
-      - TZ=America/Toronto
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
       - JELLYFIN_PublishedServerUrl=jellyfin.homelab.lan
     volumes:
       - /home/pmoreau/docker-data/jellyfin/config:/config

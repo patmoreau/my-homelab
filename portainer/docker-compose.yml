@@ -14,9 +14,9 @@ services:
       - "traefik.http.routers.portainer.rule=Host(`portainer.homelab.lan`)"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
     environment:
-      - PUID=${PUID} # Matches your VM user ID
-      - PGID=${PGID} # Matches NAS 'everyone' group
-      - TZ=America/Toronto
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     networks:
       - traefik-public
     restart: unless-stopped

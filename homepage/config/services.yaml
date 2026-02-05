@@ -58,3 +58,16 @@
         widget:
           type: traefik
           url: http://traefik.homelab.lan
+
+    - Qnap:
+        icon: qnap.png
+        href: https://qnap.homelab.lan
+        ping: qnap.homelab.lan
+        description: NAS Management
+        widget:
+          type: qnap
+          url: https://qnap.homelab.lan:443
+          username: {{HOMEPAGE_VAR_QNAP_USERNAME}}
+          password: {{HOMEPAGE_VAR_QNAP_PASSWORD}}
+          volume: DataVol1
+          fields: ["cpuUsage", "memUsage", "systemTempC", "volumeUsage"]
