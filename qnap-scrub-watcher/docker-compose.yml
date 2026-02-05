@@ -1,0 +1,45 @@
+services:
+  qnap-watcher:
+    image: alpine:latest
+    container_name: qnap_watcher
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.ssh/id_ed25519_qnap_monitor:/root/.ssh/id_ed25519_qnap_monitor:ro
+    environment:
+      - QNAP_IP=qnap.homelab.lan
+      - QNAP_USER=${QNAP_USERNAME}
+      # The names of the containers you want to pause (space separated)
+      - TARGETS=transmission jellyfin
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - ssh -i /root/.ssh/id_ed25519_qnap_monitor -o ConnectTimeout=5 -o StrictHostKeyChecking=no $$QNAP_USER@$$QNAP_IP 'true' || exit 1
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    entrypoint: >
+      sh -c "
+      apk add --no-cache openssh-client docker-cli;
+      echo 'Monitoring QNAP RAID status...';
+      while true; do
+        # Use the specific service key to check status
+        # StrictHostKeyChecking=no prevents the container from hanging on the 'trust this host' prompt
+        SCRUBBING=$$(ssh -i /root/.ssh/id_ed25519_qnap_monitor -o StrictHostKeyChecking=no $$QNAP_USER@$$QNAP_IP 'grep -E \"check|resync\" /proc/mdstat' 2>/dev/null);
+        
+        if [ -n \"$$SCRUBBING\" ]; then
+          echo \"$$(date): Scrubbing detected. Pausing $$TARGETS...\";
+          docker pause $$TARGETS;
+          
+          # Wait until it's finished
+          while [ -n \"$$SCRUBBING\" ]; do
+            sleep 300;
+            SCRUBBING=$$(ssh -i /root/.ssh/id_ed25519_qnap_monitor -o StrictHostKeyChecking=no $$QNAP_USER@$$QNAP_IP 'grep -E \"check|resync\" /proc/mdstat' 2>/dev/null);
+          done
+          
+          echo \"$$(date): Scrubbing finished. Resuming $$TARGETS...\";
+          docker unpause $$TARGETS;
+        fi
+        sleep 300;
+      done"
