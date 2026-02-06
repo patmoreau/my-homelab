@@ -11,7 +11,8 @@ services:
       - QNAP_IP=qnap.homelab.lan
       - QNAP_USER=${QNAP_USERNAME}
       - SSH_KEY_PATH=/root/.ssh/id_ed25519_qnap_monitor
-      - TARGETS=transmission jellyfin
+      # - TARGETS=transmission jellyfin
+      - TARGETS=
       - PORT=3000
     healthcheck:
       test:
