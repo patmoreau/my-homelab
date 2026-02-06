@@ -3,6 +3,6 @@ include:
   - path: homepage/docker-compose.yml
   - path: jellyfin/docker-compose.yml
   - path: portainer/docker-compose.yml
-  - path: qnap-scrub-watcher/docker-compose.yml
+  - path: service-watcher/docker-compose.yml
   - path: traefik/docker-compose.yml
   - path: transmission/docker-compose.yml

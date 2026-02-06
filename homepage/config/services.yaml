@@ -29,6 +29,23 @@
           username: {{HOMEPAGE_VAR_TRANSMISSION_USERNAME}}
           password: {{HOMEPAGE_VAR_TRANSMISSION_PASSWORD}}
 
+- Docker:
+    - Qnap Watcher:
+        icon: qnap.png
+        href: https://qnap.homelab.lan
+        widget:
+          type: customapi
+          url: http://service-watcher:3000/api/qnap
+          mappings:
+            - field: Status
+              label: Status
+            - field: LastCheck
+              label: Last Check
+            - field: Progress
+              label: Progress
+            - field: FinishIn
+              label: Finish In
+
 - Infrastructure:
     - Proxmox:
         icon: proxmox.png

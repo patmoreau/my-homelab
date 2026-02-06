@@ -1,0 +1,28 @@
+services:
+  service-watcher:
+    build: .
+    container_name: service-watcher
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.ssh/id_ed25519_qnap_monitor:/root/.ssh/id_ed25519_qnap_monitor:ro
+    environment:
+      - TZ=${TZ}
+      - QNAP_IP=qnap.homelab.lan
+      - QNAP_USER=${QNAP_USERNAME}
+      - SSH_KEY_PATH=/root/.ssh/id_ed25519_qnap_monitor
+      - TARGETS=transmission jellyfin
+      - PORT=3000
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget --spider http://localhost:3000/api/qnap || exit 1"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true

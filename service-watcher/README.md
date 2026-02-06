@@ -15,7 +15,9 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_qnap_monitor -C "service-account-qnap
 
 Copy the text from your .pub file, then run this echo command on the QNAP terminal (replacing YOUR_PUB_KEY_TEXT with your actual key):
 
-echo "command=\"grep -E 'check|resync' /proc/mdstat\",no-port-forwarding,no-x11-forwarding,no-agent-forwarding YOUR_PUB_KEY_TEXT" >> ~/.ssh/authorized_keys
+```text
+echo "command=\"if grep -E 'check|resync' /proc/mdstat; then grep -E 'check|resync' /proc/mdstat; else echo 'IDLE'; fi\",no-port-forwarding,no-x11-forwarding,no-agent-forwarding YOUR_PUB_KEY_TEXT" >> ~/.ssh/authorized_keys
+```
 
 ## 2. Docker Implementation (VM Sidecar)
 
