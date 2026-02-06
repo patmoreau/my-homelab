@@ -5,7 +5,7 @@ services:
     expose:
       - 9000
     volumes:
-      - /home/pmoreau/docker-data/portainer/data:/data
+      - /mnt/docker-data/portainer/data:/data
       - /var/run/docker.sock:/var/run/docker.sock
     security_opt:
       - no-new-privileges:true

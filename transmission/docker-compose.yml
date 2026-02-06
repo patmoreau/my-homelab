@@ -14,11 +14,10 @@ services:
       - USER=${TRANSMISSION_USER}
       - PASS=${TRANSMISSION_PASS}
     volumes:
-      - /home/pmoreau/docker-data/transmission/config:/config
-      - /home/pmoreau/docker-data/transmission/downloads/incomplete:/downloads/incomplete
-      - /home/pmoreau/docker-data/transmission/watch:/watch
-      - /home/pmoreau/docker-data/transmission/downloads/complete:/downloads/complete
-      # - /mnt/nas-media/downloads:/downloads/complete
+      - /mnt/docker-data/transmission/config:/config
+      - /mnt/docker-data/transmission/downloads/incomplete:/downloads/incomplete
+      - /mnt/docker-data/transmission/watch:/watch
+      - /mnt/nas-media/downloads:/downloads/complete
     ports:
       - 9091:9091
       - 51413:51413
