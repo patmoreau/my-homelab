@@ -15,9 +15,9 @@ services:
       - PASS=${TRANSMISSION_PASS}
     volumes:
       - /mnt/docker-data/transmission/config:/config
-      - /mnt/docker-data/transmission/downloads/incomplete:/downloads/incomplete
       - /mnt/docker-data/transmission/watch:/watch
-      - /mnt/nas-media/downloads:/downloads/complete
+      - /mnt/nas-media/downloads/incomplete:/downloads/incomplete
+      - /mnt/nas-media/downloads/complete:/downloads/complete
     ports:
       - 9091:9091
       - 51413:51413
