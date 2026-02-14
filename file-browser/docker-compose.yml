@@ -1,0 +1,25 @@
+services:
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: filebrowser
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.filebrowser.rule=Host(`filebrowser.homelab.lan`)"
+      - "traefik.http.services.filebrowser.loadbalancer.server.port=80"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /mnt/docker-data/filebrowser/data:/srv
+      - /mnt/docker-data/filebrowser/config:/config
+      - /mnt/docker-data/filebrowser/database:/database
+      - /mnt/nas-media:/srv/nas-media
+      - /mnt/nas-books:/srv/nas-books
+    restart: unless-stopped
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true
