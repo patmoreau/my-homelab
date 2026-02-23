@@ -12,14 +12,15 @@ docker network create traefik-public
 
 The following services are configured in this homelab:
 
-| Service          | Local Domain               | Description                                                                                     |
-| :--------------- | :------------------------- | :---------------------------------------------------------------------------------------------- |
-| **Traefik**      | `traefik.homelab.lan`      | Reverse proxy and load balancer. Manages access to all other services.                          |
-| **Homepage**     | `home.homelab.lan`         | A modern, fully static, fast, secure fully proxied, highly customizable application dashboard.  |
-| **Portainer**    | `portainer.homelab.lan`    | Lightweight management UI which allows you to easily manage your different Docker environments. |
-| **Jellyfin**     | `jellyfin.homelab.lan`     | The Free Software Media System. Manages and streams your media.                                 |
-| **Calibre-Web**  | `books.homelab.lan`        | Web app for browsing, reading and downloading eBooks stored in a Calibre database.              |
-| **Transmission** | `transmission.homelab.lan` | A fast, easy, and free BitTorrent client.                                                       |
+| Service          | Local Domain                                                | Description                                                                                     |
+| :--------------- | :---------------------------------------------------------- | :---------------------------------------------------------------------------------------------- |
+| **Traefik**      | [traefik.homelab.lan](http://traefik.homelab.lan)           | Reverse proxy and load balancer. Manages access to all other services.                          |
+| **Homepage**     | [home.homelab.lan](http://home.homelab.lan)                 | A modern, fully static, fast, secure fully proxied, highly customizable application dashboard.  |
+| **Portainer**    | [portainer.homelab.lan](http://portainer.homelab.lan)       | Lightweight management UI which allows you to easily manage your different Docker environments. |
+| **Jellyfin**     | [jellyfin.homelab.lan](http://jellyfin.homelab.lan)         | The Free Software Media System. Manages and streams your media.                                 |
+| **Calibre-Web**  | [books.homelab.lan](http://books.homelab.lan)               | Web app for browsing, reading and downloading eBooks stored in a Calibre database.              |
+| **Transmission** | [transmission.homelab.lan](http://transmission.homelab.lan) | A fast, easy, and free BitTorrent client.                                                       |
+| **Filebrowser**  | [filebrowser.homelab.lan](http://filebrowser.homelab.lan)   | File Browser provides a file managing interface within a specified directory.                   |
 
 ### Network
 
@@ -30,6 +31,7 @@ All services are connected via the `traefik-public` external network.
 Key persistent data and media mounts:
 
 - `/mnt/nas-books`: Mounted to Calibre-Web for books.
+- `/mnt/nas-docker-data`: Mounted to all services for persistent data.
 - `/mnt/nas-media`: Mounted to Jellyfin (movies) and Transmission (downloads/watch).
 
 Configure them in /etc/fstab
