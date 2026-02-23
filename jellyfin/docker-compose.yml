@@ -12,7 +12,7 @@ services:
       - TZ=${TZ}
       - JELLYFIN_PublishedServerUrl=jellyfin.homelab.lan
     volumes:
-      - /mnt/docker-data/jellyfin/config:/config
+      - /mnt/nas-docker-data/jellyfin/config:/config
       - /mnt/nas-media:/data/movies:ro
     networks:
       - traefik-public

@@ -2,6 +2,20 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/configs/bookmarks
 
+- Media:
+    - Jellyfin:
+        - abbr: JF
+          href: https://jellyfin.homelab.lan
+    - Filebrowser:
+        - abbr: FB
+          href: https://filebrowser.homelab.lan
+    - Calibre-web:
+        - abbr: CW
+          href: https://calibre-web.homelab.lan
+    - Transmission:
+        - abbr: TR
+          href: https://transmission.homelab.lan
+
 - Developer:
     - Github:
         - abbr: GH

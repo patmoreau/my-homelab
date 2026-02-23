@@ -29,6 +29,17 @@
           username: {{HOMEPAGE_VAR_TRANSMISSION_USERNAME}}
           password: {{HOMEPAGE_VAR_TRANSMISSION_PASSWORD}}
 
+    - Filebrowser:
+        icon: filebrowser.png
+        href: http://filebrowser.homelab.lan
+        description: File Browser
+        widget:
+          type: filebrowser
+          url: http://filebrowser:8080
+          username: {{HOMEPAGE_VAR_FILEBROWSER_USERNAME}}
+          password: {{HOMEPAGE_VAR_FILEBROWSER_PASSWORD}}
+          # authHeader: X-My-Header # If using Proxy header authentication
+
 - Docker:
     - Qnap Watcher:
         icon: qnap.png

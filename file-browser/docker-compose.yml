@@ -11,11 +11,12 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - /mnt/docker-data/filebrowser/data:/srv
-      - /mnt/docker-data/filebrowser/config:/config
-      - /mnt/docker-data/filebrowser/database:/database
-      - /mnt/nas-media:/srv/nas-media
+      - /mnt/nas-docker-data/filebrowser/data:/srv
+      - /mnt/nas-docker-data/filebrowser/config:/config
+      - /mnt/nas-docker-data/filebrowser/database:/database
       - /mnt/nas-books:/srv/nas-books
+      - /mnt/nas-docker-data:/srv/nas-docker-data
+      - /mnt/nas-media:/srv/nas-media
     restart: unless-stopped
     networks:
       - traefik-public
