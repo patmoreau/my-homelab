@@ -1,3 +1,13 @@
 .env
 homepage/config/logs/homepage.log
 **/node_modules/
+
+# Ignore the actual secret values
+*.tfvars
+!*.tfvars.example
+
+# Ignore local terraform state and binary folders
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
