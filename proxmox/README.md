@@ -121,8 +121,7 @@ Cloud-init vendor data files are uploaded as snippets. You need to:
 2. Grant your PAM user write access to the snippets directory (run in the Proxmox Shell as root):
 
 ```bash
-chown root:terraform-admin /var/lib/vz/snippets
-chmod 775 /var/lib/vz/snippets
+echo "terraform-admin ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/terraform
 ```
 
 ### 5. Configure terraform.tfvars
@@ -200,6 +199,68 @@ network_device {
   bridge = "vmbr1"  # net1
 }
 ```
+
+Add one `ip_config` block per network adapter in the `initialization` block, in the same order. For secondary interfaces without a gateway:
+
+```hcl
+initialization {
+  ip_config {
+    ipv4 {
+      address = "192.168.8.50/24"
+      gateway = "192.168.8.1"
+    }
+  }
+
+  ip_config {
+    ipv4 {
+      address = "192.168.50.3/24"  # no gateway for secondary interface
+    }
+  }
+}
+```
+
+#### NFS Mounts via Cloud-Init
+
+Use the `mounts` directive in the vendor data snippet to add NFS entries to `/etc/fstab`. Also add `nfs-common` to the `packages` list — it is required on Ubuntu for NFS client support.
+
+```yaml
+#cloud-config
+packages:
+  - qemu-guest-agent
+  - nfs-common
+mounts:
+  - [
+      192.168.50.1:/Books,
+      /mnt/nas-books,
+      nfs,
+      "defaults,nfsvers=3,soft,bg,_netdev,async,timeo=150,retrans=3,rw",
+      "0",
+      "0",
+    ]
+  - [
+      192.168.50.1:/Multimedia,
+      /mnt/nas-media,
+      nfs,
+      "defaults,nfsvers=3,soft,bg,_netdev,async,timeo=150,retrans=3,rw",
+      "0",
+      "0",
+    ]
+  - [
+      192.168.50.1:/docker-data,
+      /mnt/nas-docker-data,
+      nfs,
+      "defaults,nfsvers=3,soft,bg,_netdev,async,timeo=150,retrans=3,rw",
+      "0",
+      "0",
+    ]
+runcmd:
+  - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
+```
+
+Cloud-init will create the mount point directories and write the entries to `/etc/fstab` on first boot. The `_netdev` option ensures the mounts wait for the network to be available.
+
+> **Note:** The NFS server must be reachable over one of the VM's network interfaces at boot time. If using a dedicated NAS bridge (e.g. `vmbr1`), make sure the static IP for that interface is configured before the mounts are attempted — the `_netdev` flag handles this ordering.
 
 ### Running Terraform
 

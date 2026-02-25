@@ -2,4 +2,3 @@
 # Copy this file to terraform.tfvars and fill in your real values
 proxmox_token_id     = "user@pve!tokenid"
 proxmox_token_secret = "00000000-0000-0000-0000-000000000000"
-proxmox_ssh_username = "terraform-admin"
