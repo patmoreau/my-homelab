@@ -2,96 +2,41 @@ data "local_file" "ssh_public_key" {
   filename = pathexpand("~/.ssh/id_ed25519_homelab.pub")
 }
 
-resource "proxmox_virtual_environment_vm" "docker_vm" {
-  name      = "docker-vm"
-  node_name = "homelab"
+module "docker_vm" {
+  source = "../modules/proxmox-vm"
 
-  stop_on_destroy = true
+  name      = var.name
+  node_name = var.node_name
 
-  agent {
-    enabled = true
-  }
+  vmbr0_ipv4 = var.vmbr0_ipv4
+  vmbr0_gw   = var.vmbr0_gw
+  vmbr1_ipv4 = var.vmbr1_ipv4
+  vmbr1_gw   = var.vmbr1_gw
 
-  initialization {
-    ip_config {
-      ipv4 {
-        address = "192.168.8.50/24"
-        gateway = "192.168.8.1"
-      }
-    }
+  memory    = var.memory
+  disk_size = var.disk_size
 
-    ip_config {
-      ipv4 {
-        address = "192.168.50.4/24"
-      }
-    }
+  ssh_public_key = data.local_file.ssh_public_key.content
 
-    vendor_data_file_id = proxmox_virtual_environment_file.cloud_init_vendor_data.id
-
-    user_account {
-      username = "ubuntu"
-      keys     = [trimspace(data.local_file.ssh_public_key.content)]
-    }
-  }
-
-  disk {
-    datastore_id = "local-lvm"
-    import_from  = proxmox_virtual_environment_download_file.ubuntu_cloud_image.id
-    interface    = "virtio0"
-    iothread     = true
-    discard      = "on"
-    size         = 20
-  }
-
-  network_device {
-    bridge = "vmbr0"
-  }
-
-  network_device {
-    bridge = "vmbr1"
-  }
+  # Override filenames to match the historically created ones so Terraform doesn't replace them
+  vendor_data_file_name = "docker-vm-vendor-data.yaml"
+  image_file_name       = "noble-server-cloudimg-amd64.qcow2"
 }
 
-resource "proxmox_virtual_environment_file" "cloud_init_vendor_data" {
-  content_type = "snippets"
-  datastore_id = var.proxmox_snippets_datastore
-  node_name    = "homelab"
+# --- State Migration Blocks ---
+# These blocks ensure Terraform moves the existing single VM into the module's state
 
-  source_raw {
-    file_name = "docker-vm-vendor-data.yaml"
-    data      = <<-EOF
-      #cloud-config
-      packages:
-        - qemu-guest-agent
-        - nfs-common
-        - ca-certificates
-        - curl
-      mounts:
-        - [192.168.50.1:/Books, /mnt/nas-books, nfs, "defaults,nfsvers=3,soft,bg,_netdev,async,timeo=150,retrans=3,rw", "0", "0"]
-        - [192.168.50.1:/Multimedia, /mnt/nas-media, nfs, "defaults,nfsvers=3,soft,bg,_netdev,async,timeo=150,retrans=3,rw", "0", "0"]
-        - [192.168.50.1:/docker-data, /mnt/nas-docker-data, nfs, "defaults,nfsvers=3,soft,bg,_netdev,async,timeo=150,retrans=3,rw", "0", "0"]
-      runcmd:
-        - systemctl enable qemu-guest-agent
-        - systemctl start qemu-guest-agent
-        - mkdir -p /mnt/nas-books /mnt/nas-media /mnt/nas-docker-data
-        - mount -a
-        - install -m 0755 -d /etc/apt/keyrings
-        - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-        - chmod a+r /etc/apt/keyrings/docker.asc
-        - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list
-        - apt-get update
-        - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-        - systemctl enable docker
-        - systemctl start docker
-        - usermod -aG docker ubuntu
-    EOF
-  }
+moved {
+  from = proxmox_virtual_environment_vm.docker_vm
+  to   = module.docker_vm.proxmox_virtual_environment_vm.this
 }
 
-resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
-  content_type = "import"
-  datastore_id = "local"
-  node_name    = "homelab"
-  url          = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
-  file_name    = "noble-server-cloudimg-amd64.qcow2"
+moved {
+  from = proxmox_virtual_environment_file.cloud_init_vendor_data
+  to   = module.docker_vm.proxmox_virtual_environment_file.cloud_init_vendor_data
+}
+
+moved {
+  from = proxmox_virtual_environment_download_file.ubuntu_cloud_image
+  to   = module.docker_vm.proxmox_virtual_environment_download_file.ubuntu_cloud_image
 }
