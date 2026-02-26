@@ -103,9 +103,11 @@ resource "proxmox_virtual_environment_file" "cloud_init_vendor_data" {
 }
 
 resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
-  content_type = "import"
-  datastore_id = "local"
-  node_name    = var.node_name
-  url          = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
-  file_name    = coalesce(var.image_file_name, "${var.name}-noble-server-cloudimg-amd64.qcow2")
+  content_type        = "import"
+  datastore_id        = "local"
+  node_name           = var.node_name
+  url                 = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+  file_name           = coalesce(var.image_file_name, "${var.name}-noble-server-cloudimg-amd64.qcow2")
+  overwrite           = false
+  overwrite_unmanaged = true
 }
