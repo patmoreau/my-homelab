@@ -43,7 +43,7 @@ resource "proxmox_virtual_environment_vm" "this" {
     vendor_data_file_id = proxmox_virtual_environment_file.cloud_init_vendor_data.id
 
     user_account {
-      username = "ubuntu"
+      username = var.vm_user
       keys     = [trimspace(var.ssh_public_key)]
     }
   }
@@ -97,7 +97,7 @@ resource "proxmox_virtual_environment_file" "cloud_init_vendor_data" {
         - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
         - systemctl enable docker
         - systemctl start docker
-        - usermod -aG docker ubuntu
+        - usermod -aG docker ${var.vm_user}
     EOF
   }
 }

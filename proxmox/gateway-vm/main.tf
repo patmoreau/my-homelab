@@ -16,6 +16,7 @@ module "docker_vm" {
   memory    = var.memory
   vcpu      = var.vcpu
   disk_size = var.disk_size
+  vm_user   = var.vm_user
 
   ssh_public_key = data.local_file.ssh_public_key.content
 

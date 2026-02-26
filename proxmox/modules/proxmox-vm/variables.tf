@@ -82,3 +82,9 @@ variable "vcpu" {
   type        = number
   default     = 2
 }
+
+variable "vm_user" {
+  description = "The username for the VM"
+  type        = string
+  sensitive   = true
+}

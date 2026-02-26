@@ -6,6 +6,7 @@ proxmox_ssh_username = "root"
 
 name       = "my-vm"
 node_name  = "homelab"
+vm_user    = "my-user"
 memory     = 2048
 vcpu       = 2
 disk_size  = 20
