@@ -7,6 +7,7 @@ proxmox_ssh_username = "root"
 name       = "my-vm"
 node_name  = "homelab"
 memory     = 2048
+vcpu       = 2
 disk_size  = 20
 vmbr0_ipv4 = "192.168.8.100/24"
 vmbr0_gw   = "192.168.8.1"

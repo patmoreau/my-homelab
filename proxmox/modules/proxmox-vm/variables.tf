@@ -76,3 +76,9 @@ variable "memory" {
   type        = number
   default     = 2048
 }
+
+variable "vcpu" {
+  description = "Number of vCPUs for the VM"
+  type        = number
+  default     = 2
+}

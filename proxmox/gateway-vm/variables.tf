@@ -47,6 +47,12 @@ variable "memory" {
   default     = 2048
 }
 
+variable "vcpu" {
+  description = "Number of vCPUs for the VM"
+  type        = number
+  default     = 2
+}
+
 variable "disk_size" {
   description = "Size of the VM disk in GB"
   type        = number

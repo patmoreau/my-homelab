@@ -17,6 +17,10 @@ resource "proxmox_virtual_environment_vm" "this" {
     enabled = true
   }
 
+  cpu {
+    cores = var.vcpu
+  }
+
   memory {
     dedicated = var.memory
   }
