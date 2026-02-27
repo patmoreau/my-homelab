@@ -2,3 +2,4 @@ README.md
 .env-template
 deploy.sh
 down.sh
+.dockerignore

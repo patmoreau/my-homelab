@@ -3,9 +3,12 @@ services:
     image: lscr.io/linuxserver/transmission:latest
     container_name: transmission
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.transmission.rule=Host(`transmission.homelab.lan`)"
-      - "traefik.http.services.transmission.loadbalancer.server.port=9091"
+      - traefik.enable=true
+      - traefik.http.routers.transmission-http.rule=Host(`transmission.homelab.lan`)
+      - traefik.http.routers.transmission-http.entrypoints=web
+      - traefik.http.routers.transmission-http.priority=100
+      - traefik.http.services.transmission-http.loadbalancer.server.port=9091
+      - kop.bind.ip=${BIND_IP}
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -23,9 +26,3 @@ services:
       - 51413:51413
       - 51413:51413/udp
     restart: unless-stopped
-    networks:
-      - traefik-public
-
-networks:
-  traefik-public:
-    external: true

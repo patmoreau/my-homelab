@@ -2,10 +2,15 @@ services:
   jellyfin:
     image: jellyfin/jellyfin
     container_name: jellyfin
+    ports:
+      - 8096:8096
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.homelab.lan`)"
-      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+      - traefik.enable=true
+      - traefik.http.routers.jellyfin-http.rule=Host(`jellyfin.homelab.lan`)
+      - traefik.http.routers.jellyfin-http.entrypoints=web
+      - traefik.http.routers.jellyfin-http.priority=100
+      - traefik.http.services.jellyfin-http.loadbalancer.server.port=8096
+      - kop.bind.ip=${BIND_IP}
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -14,10 +19,4 @@ services:
     volumes:
       - /mnt/nas-docker-data/jellyfin/config:/config
       - /mnt/nas-media:/data/movies:ro
-    networks:
-      - traefik-public
     restart: unless-stopped
-
-networks:
-  traefik-public:
-    external: true

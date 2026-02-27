@@ -1,0 +1,23 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:2.39.0-alpine
+    container_name: portainer
+    ports:
+      - 9000:9000
+    volumes:
+      - /mnt/nas-docker-data/portainer/data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.portainer-http.rule=Host(`portainer.homelab.lan`)
+      - traefik.http.routers.portainer-http.entrypoints=web
+      - traefik.http.routers.portainer-http.priority=100
+      - traefik.http.services.portainer-http.loadbalancer.server.port=9000
+      - kop.bind.ip=${BIND_IP}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    restart: unless-stopped

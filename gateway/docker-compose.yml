@@ -5,8 +5,6 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    networks:
-      - proxy
     ports:
       - 80:80
       - 443:443
@@ -15,15 +13,29 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config/traefik.yml:/etc/traefik/traefik.yml:ro
-      - /mnt/nas-docker-data/traefik-configs:/etc/traefik/conf.d:ro
+      - /mnt/nas-docker-data/traefik-configs:/etc/traefik/conf.d
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`gateway.homelab.lan`)"
-      - "traefik.http.routers.api.service=api@internal"
-      - "traefik.http.routers.api.entrypoints=websecure"
-      - "traefik.http.routers.api.tls=true"
+      - "traefik.http.routers.gateway.rule=Host(`gateway.homelab.lan`)"
+      - "traefik.http.routers.gateway.service=api@internal"
+      - "traefik.http.routers.gateway.entrypoints=web"
+      - "traefik.http.routers.gateway.priority=100"
+
+      - "traefik.http.middlewares.force-https.redirectscheme.scheme=https"
+
+      - "traefik.http.routers.global-redirect.rule=!HostRegexp(`homelab\\.lan`)"
+      - "traefik.http.routers.global-redirect.entrypoints=web"
+      - "traefik.http.routers.global-redirect.middlewares=force-https"
+      - "traefik.http.routers.global-redirect.service=noop@internal"
+      - "traefik.http.routers.global-redirect.priority=1"
     environment:
       - TZ=${TZ}
+    depends_on:
+      - redis
 
-networks:
-  proxy:
+  redis:
+    image: redis:alpine
+    container_name: traefik-redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379

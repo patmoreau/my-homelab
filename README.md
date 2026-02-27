@@ -1,5 +1,34 @@
 # My Homelab setup
 
+## Dnsmasq setup
+
+1. SSH into the router
+
+   ```bash
+   ssh root@192.168.8.1
+   ```
+
+2. Get the current IP address of the router
+
+   ```bash
+   uci get dhcp.@dnsmasq[0].address
+   ```
+
+3. Add the IP address to the dnsmasq configuration
+
+   ```bash
+   uci add_list dhcp.@dnsmasq[0].address='/proxmox.homelab.lan/192.168.8.10'
+   uci add_list dhcp.@dnsmasq[0].address='/.homelab.lan/192.168.8.50'
+   uci commit dhcp
+   /etc/init.d/dnsmasq restart
+   ```
+
+4. To clean up the dnsmasq configuration
+
+   ```bash
+   uci del dhcp.@dnsmasq[0].address
+   ```
+
 ## Configuration
 
 First, create a shared Docker network so Traefik can talk to other containers:

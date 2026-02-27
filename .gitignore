@@ -11,3 +11,6 @@ homepage/config/logs/homepage.log
 *.tfstate
 *.tfstate.*
 crash.log
+
+**/.ssh/
+**/.DS_Store

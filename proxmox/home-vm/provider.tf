@@ -8,7 +8,7 @@ terraform {
 }
 
 provider "proxmox" {
-  endpoint  = "https://homelab.lan:8006/"
+  endpoint  = "https://proxmox.homelab.lan:8006/"
   api_token = "${var.proxmox_token_id}=${var.proxmox_token_secret}"
   insecure  = true
 

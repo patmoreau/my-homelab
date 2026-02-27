@@ -3,14 +3,17 @@ services:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
     ports:
-      - "3000:3000"
+      - 3000:3000
     volumes:
       - ./config:/app/config
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.homepage.rule=Host(`home.homelab.lan`)"
-      - "traefik.http.services.homepage.loadbalancer.server.port=3000"
+      - traefik.enable=true
+      - traefik.http.routers.homepage-http.rule=Host(`home.homelab.lan`)
+      - traefik.http.routers.homepage-http.entrypoints=web
+      - traefik.http.routers.homepage-http.priority=100
+      - traefik.http.services.homepage-http.loadbalancer.server.port=3000
+      - kop.bind.ip=${BIND_IP}
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -28,10 +31,4 @@ services:
       - HOMEPAGE_VAR_TRANSMISSION_PASSWORD=${TRANSMISSION_PASS}
       - HOMEPAGE_VAR_FILEBROWSER_USERNAME=${FILEBROWSER_USERNAME}
       - HOMEPAGE_VAR_FILEBROWSER_PASSWORD=${FILEBROWSER_PASSWORD}
-    networks:
-      - traefik-public
     restart: unless-stopped
-
-networks:
-  traefik-public:
-    external: true

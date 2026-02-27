@@ -5,7 +5,7 @@
         description: Movies & TV Shows
         widget:
           type: jellyfin
-          url: http://jellyfin:8096
+          url: http://jellyfin.homelab.lan
           key: {{HOMEPAGE_VAR_JELLYFIN_API_KEY}}
 
     - Books:
@@ -14,7 +14,7 @@
         description: E-book Library
         widget:
           type: calibreweb
-          url: http://calibre-web:8083
+          url: http://books.homelab.lan
           username: {{HOMEPAGE_VAR_CALIBREWEB_USERNAME}}
           password: {{HOMEPAGE_VAR_CALIBREWEB_PASSWORD}}
 
@@ -24,7 +24,7 @@
         description: Torrent Client
         widget:
           type: transmission
-          url: http://transmission:9091
+          url: http://transmission.homelab.lan
           rpcUrl: /transmission/
           username: {{HOMEPAGE_VAR_TRANSMISSION_USERNAME}}
           password: {{HOMEPAGE_VAR_TRANSMISSION_PASSWORD}}
@@ -35,7 +35,7 @@
         description: File Browser
         widget:
           type: filebrowser
-          url: http://filebrowser:8080
+          url: http://filebrowser.homelab.lan
           username: {{HOMEPAGE_VAR_FILEBROWSER_USERNAME}}
           password: {{HOMEPAGE_VAR_FILEBROWSER_PASSWORD}}
           # authHeader: X-My-Header # If using Proxy header authentication
@@ -60,11 +60,11 @@
 - Infrastructure:
     - Proxmox:
         icon: proxmox.png
-        href: https://homelab.lan:8006
+        href: https://proxmox.homelab.lan:8006
         description: Virtual Machine Manager
         widget:
           type: proxmox
-          url: https://homelab.lan:8006
+          url: https://proxmox.homelab.lan:8006
           username: {{HOMEPAGE_VAR_PROXMOX_USERNAME}}
           password: {{HOMEPAGE_VAR_PROXMOX_PASSWORD}}
           node: homelab
@@ -75,17 +75,17 @@
         description: Container Management
         widget:
           type: portainer
-          url: http://portainer:9000
+          url: http://portainer.homelab.lan
           env: 3
           key: {{HOMEPAGE_VAR_PORTAINER_KEY}}
 
     - Traefik:
         icon: traefik.png
-        href: http://traefik.homelab.lan
+        href: http://gateway.homelab.lan
         description: Reverse Proxy
         widget:
           type: traefik
-          url: http://traefik.homelab.lan
+          url: http://gateway.homelab.lan
 
     - Qnap:
         icon: qnap.png

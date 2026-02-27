@@ -1,27 +1,29 @@
+log:
+  level: DEBUG # Set to DEBUG if you need more verbose logging
+
 api:
   dashboard: true
-  insecure: true
-
-entryPoints:
-  web:
-    address: ":80"
-    http:
-      redirections:
-        entryPoint:
-          to: websecure
-          scheme: https
-  websecure:
-    address: ":443"
+  insecure: false
 
 providers:
   docker:
     exposedByDefault: false
+  redis:
+    endpoints:
+      - "traefik-redis:6379"
+    rootKey: "traefik"
   file:
     directory: /etc/traefik/conf.d
     watch: true
 
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
 certificatesResolvers:
-  myresolver:
+  acme_certresolver:
     acme:
       email: patrick@drifterapps.com
       storage: acme.json

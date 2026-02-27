@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ~/.ssh/id_ed25519_qnap_monitor:/root/.ssh/id_ed25519_qnap_monitor:ro
+      - .ssh/id_ed25519_qnap_monitor:/root/.ssh/id_ed25519_qnap_monitor:ro
     environment:
       - TZ=${TZ}
       - QNAP_IP=qnap.homelab.lan
@@ -21,9 +21,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-    networks:
-      - traefik-public
-
-networks:
-  traefik-public:
-    external: true
