@@ -18,5 +18,5 @@ services:
       - traefik.http.routers.calibre-http.entrypoints=web
       - traefik.http.routers.calibre-http.priority=100
       - traefik.http.services.calibre-http.loadbalancer.server.port=8083
-      - kop.bind.ip=${BIND_IP}
+      - kop.bind.ip=${HOST}
     restart: unless-stopped

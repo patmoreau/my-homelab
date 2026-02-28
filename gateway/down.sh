@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-ssh morindin@gateway.homelab.lan "cd ~/gateway && docker compose down"
+source .env
+ssh ${HOST_USER}@${HOST} "cd ~/${HOST_NAME} && docker compose down"

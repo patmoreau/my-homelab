@@ -10,7 +10,7 @@ services:
       - traefik.http.routers.jellyfin-http.entrypoints=web
       - traefik.http.routers.jellyfin-http.priority=100
       - traefik.http.services.jellyfin-http.loadbalancer.server.port=8096
-      - kop.bind.ip=${BIND_IP}
+      - kop.bind.ip=${HOST}
     environment:
       - PUID=${PUID}
       - PGID=${PGID}

@@ -15,7 +15,7 @@ services:
       - traefik.http.routers.portainer-http.entrypoints=web
       - traefik.http.routers.portainer-http.priority=100
       - traefik.http.services.portainer-http.loadbalancer.server.port=9000
-      - kop.bind.ip=${BIND_IP}
+      - kop.bind.ip=${HOST}
     environment:
       - PUID=${PUID}
       - PGID=${PGID}

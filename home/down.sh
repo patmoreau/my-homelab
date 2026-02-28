@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-ssh morindin@192.168.8.51 "cd ~/home && docker compose down"
+source .env
+ssh ${HOST_USER}@${HOST} "cd ~/${HOST_NAME} && docker compose down"

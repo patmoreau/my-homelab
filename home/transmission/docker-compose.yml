@@ -8,7 +8,7 @@ services:
       - traefik.http.routers.transmission-http.entrypoints=web
       - traefik.http.routers.transmission-http.priority=100
       - traefik.http.services.transmission-http.loadbalancer.server.port=9091
-      - kop.bind.ip=${BIND_IP}
+      - kop.bind.ip=${HOST}
     environment:
       - PUID=${PUID}
       - PGID=${PGID}

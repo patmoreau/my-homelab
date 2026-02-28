@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-rsync -avz --exclude-from='.rsyncignore' --delete ./ morindin@gateway.homelab.lan:~/gateway/ && ssh morindin@gateway.homelab.lan "cd ~/gateway && docker compose up -d"
+source .env
+rsync -avz --exclude-from='.rsyncignore' --delete ./ ${HOST_USER}@${HOST}:~/${HOST_NAME} && ssh ${HOST_USER}@${HOST} "cd ~/${HOST_NAME} && docker compose up -d"

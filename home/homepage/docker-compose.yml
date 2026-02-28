@@ -13,7 +13,7 @@ services:
       - traefik.http.routers.homepage-http.entrypoints=web
       - traefik.http.routers.homepage-http.priority=100
       - traefik.http.services.homepage-http.loadbalancer.server.port=3000
-      - kop.bind.ip=${BIND_IP}
+      - kop.bind.ip=${HOST}
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
