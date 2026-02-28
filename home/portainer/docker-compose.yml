@@ -1,8 +1,9 @@
 services:
   portainer:
-    image: portainer/portainer-ce:2.39.0-alpine
+    image: portainer/portainer-ce:alpine-sts
     container_name: portainer
     ports:
+      - 8000:8000
       - 9000:9000
     volumes:
       - /mnt/nas-docker-data/portainer/data:/data
