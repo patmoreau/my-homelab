@@ -1,0 +1,76 @@
+name: Configure Branch Ruleset
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/configure-branch-ruleset.yml
+
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Get codeowner user ID
+        id: get-user
+        env:
+          GH_TOKEN: ${{ secrets.ADMIN_PAT }}
+        run: |
+          USER_ID=$(gh api users/patmoreau --jq '.id')
+          echo "user_id=$USER_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Apply main branch ruleset
+        env:
+          GH_TOKEN: ${{ secrets.ADMIN_PAT }}
+          USER_ID: ${{ steps.get-user.outputs.user_id }}
+        run: |
+          REPO="${{ github.repository }}"
+
+          # Check if ruleset named "Protect main" already exists
+          EXISTING_ID=$(gh api "repos/$REPO/rulesets" --jq '.[] | select(.name == "Protect main") | .id' 2>/dev/null || true)
+
+          # NOTE: "user" must be lowercase. 
+          # "parameters" should only include active constraints.
+          PAYLOAD=$(cat <<EOF
+          {
+            "name": "Protect main",
+            "target": "branch",
+            "enforcement": "active",
+            "conditions": {
+              "ref_name": {
+                "include": ["refs/heads/main"],
+                "exclude": []
+              }
+            },
+            "bypass_actors": [
+              {
+                "actor_id": $USER_ID,
+                "actor_type": "user",
+                "bypass_mode": "always"
+              }
+            ],
+            "rules": [
+              {
+                "type": "pull_request",
+                "parameters": {
+                  "required_approving_review_count": 0,
+                  "dismiss_stale_reviews_on_push": false,
+                  "require_code_owner_review": true,
+                  "require_last_push_approval": false,
+                  "required_review_thread_resolution": false
+                }
+              }
+            ]
+          }
+          EOF
+          )
+
+          if [ -n "$EXISTING_ID" ]; then
+            echo "Updating existing ruleset (id: $EXISTING_ID)..."
+            gh api --method PUT "repos/$REPO/rulesets/$EXISTING_ID" --input - <<< "$PAYLOAD"
+          else
+            echo "Creating new ruleset..."
+            gh api --method POST "repos/$REPO/rulesets" --input - <<< "$PAYLOAD"
+          fi
