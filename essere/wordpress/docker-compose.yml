@@ -1,0 +1,46 @@
+services:
+  db:
+    image: mariadb:11.4
+    volumes:
+      - /mnt/nas-docker-data/essere-vm/wordpress/db_data:/var/lib/mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    expose:
+      - 3306
+      - 33060
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  wordpress:
+    image: wordpress:6.9-apache
+    volumes:
+      - /mnt/nas-docker-data/essere-vm/wordpress/wp_data:/var/www/html
+    ports:
+      - 80:80
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.essere-http.rule=Host(`essere.homelab.lan`)
+      - traefik.http.routers.essere-http.entrypoints=web
+      - traefik.http.routers.essere-http.priority=100
+      - traefik.http.services.essere-http.loadbalancer.server.port=80
+      - kop.bind.ip=${HOST}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WORDPRESS_DB_HOST=db
+      - WORDPRESS_DB_USER=${MYSQL_USER}
+      - WORDPRESS_DB_PASSWORD=${MYSQL_PASSWORD}
+      - WORDPRESS_DB_NAME=${MYSQL_DATABASE}

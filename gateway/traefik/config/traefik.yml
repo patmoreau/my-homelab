@@ -1,5 +1,5 @@
 log:
-  level: DEBUG # Set to DEBUG if you need more verbose logging
+  level: INFO
 
 api:
   dashboard: true
@@ -21,6 +21,8 @@ entryPoints:
     address: ":80"
   websecure:
     address: ":443"
+  portainer-agent:
+    address: ":8000"
 
 certificatesResolvers:
   acme_certresolver:

@@ -1,0 +1,4 @@
+include:
+  - path: portainer-agent/docker-compose.yml
+  - path: traefik-kop/docker-compose.yml
+  - path: wordpress/docker-compose.yml

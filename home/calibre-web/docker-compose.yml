@@ -10,7 +10,7 @@ services:
       - TZ=${TZ}
       - DOCKER_MODS=linuxserver/mods:universal-calibre
     volumes:
-      - /mnt/nas-docker-data/calibre/config:/config
+      - /mnt/nas-docker-data/home-vm/calibre/config:/config
       - /mnt/nas-books:/books
     labels:
       - traefik.enable=true

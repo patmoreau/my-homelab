@@ -6,7 +6,7 @@ services:
       - 8000:8000
       - 9000:9000
     volumes:
-      - /mnt/nas-docker-data/portainer/data:/data
+      - /mnt/nas-docker-data/home-vm/portainer/data:/data
       - /var/run/docker.sock:/var/run/docker.sock
     security_opt:
       - no-new-privileges:true
@@ -16,6 +16,9 @@ services:
       - traefik.http.routers.portainer-http.entrypoints=web
       - traefik.http.routers.portainer-http.priority=100
       - traefik.http.services.portainer-http.loadbalancer.server.port=9000
+      - traefik.tcp.routers.portainer-agent.rule=HostSNI(`*`)
+      - traefik.tcp.routers.portainer-agent.entrypoints=portainer-agent
+      - traefik.tcp.services.portainer-agent.loadbalancer.server.port=8000
       - kop.bind.ip=${HOST}
     environment:
       - PUID=${PUID}

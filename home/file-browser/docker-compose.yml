@@ -16,9 +16,9 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - /mnt/nas-docker-data/filebrowser/data:/srv
-      - /mnt/nas-docker-data/filebrowser/config:/config
-      - /mnt/nas-docker-data/filebrowser/database:/database
+      - /mnt/nas-docker-data/home-vm/filebrowser/data:/srv
+      - /mnt/nas-docker-data/home-vm/filebrowser/config:/config
+      - /mnt/nas-docker-data/home-vm/filebrowser/database:/database
       - /mnt/nas-books:/srv/nas-books
       - /mnt/nas-docker-data:/srv/nas-docker-data
       - /mnt/nas-media:/srv/nas-media

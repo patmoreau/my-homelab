@@ -17,6 +17,6 @@ services:
       - TZ=${TZ}
       - JELLYFIN_PublishedServerUrl=jellyfin.homelab.lan
     volumes:
-      - /mnt/nas-docker-data/jellyfin/config:/config
+      - /mnt/nas-docker-data/home-vm/jellyfin/config:/config
       - /mnt/nas-media:/data/movies:ro
     restart: unless-stopped
