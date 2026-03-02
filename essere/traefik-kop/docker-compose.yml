@@ -8,3 +8,8 @@ services:
       - REDIS_ADDR=${REDIS_ADDR}
       - BIND_IP=${HOST}
     restart: unless-stopped
+    networks:
+      - gateway
+
+networks:
+  gateway:
