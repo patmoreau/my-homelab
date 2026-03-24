@@ -10,6 +10,7 @@ terraform {
 resource "proxmox_virtual_environment_vm" "this" {
   name      = var.name
   node_name = var.node_name
+  machine   = var.machine_type
 
   stop_on_destroy = var.stop_on_destroy
 
@@ -19,6 +20,7 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   cpu {
     cores = var.vcpu
+    type  = "host"
   }
 
   memory {
@@ -63,6 +65,17 @@ resource "proxmox_virtual_environment_vm" "this" {
 
   network_device {
     bridge = "vmbr1"
+  }
+
+  dynamic "hostpci" {
+    for_each = var.hostpci != null ? [var.hostpci] : []
+    content {
+      device  = "hostpci0"
+      mapping = hostpci.value.mapping
+      pcie    = hostpci.value.pcie
+      rombar  = hostpci.value.rombar
+      xvga    = hostpci.value.xvga
+    }
   }
 }
 

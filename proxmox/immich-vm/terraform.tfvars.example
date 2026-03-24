@@ -1,0 +1,22 @@
+# PROXMOX CREDENTIALS TEMPLATE
+# Copy this file to terraform.tfvars and fill in your real values
+proxmox_token_id     = "user@pve!tokenid"
+proxmox_token_secret = "00000000-0000-0000-0000-000000000000"
+proxmox_ssh_username = "root"
+
+name       = "my-vm"
+node_name  = "homelab"
+vm_user    = "my-user"
+memory     = 2048
+vcpu       = 2
+disk_size  = 20
+vmbr0_ipv4 = "192.168.8.100/24"
+vmbr0_gw   = "192.168.8.1"
+vmbr1_ipv4 = "192.168.50.100/24"
+
+# GPU passthrough — create a Resource Mapping in Proxmox first:
+#   Datacenter → Resource Mappings → PCI Devices → Add
+#   Name the mapping (e.g. 'gpu'), point it at the device from 'lspci'
+#   Then grant the API token: Datacenter → Permissions → Add → API Token → role 'PVEMappingUser'
+# machine_type = "q35"   # default, required for iGPU passthrough
+# gpu_mapping  = "gpu"   # must match the Resource Mapping name in Proxmox

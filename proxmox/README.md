@@ -81,3 +81,46 @@ proxmox_ssh_username = "terraform-admin"
 - **Multiple NICs**: one `network_device` block + one `ip_config` block per adapter, in order (`net0`, `net1`, …). Secondary interfaces don't need a gateway.
 - **QEMU guest agent**: enabled in the VM resource (`agent { enabled = true }`) and installed via a cloud-init vendor data snippet (`vendor_data_file_id`, not `user_data_file_id`).
 - **NFS mounts**: use the `mounts` directive in the vendor data snippet; include `nfs-common` in `packages`.
+
+## Configure GPU sharing with VM
+
+run the script on the Proxmox:
+
+```bash
+scp proxmox/scripts/check_passthrough.sh pmoreau@192.168.8.10:/tmp/ && \
+  ssh -t pmoreau@192.168.8.10 'sudo bash /tmp/check_passthrough.sh'
+```
+
+Here are the 3 files you need to verify on the Proxmox Host:
+
+1. The Bootloader (/etc/default/grub)
+   Ensure this line exists:
+   GRUB_CMDLINE_LINUX_DEFAULT="quiet amd_iommu=on iommu=pt"
+   Then run:
+
+   ```bash
+   sudo update-grub
+   ```
+
+2. The Modules (/etc/modules)
+   Add these to the bottom of the file:
+
+   ```text
+   vfio
+   vfio_iommu_type1
+   vfio_pci
+   ```
+
+3. Check the address
+
+   ```bash
+    lspci | grep VGA
+   ```
+
+4. The Binding (/etc/modprobe.d/vfio.conf)
+   You need to tell Proxmox to "reserve" the GPU for the VM. Use the IDs found by the script (likely 1002:1900 for your 780M):
+
+   ```bash
+   echo "options vfio-pci ids=1002:1900 disable_vga=1" | sudo tee /etc/modprobe.d/vfio.conf
+   sudo update-initramfs -u
+   ```

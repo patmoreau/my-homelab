@@ -88,3 +88,20 @@ variable "vm_user" {
   type        = string
   sensitive   = true
 }
+
+variable "machine_type" {
+  description = "VM machine type. Set to 'q35' when using GPU passthrough."
+  type        = string
+  default     = null
+}
+
+variable "hostpci" {
+  description = "PCI/GPU passthrough via a Proxmox Resource Mapping name (Datacenter → Resource Mappings → PCI Devices). Set to null to disable."
+  type = object({
+    mapping = string
+    pcie    = optional(bool, true)
+    rombar  = optional(bool, true)
+    xvga    = optional(bool, false)
+  })
+  default = null
+}
