@@ -84,6 +84,8 @@ resource "proxmox_virtual_environment_file" "cloud_init_vendor_data" {
         - [192.168.50.1:/Books, /mnt/nas-books, nfs, "defaults,nfsvers=3,soft,bg,_netdev,async,timeo=150,retrans=3,rw", "0", "0"]
         - [192.168.50.1:/Multimedia, /mnt/nas-media, nfs, "defaults,nfsvers=3,soft,bg,_netdev,async,timeo=150,retrans=3,rw", "0", "0"]
         - [192.168.50.1:/docker-data, /mnt/nas-docker-data, nfs, "defaults,nfsvers=3,soft,bg,_netdev,async,timeo=150,retrans=3,rw", "0", "0"]
+        - [192.168.50.1:/photos, /mnt/nas-photos, nfs, "defaults,nfsvers=3,soft,bg,_netdev,async,timeo=150,retrans=3,rw", "0", "0"]
+        - [192.168.50.1:/nextcloud, /mnt/nas-nextcloud, nfs, "defaults,nfsvers=3,soft,bg,_netdev,async,timeo=150,retrans=3,rw,uid=33,gid=33", "0", "0"]
       runcmd:
         - systemctl enable qemu-guest-agent
         - systemctl start qemu-guest-agent
