@@ -4,10 +4,10 @@ services:
     container_name: service-watcher
     restart: unless-stopped
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - .ssh/id_ed25519_qnap_monitor:/root/.ssh/id_ed25519_qnap_monitor:ro
     environment:
-      - TZ=${TZ}
       - QNAP_IP=qnap.homelab.lan
       - QNAP_USER=${QNAP_USERNAME}
       - SSH_KEY_PATH=/root/.ssh/id_ed25519_qnap_monitor

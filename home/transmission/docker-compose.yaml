@@ -1,6 +1,6 @@
 services:
   transmission:
-    image: lscr.io/linuxserver/transmission:latest
+    image: lscr.io/linuxserver/transmission:4.1.1
     container_name: transmission
     labels:
       - traefik.enable=true
@@ -12,11 +12,11 @@ services:
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
-      - TZ=${TZ}
       - TRANSMISSION_CACHE_SIZE_MB=128
       - USER=${TRANSMISSION_USER}
       - PASS=${TRANSMISSION_PASS}
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - /mnt/nas-docker-data/home-vm/transmission/config:/config
       - /mnt/nas-docker-data/home-vm/transmission/watch:/watch
       - /mnt/nas-media/downloads/incomplete:/downloads/incomplete

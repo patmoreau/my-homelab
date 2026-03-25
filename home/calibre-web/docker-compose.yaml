@@ -1,15 +1,15 @@
 services:
   calibre-web:
-    image: lscr.io/linuxserver/calibre-web:latest
+    image: lscr.io/linuxserver/calibre-web:0.6.26
     container_name: calibre-web
     ports:
       - 8083:8083
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
-      - TZ=${TZ}
       - DOCKER_MODS=linuxserver/mods:universal-calibre
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - /mnt/nas-docker-data/home-vm/calibre/config:/config
       - /mnt/nas-books:/books
     labels:

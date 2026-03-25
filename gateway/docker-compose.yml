@@ -1,3 +1,0 @@
-include:
-  - path: traefik/docker-compose.yml
-  - path: portainer-agent/docker-compose.yml

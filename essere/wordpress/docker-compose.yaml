@@ -1,6 +1,7 @@
 services:
   db:
-    image: mariadb:11.4
+    image: mariadb:11.4.10
+    container_name: wordpress-db
     volumes:
       - /mnt/nas-docker-data/essere-vm/wordpress/db_data:/var/lib/mysql
     restart: always
@@ -22,7 +23,8 @@ services:
       start_period: 30s
 
   wordpress:
-    image: wordpress:6.9-apache
+    image: wordpress:6.9.4-apache
+    container_name: wordpress
     volumes:
       - /mnt/nas-docker-data/essere-vm/wordpress/wp_data:/var/www/html
     ports:
@@ -53,4 +55,3 @@ services:
 networks:
   wordpress_internal:
     internal: true
-  gateway:

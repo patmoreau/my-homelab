@@ -1,6 +1,6 @@
 services:
   portainer-agent:
-    image: portainer/agent:alpine-sts
+    image: portainer/agent:2.39.1-alpine
     container_name: portainer_agent
     restart: always
     volumes:

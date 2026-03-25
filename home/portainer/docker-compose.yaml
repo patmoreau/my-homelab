@@ -1,11 +1,12 @@
 services:
   portainer:
-    image: portainer/portainer-ce:alpine-sts
+    image: portainer/portainer-ce:2.39.1-alpine
     container_name: portainer
     ports:
       - 8000:8000
       - 9000:9000
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - /mnt/nas-docker-data/home-vm/portainer/data:/data
       - /var/run/docker.sock:/var/run/docker.sock
     security_opt:

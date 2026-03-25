@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v3
+    image: traefik:v3.6.11
     container_name: traefik
     restart: unless-stopped
     security_opt:
@@ -13,7 +13,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./config/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./config/traefik.yaml:/etc/traefik/traefik.yaml:ro
       - /mnt/nas-docker-data/gateway-vm/traefik-configs:/etc/traefik/conf.d
     labels:
       - "traefik.enable=true"
@@ -27,13 +27,11 @@ services:
       - "traefik.http.routers.global-redirect.middlewares=force-https"
       - "traefik.http.routers.global-redirect.service=noop@internal"
       - "traefik.http.routers.global-redirect.priority=1"
-    environment:
-      - TZ=${TZ}
     depends_on:
       - redis
 
   redis:
-    image: redis:alpine
+    image: redis:8.6.2-alpine
     container_name: traefik-redis
     restart: unless-stopped
     ports:

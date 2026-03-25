@@ -13,12 +13,12 @@ services:
       - MYSQL_USER=${MYSQL_USER}
 
   redis:
-    image: redis:alpine
+    image: redis:8.6.2-alpine
     container_name: nextcloud_redis
     restart: always
 
   app:
-    image: nextcloud:latest
+    image: nextcloud:33.0.0
     container_name: nextcloud_app
     restart: always
     ports:

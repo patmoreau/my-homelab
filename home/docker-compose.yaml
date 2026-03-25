@@ -1,0 +1,13 @@
+include:
+  - path: traefik-kop/docker-compose.yaml
+  - path: calibre-web/docker-compose.yaml
+  - path: file-browser/docker-compose.yaml
+  - path: homepage/docker-compose.yaml
+  - path: jellyfin/docker-compose.yaml
+  - path: portainer/docker-compose.yaml
+  - path: service-watcher/docker-compose.yaml
+  - path: transmission/docker-compose.yaml
+
+networks:
+  gateway:
+    name: gateway

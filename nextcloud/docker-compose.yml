@@ -1,8 +1,0 @@
-include:
-  - path: portainer-agent/docker-compose.yml
-  - path: traefik-kop/docker-compose.yml
-  - path: nextcloud/docker-compose.yml
-
-networks:
-  gateway:
-    name: gateway
