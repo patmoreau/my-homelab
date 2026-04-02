@@ -1,0 +1,22 @@
+- name: Create folder
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/filebrowser"
+    state: directory
+    mode: "0755"
+
+- name: Copy docker-compose.yaml
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: "{{ docker_compose_dir }}/filebrowser/docker-compose.yaml"
+    mode: "0644"
+
+- name: Copy .env file
+  ansible.builtin.template:
+    src: .env.j2
+    dest: "{{ docker_compose_dir }}/filebrowser/.env"
+    mode: "0600"
+
+- name: Start
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}/filebrowser"
+    state: present

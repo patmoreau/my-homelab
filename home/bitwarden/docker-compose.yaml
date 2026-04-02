@@ -1,0 +1,24 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:1.35.4-alpine
+    container_name: vaultwarden
+    ports:
+      - 8082:80
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - WEBSOCKET_ENABLED=true
+      - SIGNUPS_ALLOWED=true
+      - ADMIN_TOKEN=${BITWARDEN_ADMIN_TOKEN}
+      - DOMAIN=https://vault.moreaulab.ca
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /mnt/nas-docker-data/home-vm/vaultwarden/data:/data
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.vaultwarden-http.rule=Host(`vault.moreaulab.ca`)
+      - traefik.http.routers.vaultwarden-http.entrypoints=web
+      - traefik.http.routers.vaultwarden-http.priority=100
+      - traefik.http.services.vaultwarden-http.loadbalancer.server.port=8082
+      - kop.bind.ip=${HOST}
+    restart: unless-stopped

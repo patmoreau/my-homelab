@@ -1,0 +1,14 @@
+http:
+  routers:
+    grafana:
+      rule: "Host(`grafana.homelab.lan`)"
+      entryPoints:
+        - web
+      service: grafana
+
+  services:
+    grafana:
+      loadBalancer:
+        servers:
+          # Grafana default port is 3000
+          - url: "http://{{ hostvars['lxc-monitoring']['ansible_host'] }}:3000"

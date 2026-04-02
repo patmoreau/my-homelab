@@ -1,5 +1,6 @@
 include:
   - path: traefik-kop/docker-compose.yaml
+  - path: bitwarden/docker-compose.yaml
   - path: calibre-web/docker-compose.yaml
   - path: file-browser/docker-compose.yaml
   - path: homepage/docker-compose.yaml

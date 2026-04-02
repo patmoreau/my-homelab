@@ -1,0 +1,40 @@
+- name: Provision all LXC
+  hosts: lxc
+  roles:
+    - docker
+
+- name: Deploy Gateway
+  hosts: lxc-gateway
+  roles:
+    - traefik
+    - cloudflare
+
+- name: Deploy Media
+  hosts: lxc-media
+  roles:
+    - calibre
+    - jellyfin
+    - transmission
+
+- name: Deploy Essere
+  hosts: lxc-essere
+  roles:
+    - essere
+
+- name: Deploy Monitoring
+  hosts: lxc-monitoring
+  roles:
+    - prometheus
+    - loki
+    - grafana
+
+- name: Deploy Tools
+  hosts: lxc-tools
+  roles:
+    - homepage
+    - filebrowser
+
+- name: Deploy Promtail
+  hosts: lxc:!lxc-monitoring
+  roles:
+    - promtail

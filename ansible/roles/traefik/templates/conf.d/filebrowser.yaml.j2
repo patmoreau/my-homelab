@@ -1,0 +1,13 @@
+http:
+  routers:
+    filebrowser:
+      rule: "Host(`filebrowser.homelab.lan`)"
+      entryPoints:
+        - web
+      service: filebrowser
+
+  services:
+    filebrowser:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-tools']['ansible_host'] }}:8080"

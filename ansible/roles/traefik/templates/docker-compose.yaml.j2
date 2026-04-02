@@ -1,0 +1,20 @@
+services:
+  traefik:
+    image: traefik:v3.6.11
+    container_name: traefik
+    user: {{ nas_puid }}:{{ nas_pgid }}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - 80:80
+      - 8080:8080
+    networks:
+      - gateway
+    volumes:
+      - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - ./conf.d:/etc/traefik/conf.d:ro
+
+networks:
+  gateway:
+    external: true

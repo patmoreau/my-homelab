@@ -1,0 +1,14 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    # Since they are on the same machine (lxc-monitoring) but separate docker networks, use host IP or docker gateway. Let's use the lxc IP.
+    url: http://{{ hostvars['lxc-monitoring']['ansible_host'] }}:9090
+    access: proxy
+    isDefault: true
+
+  - name: Loki
+    type: loki
+    url: http://{{ hostvars['lxc-monitoring']['ansible_host'] }}:3100
+    access: proxy

@@ -1,0 +1,48 @@
+- name: Create gateway network
+  community.docker.docker_network:
+    name: gateway
+    state: present
+
+- name: Create directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/traefik"
+    state: directory
+    mode: "0755"
+
+- name: Create conf.d directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/traefik/conf.d"
+    state: directory
+    mode: "0755"
+
+- name: Copy traefik.yaml
+  ansible.builtin.copy:
+    src: traefik.yaml
+    dest: "{{ docker_compose_dir }}/traefik/traefik.yaml"
+    mode: "0644"
+
+- name: Copy docker-compose.yaml
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: "{{ docker_compose_dir }}/traefik/docker-compose.yaml"
+    mode: "0644"
+
+- name: Copy conf.d files
+  ansible.builtin.template:
+    src: "conf.d/{{ item }}.j2"
+    dest: "{{ docker_compose_dir }}/traefik/conf.d/{{ item }}"
+    mode: "0644"
+  loop:
+    - calibre.yaml
+    - essere.yaml
+    - filebrowser.yaml
+    - grafana.yaml
+    - homepage.yaml
+    - jellyfin.yaml
+    - traefik.yaml
+    - transmission.yaml
+
+- name: Start
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}/traefik"
+    state: present

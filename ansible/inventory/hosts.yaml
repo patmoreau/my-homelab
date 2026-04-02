@@ -1,0 +1,14 @@
+all:
+  children:
+    lxc:
+      hosts:
+        lxc-gateway:
+          ansible_host: 192.168.8.40
+        lxc-media:
+          ansible_host: 192.168.8.41
+        lxc-essere:
+          ansible_host: 192.168.8.42
+        lxc-monitoring:
+          ansible_host: 192.168.8.43
+        lxc-tools:
+          ansible_host: 192.168.8.44

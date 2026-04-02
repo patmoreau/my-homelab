@@ -2,15 +2,29 @@
 homepage/config/logs/homepage.log
 **/node_modules/
 
-# Ignore the actual secret values
-*.tfvars
-!*.tfvars.example
+**/.ssh/
 
-# Ignore local terraform state and binary folders
-.terraform/
+# Terraform
 *.tfstate
-*.tfstate.*
+!*.tfvars.example
+*.tfstate.backup
+*.tfstate.lock.info
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfvars.json
 crash.log
 
-**/.ssh/
-**/.DS_Store
+# Ansible
+*.retry
+ansible/group_vars/all/vault.yaml
+ansible/group_vars/vault.yaml.vault.password
+.vault_pass
+
+# Secrets
+.env
+*.pem
+*.key
+
+# macOS
+.DS_Store

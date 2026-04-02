@@ -1,0 +1,34 @@
+- name: Create directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/grafana"
+    state: directory
+    mode: "0755"
+
+- name: Create config directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/grafana/config/datasources"
+    state: directory
+    mode: "0755"
+
+- name: Copy datasources.yml
+  ansible.builtin.template:
+    src: datasources.yml.j2
+    dest: "{{ docker_compose_dir }}/grafana/config/datasources/datasources.yml"
+    mode: "0644"
+
+- name: Copy docker-compose.yaml
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: "{{ docker_compose_dir }}/grafana/docker-compose.yaml"
+    mode: "0644"
+
+- name: Create .env file
+  ansible.builtin.template:
+    src: .env.j2
+    dest: "{{ docker_compose_dir }}/grafana/.env"
+    mode: "0600"
+
+- name: Start
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}/grafana"
+    state: present

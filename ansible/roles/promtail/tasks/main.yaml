@@ -1,0 +1,28 @@
+- name: Create directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/promtail"
+    state: directory
+    mode: "0755"
+
+- name: Create config directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/promtail/config"
+    state: directory
+    mode: "0755"
+
+- name: Copy promtail-config.yaml
+  ansible.builtin.template:
+    src: promtail-config.yaml.j2
+    dest: "{{ docker_compose_dir }}/promtail/config/promtail-config.yaml"
+    mode: "0644"
+
+- name: Copy docker-compose.yaml
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: "{{ docker_compose_dir }}/promtail/docker-compose.yaml"
+    mode: "0644"
+
+- name: Start
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}/promtail"
+    state: present

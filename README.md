@@ -1,5 +1,16 @@
 # My Homelab setup
 
+lxc-gateway → traefik + cloudflared + promtail agent
+lxc-essere → wordpress + mariadb + promtail agent
+lxc-media → jellyfin + transmission + calibre-web + promtail agent
+lxc-tools → homepage + promtail agent + autres
+lxc-vault → bitwarden + promtail agent
+lxc-monitoring → grafana + loki + prometheus
+
+https://docs.linuxserver.io/
+
+terraform destroy -target=module.tools
+
 ## Dnsmasq setup
 
 1. SSH into the router

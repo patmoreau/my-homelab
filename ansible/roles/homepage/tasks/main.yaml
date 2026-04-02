@@ -1,0 +1,42 @@
+- name: Create directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/homepage"
+    state: directory
+    mode: "0755"
+
+- name: Create config directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/homepage/config"
+    state: directory
+    mode: "0755"
+
+- name: Create logs directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/homepage/config/logs"
+    state: directory
+    mode: "0755"
+
+- name: Copy docker-compose.yaml
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: "{{ docker_compose_dir }}/homepage/docker-compose.yaml"
+    mode: "0644"
+
+- name: Create .env file
+  ansible.builtin.template:
+    src: .env.j2
+    dest: "{{ docker_compose_dir }}/homepage/.env"
+    mode: "0600"
+
+- name: Copy config files
+  ansible.builtin.copy:
+    src: config/
+    dest: "{{ docker_compose_dir }}/homepage/config/"
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0644"
+
+- name: Start Homepage
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}/homepage"
+    state: present

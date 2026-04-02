@@ -1,0 +1,22 @@
+- name: Create directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/prometheus"
+    state: directory
+    mode: "0755"
+
+- name: Copy config files
+  ansible.builtin.copy:
+    src: config/
+    dest: "{{ docker_compose_dir }}/prometheus/config/"
+    mode: "0644"
+
+- name: Copy docker-compose.yaml
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: "{{ docker_compose_dir }}/prometheus/docker-compose.yaml"
+    mode: "0644"
+
+- name: Start
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}/prometheus"
+    state: present

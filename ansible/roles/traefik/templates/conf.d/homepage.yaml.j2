@@ -1,0 +1,13 @@
+http:
+  routers:
+    homepage:
+      rule: "Host(`home.homelab.lan`)"
+      entryPoints:
+        - web
+      service: homepage
+
+  services:
+    homepage:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-tools']['ansible_host'] }}:3000"

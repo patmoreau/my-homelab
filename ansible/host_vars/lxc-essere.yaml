@@ -1,0 +1,4 @@
+mysql_root_password: "{{ vault_essere_mariadb_root_password }}"
+mysql_database: wordpress
+mysql_user: essere-user
+mysql_password: "{{ vault_essere_mariadb_password }}"

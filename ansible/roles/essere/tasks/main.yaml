@@ -1,0 +1,56 @@
+- name: Create folder
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/essere"
+    state: directory
+    mode: "0755"
+
+- name: Create data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0777"
+  loop:
+    - /data/nginx
+    - /data/mariadb
+    - /data/wordpress
+
+- name: Download and extract WordPress
+  ansible.builtin.unarchive:
+    src: "https://wordpress.org/wordpress-{{ wordpress_version }}.tar.gz"
+    dest: /data/wordpress
+    remote_src: true
+    extra_opts:
+      - "--strip-components=1"
+      - "--no-same-owner"
+      - "--no-same-permissions"
+    creates: /data/wordpress/wp-settings.php
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0755"
+
+- name: Generate wp-config.php
+  ansible.builtin.template:
+    src: wp-config.php.j2
+    dest: /data/wordpress/wp-config.php
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0640"
+
+- name: Copy docker-compose.yaml
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: "{{ docker_compose_dir }}/essere/docker-compose.yaml"
+    mode: "0644"
+
+- name: Create .env file
+  ansible.builtin.template:
+    src: .env.j2
+    dest: "{{ docker_compose_dir }}/essere/.env"
+    mode: "0600"
+
+- name: Start
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}/essere"
+    state: present

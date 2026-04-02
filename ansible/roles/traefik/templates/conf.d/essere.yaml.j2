@@ -1,0 +1,13 @@
+http:
+  routers:
+    essere:
+      rule: "Host(`essere.ca`) || Host(`www.essere.ca`) || Host(`essere.homelab.lan`)"
+      entryPoints:
+        - web
+      service: essere
+
+  services:
+    essere:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-essere']['ansible_host'] }}:80"

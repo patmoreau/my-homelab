@@ -1,0 +1,13 @@
+http:
+  routers:
+    transmission:
+      rule: "Host(`transmission.homelab.lan`)"
+      entryPoints:
+        - web
+      service: transmission
+
+  services:
+    transmission:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-media']['ansible_host'] }}:9091"

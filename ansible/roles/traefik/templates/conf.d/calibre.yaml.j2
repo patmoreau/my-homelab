@@ -1,0 +1,13 @@
+http:
+  routers:
+    calibre:
+      rule: "Host(`books.homelab.lan`)"
+      entryPoints:
+        - web
+      service: calibre
+
+  services:
+    calibre:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-media']['ansible_host'] }}:8083"

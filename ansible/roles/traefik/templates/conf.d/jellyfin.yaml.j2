@@ -1,0 +1,13 @@
+http:
+  routers:
+    jellyfin:
+      rule: "Host(`jellyfin.homelab.lan`)"
+      entryPoints:
+        - web
+      service: jellyfin
+
+  services:
+    jellyfin:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-media']['ansible_host'] }}:8096"

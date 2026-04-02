@@ -1,0 +1,20 @@
+services:
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    ports:
+      - 8096:8096
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - JELLYFIN_PublishedServerUrl=jellyfin.homelab.lan
+    volumes:
+      - /data/jellyfin:/config
+      - /data/downloads/complete:/data/downloads:ro
+      - /data/holidays:/data/holidays:ro
+      - /data/kids:/data/kids:ro
+      - /data/les-mills:/data/les-mills:ro
+      - /data/movies:/data/movies:ro
+      - /data/tv:/data/tv:ro
+    restart: unless-stopped
