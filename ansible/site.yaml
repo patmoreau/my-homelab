@@ -34,6 +34,11 @@
     - homepage
     - filebrowser
 
+- name: Deploy Vault
+  hosts: lxc-vault
+  roles:
+    - vaultwarden
+
 - name: Deploy Promtail
   hosts: lxc:!lxc-monitoring
   roles:

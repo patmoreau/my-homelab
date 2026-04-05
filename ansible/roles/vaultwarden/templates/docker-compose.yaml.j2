@@ -1,0 +1,17 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:1.35.4-alpine
+    container_name: vaultwarden
+    ports:
+      - 8082:80
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBSOCKET_ENABLED=true
+      - SIGNUPS_ALLOWED=true
+      - ADMIN_TOKEN=${BITWARDEN_ADMIN_TOKEN}
+      - DOMAIN=https://vault.moreaulab.ca
+    volumes:
+      - /data/vault/vaultwarden/data:/data
+    restart: unless-stopped

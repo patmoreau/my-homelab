@@ -75,6 +75,7 @@ variable "lxc_vm_ids" {
     essere     = 112
     monitoring = 113
     tools      = 114
+    vault      = 115
   }
 }
 
@@ -82,11 +83,12 @@ variable "lxc_ips" {
   description = "Host part of the eth0 IP, combined with network_prefix to form the full address (e.g., 40 → 192.168.8.40)"
   type        = map(number)
   default = {
-    gateway    = 10
-    media      = 11
-    essere     = 12
-    monitoring = 13
-    tools      = 14
+    gateway    = 40
+    media      = 41
+    essere     = 42
+    monitoring = 43
+    tools      = 44
+    vault      = 45
   }
 }
 
@@ -99,5 +101,6 @@ variable "lxc_ips_eth1" {
     essere     = 12
     monitoring = 13
     tools      = 14
+    vault      = 15
   }
 }

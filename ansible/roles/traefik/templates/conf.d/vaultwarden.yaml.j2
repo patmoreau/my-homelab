@@ -1,0 +1,13 @@
+http:
+  routers:
+    vaultwarden:
+      rule: "Host(`vault.moreaulab.ca`)"
+      entryPoints:
+        - web
+      service: vaultwarden
+
+  services:
+    vaultwarden:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-vault']['ansible_host'] }}:8082"
