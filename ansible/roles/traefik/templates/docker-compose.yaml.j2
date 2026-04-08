@@ -2,7 +2,6 @@ services:
   traefik:
     image: traefik:v3.6.11
     container_name: traefik
-    user: {{ nas_puid }}:{{ nas_pgid }}
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true

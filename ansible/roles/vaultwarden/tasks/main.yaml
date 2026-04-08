@@ -4,6 +4,18 @@
     state: directory
     mode: "0755"
 
+- name: Create NAS volume folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0771"
+  loop:
+    - /data/vaultwarden
+    - /data/vaultwarden/data
+    - /data/vaultwarden/mariadb
+
 - name: Copy docker-compose.yaml
   ansible.builtin.template:
     src: docker-compose.yaml.j2

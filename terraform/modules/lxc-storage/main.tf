@@ -19,8 +19,9 @@ resource "null_resource" "persistent_volumes" {
       <<-EOT
       VMID=${each.value.vmid}
       STORAGE=${each.value.storage_name}
+      DISK=${each.value.disk_name}
       SIZE=${each.value.size}
-      DISK_NAME="vm-$VMID-disk-10"
+      DISK_NAME="vm-$VMID-$DISK"
       MNT="/tmp/terraform_mnt_$VMID"
 
       PVESM="/usr/sbin/pvesm"

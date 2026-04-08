@@ -5,6 +5,7 @@ output "lxc_ips" {
     essere     = module.essere.ip
     monitoring = module.monitoring.ip
     tools      = module.tools.ip
+    vault      = module.vault.ip
   }
 }
 
@@ -15,5 +16,6 @@ output "lxc_ids" {
     essere     = module.essere.vm_id
     monitoring = module.monitoring.vm_id
     tools      = module.tools.vm_id
+    vault      = module.vault.vm_id
   }
 }

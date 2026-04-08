@@ -1,22 +1,22 @@
 services:
-  db:
-    image: mariadb:11.4.10
-    container_name: wordpress-db
-    user: {{ nas_puid }}:{{ nas_pgid }}
-    volumes:
-      - /data/mariadb:/var/lib/mysql
-    restart: always
+  mariadb:
+    image: lscr.io/linuxserver/mariadb:latest
+    container_name: essere_db
+    restart: unless-stopped
+    expose:
+      - 3306
     environment:
+      - TZ=${TZ}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-    expose:
-      - 3306
+    volumes:
+      - /data/mariadb:/config
     networks:
       - wordpress_internal
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,20 +24,18 @@ services:
 
   nginx:
     image: lscr.io/linuxserver/nginx:latest
-    container_name: wordpress-nginx
+    container_name: essere
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - 80:80
     environment:
-      - PUID={{ nas_puid }}
-      - PGID={{ nas_pgid }}
-      - TZ={{ timezone | default('America/Toronto') }}
+      - TZ=${TZ}
     volumes:
       - /data/nginx:/config
       - /data/wordpress:/config/www/
-    ports:
-      - 80:80
-    restart: always
-    depends_on:
-      db:
-        condition: service_healthy
     networks:
       - wordpress_internal
       - wordpress_external

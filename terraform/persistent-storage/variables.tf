@@ -30,9 +30,10 @@ variable "storage_volumes" {
     vmid         = number
     size         = string
     storage_name = string
+    disk_name    = string
   }))
   default = {
-    "lxc-essere" = { vmid = 112, size = "5G", storage_name = "local-lvm" },
-    "lxc-vault"  = { vmid = 115, size = "2G", storage_name = "local-lvm" },
+    "lxc-essere" = { vmid = 112, size = "10G", storage_name = "local-lvm", disk_name = "essere-data" },
+    "lxc-vault"  = { vmid = 115, size = "2G", storage_name = "local-lvm", disk_name = "vault-data" },
   }
 }

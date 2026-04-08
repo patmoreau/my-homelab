@@ -8,8 +8,6 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    owner: "{{ nas_puid }}"
-    group: "{{ nas_pgid }}"
     mode: "0777"
   loop:
     - /data/nginx
@@ -26,17 +24,20 @@
       - "--no-same-owner"
       - "--no-same-permissions"
     creates: /data/wordpress/wp-settings.php
-    owner: "{{ nas_puid }}"
-    group: "{{ nas_pgid }}"
     mode: "0755"
+
+- name: Ensure wp-content directories are writable
+  ansible.builtin.file:
+    path: /data/wordpress
+    state: directory
+    mode: "0777"
+    recurse: true
 
 - name: Generate wp-config.php
   ansible.builtin.template:
     src: wp-config.php.j2
     dest: /data/wordpress/wp-config.php
-    owner: "{{ nas_puid }}"
-    group: "{{ nas_pgid }}"
-    mode: "0640"
+    mode: "0644"
 
 - name: Copy docker-compose.yaml
   ansible.builtin.template:

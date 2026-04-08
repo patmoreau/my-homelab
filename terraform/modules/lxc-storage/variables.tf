@@ -16,5 +16,6 @@ variable "storage_volumes" {
     vmid         = number
     size         = string
     storage_name = string
+    disk_name    = string
   }))
 }

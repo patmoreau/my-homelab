@@ -59,15 +59,17 @@ variable "memory_swap" {
 
 variable "disk_size" {
   type    = number
-  default = 8
+  default = 4
 }
 
 variable "mounts" {
-  description = "Bind mounts applied via pct set on the Proxmox host"
+  description = "Bind mounts or Proxmox storage volume mounts applied via pct set. Use 'host' for bind mounts, 'volume' for an existing Proxmox volid (e.g. from module.lxc_volume.volids)."
   type = list(object({
-    host = string
-    mp   = string
-    ro   = optional(bool, false)
+    host   = optional(string)
+    volume = optional(string)
+    mp     = string
+    ro     = optional(bool, false)
+    backup = optional(bool, false)
   }))
   default = []
 }
@@ -88,4 +90,13 @@ variable "proxmox_ssh_username" {
 
 variable "terraform_ssh_private_key" {
   type = string
+}
+
+variable "nas_idmap" {
+  description = "NAS UID/GID passthrough mapping. Maps a single uid:gid from the NAS directly into the unprivileged container so bind-mounted NAS shares have correct ownership."
+  type = object({
+    uid = number
+    gid = number
+  })
+  default = null
 }

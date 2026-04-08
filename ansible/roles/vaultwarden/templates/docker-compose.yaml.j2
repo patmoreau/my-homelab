@@ -2,16 +2,50 @@ services:
   vaultwarden:
     image: vaultwarden/server:1.35.4-alpine
     container_name: vaultwarden
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
     ports:
-      - 8082:80
+      - 8080:80
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
       - TZ=${TZ}
       - WEBSOCKET_ENABLED=true
       - SIGNUPS_ALLOWED=true
       - ADMIN_TOKEN=${BITWARDEN_ADMIN_TOKEN}
       - DOMAIN=https://vault.moreaulab.ca
+      - DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mariadb/${MYSQL_DATABASE}
     volumes:
-      - /data/vault/vaultwarden/data:/data
+      - /data/vaultwarden/data:/data
+    networks:
+      - vault_internal
+      - vault_external
+
+  mariadb:
+    image: lscr.io/linuxserver/mariadb:latest
+    container_name: vaultwarden_db
     restart: unless-stopped
+    expose:
+      - 3306
+    environment:
+      - TZ=${TZ}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - /data/vaultwarden/mariadb:/config
+    networks:
+      - vault_internal
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  vault_internal:
+    internal: true
+  vault_external:
+    internal: false
