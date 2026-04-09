@@ -10,4 +10,4 @@ http:
     filebrowser:
       loadBalancer:
         servers:
-          - url: "http://{{ hostvars['lxc-tools']['ansible_host'] }}:8080"
+          - url: "http://{{ hostvars['lxc-media']['ansible_host'] }}:8080"

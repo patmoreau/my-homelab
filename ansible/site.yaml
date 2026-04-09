@@ -17,6 +17,7 @@
     - calibre
     - jellyfin
     - transmission
+    - filebrowser
 
 - name: Deploy Essere
   hosts: lxc-essere
@@ -34,7 +35,6 @@
   hosts: lxc-tools
   roles:
     - homepage
-    - filebrowser
 
 - name: Deploy Vault
   hosts: lxc-vault

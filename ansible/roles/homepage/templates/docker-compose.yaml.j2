@@ -1,12 +1,10 @@
 services:
   homepage:
-    image: ghcr.io/gethomepage/homepage:v1.11.0
+    image: ghcr.io/gethomepage/homepage:v1.12.3
     container_name: homepage
     ports:
       - 3000:3000
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
       - TZ=${TZ}
       - HOMEPAGE_ALLOWED_HOSTS=home.homelab.lan,home.moreaulab.ca
       - HOMEPAGE_VAR_CALIBREWEB_USERNAME=${CALIBREWEB_USERNAME}
@@ -21,7 +19,6 @@ services:
       - HOMEPAGE_VAR_TRANSMISSION_USERNAME=${TRANSMISSION_USER}
       - HOMEPAGE_VAR_TRANSMISSION_PASSWORD=${TRANSMISSION_PASS}
     volumes:
-      - /etc/localtime:/etc/localtime:ro
       - ./config:/app/config
       - ./config/logs:/app/config/logs
       - /var/run/docker.sock:/var/run/docker.sock:ro

@@ -22,12 +22,4 @@ module "tools" {
   proxmox_host_ip           = var.proxmox_host_ip
   proxmox_ssh_username      = var.proxmox_ssh_username
   terraform_ssh_private_key = var.terraform_ssh_private_key
-
-  mounts = [
-    { host = "/mnt/pve/nas-tools", mp = "/data/tools" },
-    { host = "/mnt/pve/nas-books", mp = "/data/books" },
-    { host = "/mnt/pve/nas-essere", mp = "/data/essere" },
-    { host = "/mnt/pve/nas-media", mp = "/data/media" },
-    { host = "/mnt/pve/nas-monitoring", mp = "/data/monitoring" },
-  ]
 }
