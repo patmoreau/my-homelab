@@ -2,7 +2,7 @@ services:
   filebrowser:
     image: filebrowser/filebrowser:v2.62.1
     container_name: filebrowser
-    user: {{ nas_puid }}:{{ nas_pgid }}
+    user: ${PUID}:${PGID}
     ports:
       - 8080:80
     environment:
@@ -10,12 +10,8 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - /data/tools/filebrowser/config:/config
-      - /data/tools/filebrowser/data:/srv
-      - /data/tools/filebrowser/database:/database
-      - /data/books:/srv/nas-books
-      - /data/essere:/srv/nas-essere
-      - /data/media:/srv/nas-media
-      - /data/monitoring:/srv/nas-monitoring
-      - /data/tools:/srv/nas-tools
+      - /data/filebrowser/config:/config
+      - /data/filebrowser/data:/srv
+      - /data/filebrowser/database:/database
+      - /media:/srv/nas-media
     restart: unless-stopped

@@ -33,6 +33,7 @@ variable "storage_volumes" {
     disk_name    = string
   }))
   default = {
+    "lxc-media"      = { vmid = 111, size = "10G", storage_name = "local-lvm", disk_name = "media-data" },
     "lxc-essere"     = { vmid = 112, size = "10G", storage_name = "local-lvm", disk_name = "essere-data" },
     "lxc-monitoring" = { vmid = 113, size = "2G", storage_name = "local-lvm", disk_name = "monitoring-data" },
     "lxc-vault"      = { vmid = 115, size = "2G", storage_name = "local-lvm", disk_name = "vault-data" },

@@ -26,9 +26,4 @@ module "vault" {
   mounts = [
     { volume = "local-lvm:vm-${var.lxc_vm_ids["vault"]}-vault-data", mp = "/data", backup = true },
   ]
-
-  nas_idmap = {
-    uid = 3000
-    gid = 100
-  }
 }

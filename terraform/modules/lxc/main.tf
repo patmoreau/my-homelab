@@ -65,8 +65,9 @@ resource "proxmox_virtual_environment_container" "this" {
   }
 
   network_interface {
-    name   = "eth0"
-    bridge = "vmbr0"
+    name        = "eth0"
+    bridge      = "vmbr0"
+    mac_address = var.hwaddr_eth0
   }
 
   network_interface {

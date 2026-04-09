@@ -1,4 +1,0 @@
-nas_puid: 3000
-nas_pgid: 100
-docker_data_root: /app/docker
-docker_compose_dir: /app/opt/docker

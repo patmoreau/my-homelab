@@ -9,7 +9,7 @@ This guide is to segregate service accounts by type of content and settings thei
 
 Avoid using personal accounts. Create dedicated Service Accounts via SSH on your QNAP (QTS).
 
-- svc-vault
+- svc-media
 
 ### Create Service Users
 
@@ -18,25 +18,25 @@ Create the users in the QTS Web UI first, then force the UIDs via SSH:
 ### Verify service user
 
 ```bash
-grep svc-vault /etc/passwd
+grep svc-media /etc/passwd
 ```
 
 ### Force change UID
 
 ```bash
-sudo sed -i 's/^svc-vault:x:1003:100/svc-vault:x:3000:100/' /etc/passwd
+sudo sed -i 's/^svc-media:x:1003:100/svc-media:x:3000:100/' /etc/passwd
 ```
 
 ### Prevent logging on
 
 ```bash
-sudo sed -i '/^svc-vault:/ s|/bin/sh|/bin/false|' /etc/passwd
+sudo sed -i '/^svc-media:/ s|/bin/sh|/bin/false|' /etc/passwd
 ```
 
 ### No home directory
 
 ```bash
-sudo sed -i '/^svc-vault:/ s|/share/homes/svc-vault|/dev/null|' /etc/passwd
+sudo sed -i '/^svc-media:/ s|/share/homes/svc-media|/dev/null|' /etc/passwd
 ```
 
 ### Fix Ownership on the NAS shares

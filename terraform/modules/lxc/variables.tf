@@ -92,6 +92,12 @@ variable "terraform_ssh_private_key" {
   type = string
 }
 
+variable "hwaddr_eth0" {
+  description = "Optional MAC address for eth0 (ip_eth0)"
+  type        = string
+  default     = null
+}
+
 variable "nas_idmap" {
   description = "NAS UID/GID passthrough mapping. Maps a single uid:gid from the NAS directly into the unprivileged container so bind-mounted NAS shares have correct ownership."
   type = object({

@@ -13,6 +13,7 @@ module "media" {
   proxmox_node    = var.proxmox_node
   dns_server      = var.dns_server
   ip_eth0         = local.ip["media"]
+  hwaddr_eth0     = "bc:24:11:ae:0d:d9"
   ip_eth1         = local.ip_eth1["media"]
   network_gateway = var.network_gateway
   ssh_public_key  = local.ssh_public_key
@@ -26,13 +27,19 @@ module "media" {
   gpu_passthrough = true
 
   mounts = [
-    { host = "/mnt/pve/nas-media/jellyfin", mp = "/data/jellyfin" },
-    { host = "/mnt/pve/nas-media/downloads", mp = "/data/downloads" },
-    { host = "/mnt/pve/nas-media/holidays", mp = "/data/holidays", ro = true },
-    { host = "/mnt/pve/nas-media/kids", mp = "/data/kids", ro = true },
-    { host = "/mnt/pve/nas-media/les-mills", mp = "/data/les-mills", ro = true },
-    { host = "/mnt/pve/nas-media/movies", mp = "/data/movies", ro = true },
-    { host = "/mnt/pve/nas-media/tv", mp = "/data/tv", ro = true },
-    { host = "/mnt/pve/nas-books", mp = "/data/books" },
+    { volume = "local-lvm:vm-${var.lxc_vm_ids["media"]}-media-data", mp = "/data", backup = true },
+    { host = "/mnt/pve/nas-media/jellyfin", mp = "/media/jellyfin_old" },
+    { host = "/mnt/pve/nas-media/downloads", mp = "/media/downloads" },
+    { host = "/mnt/pve/nas-media/holidays", mp = "/media/holidays", ro = true },
+    { host = "/mnt/pve/nas-media/kids", mp = "/media/kids", ro = true },
+    { host = "/mnt/pve/nas-media/les-mills", mp = "/media/les-mills", ro = true },
+    { host = "/mnt/pve/nas-media/movies", mp = "/media/movies", ro = true },
+    { host = "/mnt/pve/nas-media/tv", mp = "/media/tv", ro = true },
+    { host = "/mnt/pve/nas-books", mp = "/media/books" },
   ]
+
+  nas_idmap = {
+    uid = 3000
+    gid = 100
+  }
 }

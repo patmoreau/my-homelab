@@ -10,6 +10,7 @@ services:
       - TZ=${TZ}
       - DOCKER_MODS=linuxserver/mods:universal-calibre
     volumes:
-      - /data/books/calibre/config:/config
-      - /data/books:/books
+      - /data/calibre:/config
+      - /media/books:/books
+      - ./kepubify:/kepubify
     restart: unless-stopped

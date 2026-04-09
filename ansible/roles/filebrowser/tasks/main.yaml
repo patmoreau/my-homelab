@@ -4,6 +4,19 @@
     state: directory
     mode: "0755"
 
+- name: Create data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0777"
+  loop:
+    - /data/filebrowser
+    - /data/filebrowser/config
+    - /data/filebrowser/data
+    - /data/filebrowser/database
+
 - name: Copy docker-compose.yaml
   ansible.builtin.template:
     src: docker-compose.yaml.j2
