@@ -1,0 +1,13 @@
+http:
+  routers:
+    service-watcher:
+      rule: "Host(`service-watcher.homelab.lan`)"
+      entryPoints:
+        - web
+      service: service-watcher
+
+  services:
+    service-watcher:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-media']['ansible_host'] }}:3000"

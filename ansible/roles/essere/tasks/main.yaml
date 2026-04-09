@@ -13,6 +13,8 @@
     - /data/nginx
     - /data/mariadb
     - /data/wordpress
+    - /data/ghostdb
+    - /data/ghost
 
 - name: Download and extract WordPress
   ansible.builtin.unarchive:

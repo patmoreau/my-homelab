@@ -1,6 +1,7 @@
 const express = require("express");
 const ServiceManager = require("./services/ServiceManager");
 const QnapWatcher = require("./services/qnap/QnapWatcher");
+const { registry } = require("./metrics");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -20,6 +21,11 @@ serviceManager.startAll();
 app.get("/api/qnap", (req, res) => {
   const status = qnapWatcher.getStatus();
   res.json(status);
+});
+
+app.get("/metrics", async (req, res) => {
+  res.set("Content-Type", registry.contentType);
+  res.end(await registry.metrics());
 });
 
 app.listen(port, () => {

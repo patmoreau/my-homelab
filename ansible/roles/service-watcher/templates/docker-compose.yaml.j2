@@ -3,16 +3,17 @@ services:
     build: .
     container_name: service-watcher
     restart: unless-stopped
+    ports:
+      - 3000:3000
     volumes:
-      - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - .ssh/id_ed25519_qnap_monitor:/root/.ssh/id_ed25519_qnap_monitor:ro
     environment:
-      - QNAP_IP=qnap.homelab.lan
-      - QNAP_USER=${QNAP_USERNAME}
-      - SSH_KEY_PATH=/root/.ssh/id_ed25519_qnap_monitor
-      # - TARGETS=transmission jellyfin
-      - TARGETS=
+      - TZ=${TZ}
+      - QNAP_IP=${QNAP_IP}
+      - QNAP_USER=${QNAP_USER}
+      - SSH_KEY_PATH=${SSH_KEY_PATH}
+      - TARGETS=${TARGETS}
       - PORT=3000
     healthcheck:
       test:

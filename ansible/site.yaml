@@ -18,6 +18,7 @@
     - jellyfin
     - transmission
     - filebrowser
+    - service-watcher
 
 - name: Deploy Essere
   hosts: lxc-essere

@@ -1,2 +1,5 @@
 nas_puid: 3000
 nas_pgid: 100
+
+service_watcher_qnap_ip: 192.168.50.1
+service_watcher_targets: ""

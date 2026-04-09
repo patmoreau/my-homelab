@@ -36,9 +36,11 @@
     - calibre.yaml
     - essere.yaml
     - filebrowser.yaml
+    - ghost.yaml
     - grafana.yaml
     - homepage.yaml
     - jellyfin.yaml
+    - service-watcher.yaml
     - traefik.yaml
     - transmission.yaml
     - vaultwarden.yaml

@@ -1,0 +1,62 @@
+- name: Create directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/service-watcher"
+    state: directory
+    mode: "0755"
+
+- name: Create .ssh directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/service-watcher/.ssh"
+    state: directory
+    mode: "0700"
+
+- name: Write QNAP SSH private key
+  ansible.builtin.copy:
+    content: "{{ vault_qnap_ssh_private_key | b64decode }}"
+    dest: "{{ docker_compose_dir }}/service-watcher/.ssh/id_ed25519_qnap_monitor"
+    mode: "0600"
+
+- name: Copy Dockerfile
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../tools/service-watcher/Dockerfile"
+    dest: "{{ docker_compose_dir }}/service-watcher/Dockerfile"
+    mode: "0644"
+  register: dockerfile_changed
+
+- name: Copy package.json
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../tools/service-watcher/package.json"
+    dest: "{{ docker_compose_dir }}/service-watcher/package.json"
+    mode: "0644"
+  register: packagejson_changed
+
+- name: Copy src directory
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../tools/service-watcher/src"
+    dest: "{{ docker_compose_dir }}/service-watcher/"
+    mode: "0644"
+  register: src_changed
+
+- name: Copy docker-compose.yaml
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: "{{ docker_compose_dir }}/service-watcher/docker-compose.yaml"
+    mode: "0644"
+
+- name: Create .env file
+  ansible.builtin.template:
+    src: .env.j2
+    dest: "{{ docker_compose_dir }}/service-watcher/.env"
+    mode: "0600"
+
+- name: Build image
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}/service-watcher"
+    build: always
+    state: present
+  when: dockerfile_changed.changed or packagejson_changed.changed or src_changed.changed
+
+- name: Start
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}/service-watcher"
+    state: present

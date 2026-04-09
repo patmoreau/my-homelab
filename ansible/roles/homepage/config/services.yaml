@@ -46,7 +46,7 @@
         href: https://qnap.homelab.lan
         widget:
           type: customapi
-          url: http://service-watcher:3000/api/qnap
+          url: http://service-watcher.homelab.lan/api/qnap
           mappings:
             - field: Status
               label: Status

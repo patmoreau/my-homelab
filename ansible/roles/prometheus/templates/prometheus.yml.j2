@@ -20,3 +20,8 @@ scrape_configs:
 {% for host in groups['lxc'] %}
           - '{{ hostvars[host]['ansible_host'] }}:9338'
 {% endfor %}
+
+  - job_name: 'service_watcher'
+    static_configs:
+      - targets:
+          - '{{ hostvars['lxc-media']['ansible_host'] }}:{{ hostvars['lxc-media'].get('service_watcher_port', 3000) }}'

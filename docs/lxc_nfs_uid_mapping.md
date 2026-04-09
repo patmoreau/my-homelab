@@ -1,106 +1,85 @@
-# Proxmox LXC & QNAP NFS: UID Mapping Guide
+# LXC NFS & UID Mapping
 
-This guide is to segregate service accounts by type of content and settings their permissions. Those will be mapped to Proxmox users.
+All LXC containers run as **unprivileged** (`unprivileged: true`). NFS shares from the QNAP are mounted on the **Proxmox host** and bind-mounted into LXC containers. UID/GID mapping must be consistent between the QNAP service accounts and the LXC containers for file permissions to work.
 
-- Normal service account will use the UID 2000 range.
-- Sensitive service account will use the UID 3000 range.
+## UID scheme
 
-## 1. QNAP Setup (Service Accounts)
+| Range  | Purpose                                                                |
+| ------ | ---------------------------------------------------------------------- |
+| `2000` | General media service accounts (`svc-media`)                           |
+| `3000` | Sensitive service accounts (used by media Docker containers as `PUID`) |
+| `100`  | Shared GID (users group on QNAP)                                       |
 
-Avoid using personal accounts. Create dedicated Service Accounts via SSH on your QNAP (QTS).
+## 1. QNAP: create service accounts
 
-- svc-media
-
-### Create Service Users
-
-Create the users in the QTS Web UI first, then force the UIDs via SSH:
-
-### Verify service user
+Create the user in the QTS web UI first, then force the correct UID via SSH:
 
 ```bash
+# Verify the created user
 grep svc-media /etc/passwd
-```
 
-### Force change UID
-
-```bash
+# Force UID to 3000
 sudo sed -i 's/^svc-media:x:1003:100/svc-media:x:3000:100/' /etc/passwd
-```
 
-### Prevent logging on
-
-```bash
+# Disable login
 sudo sed -i '/^svc-media:/ s|/bin/sh|/bin/false|' /etc/passwd
-```
-
-### No home directory
-
-```bash
 sudo sed -i '/^svc-media:/ s|/share/homes/svc-media|/dev/null|' /etc/passwd
+
+# Fix share ownership
+sudo chown -R 3000:100 /share/nas-media
+sudo chmod -R 770 /share/nas-media
 ```
 
-### Fix Ownership on the NAS shares
+## 2. Proxmox host: allow UID passthrough
 
-```bash
-sudo chown -R 3000:100 /share/vault
-sudo chown -R 3000:100 /share/CACHEDEV2_DATA/vault
-sudo chmod -R 770 /share/vault
-sudo chmod -R 770 /share/CACHEDEV2_DATA/vault
+Add entries to `/etc/subuid` and `/etc/subgid` on the Proxmox host so it can map the service UIDs into the containers:
+
 ```
-
----
-
-## 2. Proxmox Host Configuration
-
-Proxmox must be authorized to map the host's UIDs (2000, 3000).
-
-### Edit Sub-IDs (/etc/subuid and /etc/subgid)
-
 root:100000:65536
 root:2000:1
 root:3000:1
+```
 
----
+Apply to both `/etc/subuid` and `/etc/subgid`.
 
-## 3. LXC Container Mapping (.conf)
+## 3. LXC container: idmap config
 
-Location: /etc/pve/lxc/[ID].conf
+Terraform creates containers as unprivileged. If a container needs to access NFS shares owned by UID 3000, add the following to its `.conf` in `/etc/pve/lxc/[VMID].conf` on the Proxmox host:
 
-### Configuration for General Services (UID 2000)
-
-unprivileged: 1
-lxc.idmap: u 0 100000 2000
-lxc.idmap: u 2000 2000 1
-lxc.idmap: u 2001 102001 63535
-lxc.idmap: g 0 100000 100
-lxc.idmap: g 100 100 1
-lxc.idmap: g 101 100101 65435
-
-### Configuration for Vaultwarden (UID 3000)
-
-unprivileged: 1
+```
 lxc.idmap: u 0 100000 3000
 lxc.idmap: u 3000 3000 1
 lxc.idmap: u 3001 103001 62535
 lxc.idmap: g 0 100000 100
 lxc.idmap: g 100 100 1
 lxc.idmap: g 101 100101 65435
-
----
-
-## 4. Docker Compose Integration
-
-Example for Vaultwarden:
-
-```docker-compose.yml
-
-services:
-  vaultwarden:
-    image: vaultwarden/server:latest
-    user: "3000:100"
-    environment:
-      - PUID=3000
-      - PGID=100
-    volumes:
-      - /mnt/nfs/vaultwarden:/data
 ```
+
+Restart the container after editing.
+
+## 4. Docker Compose: set PUID/PGID
+
+NFS shares are bind-mounted into the LXC at paths like `/media/movies`. Docker containers reference those paths. Set `PUID` and `PGID` to match the QNAP service account:
+
+```yaml
+environment:
+  - PUID=3000
+  - PGID=100
+```
+
+These values are set per-host in Ansible:
+
+- `lxc-media`: `nas_puid: 3000`, `nas_pgid: 100`
+- All other hosts: `nas_puid: 0`, `nas_pgid: 0` (root, no NFS)
+
+## 5. NFS mounts (Proxmox host)
+
+NFS shares are mounted on Proxmox and bind-mounted into LXC containers via Terraform `mounts`. Example from `lxc-media.tf`:
+
+```
+{ host = "/mnt/pve/nas-media/movies", mp = "/media/movies", ro = true }
+{ host = "/mnt/pve/nas-media/downloads", mp = "/media/downloads" }
+{ host = "/mnt/pve/nas-books", mp = "/media/books" }
+```
+
+The NFS mount points on Proxmox (`/mnt/pve/nas-*`) must be configured in the Proxmox UI under Datacenter → Storage.

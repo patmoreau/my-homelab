@@ -1,59 +1,52 @@
-# QNAP QTS setup
+# QNAP Setup
 
-## Create new shared folders
+One-time configuration on the QNAP. For UID mapping and NFS permissions on the Proxmox/LXC side, see [lxc_nfs_uid_mapping.md](lxc_nfs_uid_mapping.md).
 
-```
-Control Panel
-→ Shared Folders
-→ Create
-→ Shared Folder
-```
+## 1. Shared folders
 
-- essere
-- essere-db
-- media
-- gateway
+Create the following shared folders in **Control Panel → Shared Folders → Create**:
 
-## NFS Activation
+| Folder      | Purpose                               |
+| ----------- | ------------------------------------- |
+| `nas-media` | Jellyfin, Transmission, Calibre media |
+| `nas-books` | Calibre book library                  |
 
-Pour chaque dossier créé, il faut activer le NFS via l'interface :
+## 2. NFS access
 
-```
-Control Panel
-→ Shared Folders
-→ Sélectionner le dossier
-→ Edit Shared Folder Permissions
-→ NFS Host Access
-→ Create
-  Host/IP : 192.168.50.0/24
-  Privilege: Read/Write
-  Squash : All Squash (guest, guest)
-```
+For each folder, enable NFS in **Control Panel → Shared Folders → Edit → NFS Host Access**:
 
-## Mount information
+- **Host/IP:** `192.168.50.0/24` (Proxmox vmbr1 network)
+- **Privilege:** Read/Write
+- **Squash:** All Squash (maps all access to `svc-media`)
 
-```zsh
+Verify exports are active:
+
+```bash
 cat /etc/exports
 ```
 
-## Permissions
+## 3. Service accounts
 
-```bash
-id guest
-uid=65534(guest) gid=65534(guest) groups=65534(guest)
+Create service accounts in the QTS web UI, then lock them down via SSH. See [lxc_nfs_uid_mapping.md](lxc_nfs_uid_mapping.md) for the UID forcing and ownership steps.
+
+| Account     | UID    | Used by                         |
+| ----------- | ------ | ------------------------------- |
+| `svc-media` | `3000` | Jellyfin, Transmission, Calibre |
+
+## 4. service-watcher SSH key
+
+The service-watcher on `lxc-media` SSHes into the QNAP to monitor RAID status. It uses a restricted key that can only run the mdstat check command.
+
+Add the following to `~/.ssh/authorized_keys` on the QNAP (replace `YOUR_PUB_KEY` with the content of `id_ed25519_qnap_monitor.pub`):
+
+```
+command="if grep -qE 'check|resync|repair|recovery|reshape' /proc/mdstat; then grep -E 'check|resync|repair|recovery|reshape' /proc/mdstat; else echo 'IDLE'; fi",no-port-forwarding,no-x11-forwarding,no-agent-forwarding YOUR_PUB_KEY
 ```
 
-```bash
-sudo chown -R 65534:65534 /share/{name}
-sudo chown -R 65534:65534 /share/CACHEDEV2_DATA/{name}
+> Enable **Home Service** in Control Panel so `~/.ssh/authorized_keys` persists across reboots.
 
-sudo chmod -R 777 /share/{name}
-sudo chmod -R 777 /share/CACHEDEV2_DATA/{name}
-```
-
-### Verify
+Verify the key works:
 
 ```bash
-ls -la /share/{name}
-ls -la /share/CACHEDEV2_DATA/{name}
+ssh -i ~/.ssh/id_ed25519_qnap_monitor homelab_user@qnap.homelab.lan
 ```
