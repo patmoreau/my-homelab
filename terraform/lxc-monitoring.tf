@@ -24,6 +24,6 @@ module "monitoring" {
   terraform_ssh_private_key = var.terraform_ssh_private_key
 
   mounts = [
-    { host = "/mnt/pve/nas-monitoring", mp = "/data" },
+    { volume = "local-lvm:vm-${var.lxc_vm_ids["monitoring"]}-monitoring-data", mp = "/data", backup = true },
   ]
 }

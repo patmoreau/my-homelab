@@ -2,6 +2,8 @@
   hosts: lxc
   roles:
     - docker
+    - node_exporter
+    - cadvisor
 
 - name: Deploy Gateway
   hosts: lxc-gateway

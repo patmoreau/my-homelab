@@ -4,6 +4,14 @@
     state: directory
     mode: "0755"
 
+- name: Create volume folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0777"
+  loop:
+    - /data/grafana
+
 - name: Create config directory
   ansible.builtin.file:
     path: "{{ docker_compose_dir }}/grafana/config/datasources"

@@ -3,10 +3,12 @@ services:
     image: grafana/loki:latest
     container_name: loki
     restart: unless-stopped
-    user: {{ nas_puid }}:{{ nas_pgid }}
     ports:
       - 3100:3100
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - ./config/loki-config.yaml:/etc/loki/local-config.yaml:ro
-      - /data/loki:/loki
+      - loki_data:/loki
+
+volumes:
+  loki_data:
