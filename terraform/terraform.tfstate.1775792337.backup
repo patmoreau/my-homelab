@@ -1,0 +1,1648 @@
+{
+  "version": 4,
+  "terraform_version": "1.14.8",
+  "serial": 1080,
+  "lineage": "ab462562-2ab2-4c6a-5a56-eabc3ae8f9f9",
+  "outputs": {
+    "lxc_ids": {
+      "value": {
+        "essere": 112,
+        "gateway": 110,
+        "immich": 116,
+        "media": 111,
+        "monitoring": 113,
+        "tools": 114,
+        "vault": 115
+      },
+      "type": [
+        "object",
+        {
+          "essere": "number",
+          "gateway": "number",
+          "immich": "number",
+          "media": "number",
+          "monitoring": "number",
+          "tools": "number",
+          "vault": "number"
+        }
+      ]
+    },
+    "lxc_ips": {
+      "value": {
+        "essere": "192.168.8.42",
+        "gateway": "192.168.8.40",
+        "immich": "192.168.8.46",
+        "media": "192.168.8.41",
+        "monitoring": "192.168.8.43",
+        "tools": "192.168.8.44",
+        "vault": "192.168.8.45"
+      },
+      "type": [
+        "object",
+        {
+          "essere": "string",
+          "gateway": "string",
+          "immich": "string",
+          "media": "string",
+          "monitoring": "string",
+          "tools": "string",
+          "vault": "string"
+        }
+      ]
+    }
+  },
+  "resources": [
+    {
+      "module": "module.essere",
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "mounts",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "2418719172563168573",
+            "triggers": {
+              "gpu": "false",
+              "idmap": "",
+              "mac_address": "BC:24:11:F5:1E:C6",
+              "mount_mp_indices": "0",
+              "mounts": "local-lvm:vm-112-essere-data:/data:backup",
+              "proxmox_host_ip": "192.168.8.10",
+              "proxmox_ssh_username": "terraform-admin",
+              "ssh_private_key_path": "~/.ssh/terraform_homelab",
+              "vm_id": "112"
+            }
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "dependencies": [
+            "module.essere.proxmox_virtual_environment_container.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.essere",
+      "mode": "managed",
+      "type": "proxmox_virtual_environment_container",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/bpg/proxmox\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "clone": [],
+            "console": [],
+            "cpu": [
+              {
+                "architecture": "amd64",
+                "cores": 2,
+                "units": 1024
+              }
+            ],
+            "description": "LXC Essere (essere.ca)\n",
+            "device_passthrough": [],
+            "disk": [
+              {
+                "acl": false,
+                "datastore_id": "local-lvm",
+                "mount_options": [],
+                "path_in_datastore": "local-lvm:vm-112-disk-0",
+                "quota": false,
+                "replicate": false,
+                "size": 16
+              }
+            ],
+            "environment_variables": {},
+            "features": [
+              {
+                "fuse": false,
+                "keyctl": false,
+                "mount": [],
+                "nesting": true
+              }
+            ],
+            "hook_script_file_id": null,
+            "id": "112",
+            "idmap": [],
+            "initialization": [
+              {
+                "dns": [
+                  {
+                    "domain": "",
+                    "server": "",
+                    "servers": [
+                      "192.168.8.1"
+                    ]
+                  }
+                ],
+                "entrypoint": "",
+                "hostname": "lxc-essere",
+                "ip_config": [
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.8.42/24",
+                        "gateway": "192.168.8.1"
+                      }
+                    ],
+                    "ipv6": []
+                  },
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.50.12/24",
+                        "gateway": ""
+                      }
+                    ],
+                    "ipv6": []
+                  }
+                ],
+                "user_account": [
+                  {
+                    "keys": [
+                      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBTPKdIlz1r+ShjyFXmvn7K/gLHYQ7lXxjz0gJjyqUc terraform-homelab"
+                    ],
+                    "password": ""
+                  }
+                ]
+              }
+            ],
+            "ipv4": {
+              "br-02ee00100041": "172.20.0.1",
+              "br-1511d3e31458": "172.24.0.1",
+              "br-31a33f761fc6": "172.19.0.1",
+              "br-9f189ea50470": "172.21.0.1",
+              "br-d443f1e4441f": "172.23.0.1",
+              "br-e07c2bbfa577": "172.22.0.1",
+              "br-f97c943cc5f5": "172.18.0.1",
+              "docker0": "172.17.0.1",
+              "eth0": "192.168.8.42",
+              "eth1": "192.168.50.12"
+            },
+            "ipv6": {
+              "br-02ee00100041": "fe80::fc80:a3ff:fe4d:6dd4",
+              "br-1511d3e31458": "fe80::3811:42ff:feb1:8645",
+              "br-31a33f761fc6": "fe80::e08c:46ff:fe90:26dd",
+              "br-9f189ea50470": "fe80::ec91:4ff:fe44:a83e",
+              "br-d443f1e4441f": "fe80::f06b:ddff:feeb:d90c",
+              "br-e07c2bbfa577": "fe80::8089:b0ff:fe64:e435",
+              "br-f97c943cc5f5": "fe80::107a:4bff:feba:855a",
+              "eth0": "fe80::be24:11ff:fef5:1ec6",
+              "eth1": "fe80::be24:11ff:fe6d:36f0",
+              "veth0bb1c6c": "fe80::7427:2cff:fe36:b967",
+              "veth1584434": "fe80::f867:4aff:feb7:a18e",
+              "veth2e8e14e": "fe80::ac3b:6ff:fe97:f60",
+              "veth5f842dd": "fe80::10bb:94ff:fe43:c627",
+              "veth81346b7": "fe80::40fb:1fff:fece:b0e1",
+              "veth8fee7eb": "fe80::7096:ebff:fe77:f60b",
+              "veth9f36f90": "fe80::28b4:76ff:fea4:49a7",
+              "vethacdb546": "fe80::4df:3ff:fe27:c556"
+            },
+            "memory": [
+              {
+                "dedicated": 1024,
+                "swap": 512
+              }
+            ],
+            "mount_point": [
+              {
+                "acl": false,
+                "backup": true,
+                "mount_options": [],
+                "path": "/data",
+                "path_in_datastore": "local-lvm:vm-112-essere-data",
+                "quota": false,
+                "read_only": false,
+                "replicate": true,
+                "shared": false,
+                "size": "10G",
+                "volume": "local-lvm:vm-112-essere-data"
+              }
+            ],
+            "network_interface": [
+              {
+                "bridge": "vmbr0",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "BC:24:11:F5:1E:C6",
+                "mtu": 0,
+                "name": "eth0",
+                "rate_limit": 0,
+                "vlan_id": 0
+              },
+              {
+                "bridge": "vmbr1",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "BC:24:11:6D:36:F0",
+                "mtu": 0,
+                "name": "eth1",
+                "rate_limit": 0,
+                "vlan_id": 0
+              }
+            ],
+            "node_name": "homelab",
+            "operating_system": [
+              {
+                "template_file_id": "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst",
+                "type": "ubuntu"
+              }
+            ],
+            "pool_id": null,
+            "protection": false,
+            "start_on_boot": true,
+            "started": true,
+            "startup": [],
+            "tags": [],
+            "template": false,
+            "timeout_clone": 1800,
+            "timeout_create": 1800,
+            "timeout_delete": 60,
+            "timeout_start": 300,
+            "timeout_update": 1800,
+            "unprivileged": true,
+            "vm_id": 112,
+            "wait_for_ip": []
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "initialization"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "user_account"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "password"
+              }
+            ]
+          ],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.gateway",
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "mounts",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": []
+    },
+    {
+      "module": "module.gateway",
+      "mode": "managed",
+      "type": "proxmox_virtual_environment_container",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/bpg/proxmox\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "clone": [],
+            "console": [],
+            "cpu": [
+              {
+                "architecture": "amd64",
+                "cores": 2,
+                "units": 1024
+              }
+            ],
+            "description": "Traefik reverse proxy + Cloudflare tunnel\n",
+            "device_passthrough": [],
+            "disk": [
+              {
+                "acl": false,
+                "datastore_id": "local-lvm",
+                "mount_options": [],
+                "path_in_datastore": "local-lvm:vm-110-disk-0",
+                "quota": false,
+                "replicate": false,
+                "size": 8
+              }
+            ],
+            "environment_variables": {},
+            "features": [
+              {
+                "fuse": false,
+                "keyctl": false,
+                "mount": [],
+                "nesting": true
+              }
+            ],
+            "hook_script_file_id": null,
+            "id": "110",
+            "idmap": [],
+            "initialization": [
+              {
+                "dns": [
+                  {
+                    "domain": "",
+                    "server": "",
+                    "servers": [
+                      "192.168.8.1"
+                    ]
+                  }
+                ],
+                "entrypoint": "",
+                "hostname": "lxc-gateway",
+                "ip_config": [
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.8.40/24",
+                        "gateway": "192.168.8.1"
+                      }
+                    ],
+                    "ipv6": []
+                  },
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.50.10/24",
+                        "gateway": ""
+                      }
+                    ],
+                    "ipv6": []
+                  }
+                ],
+                "user_account": [
+                  {
+                    "keys": [
+                      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBTPKdIlz1r+ShjyFXmvn7K/gLHYQ7lXxjz0gJjyqUc terraform-homelab"
+                    ],
+                    "password": ""
+                  }
+                ]
+              }
+            ],
+            "ipv4": {
+              "br-48015dddb966": "172.19.0.1",
+              "br-675e90c4ce48": "172.18.0.1",
+              "br-ce4f0cda5417": "172.20.0.1",
+              "docker0": "172.17.0.1",
+              "eth0": "192.168.8.40",
+              "eth1": "192.168.50.10"
+            },
+            "ipv6": {
+              "br-48015dddb966": "fe80::84ae:e4ff:fe3e:f8ea",
+              "br-675e90c4ce48": "fe80::a0fc:e0ff:fefa:7685",
+              "br-ce4f0cda5417": "fe80::3038:7fff:fe0a:3b02",
+              "eth0": "fe80::be24:11ff:fe2a:a8bb",
+              "eth1": "fe80::be24:11ff:fef2:af41",
+              "veth18c12ed": "fe80::70d0:d9ff:fedf:3cef",
+              "veth59adbb0": "fe80::6cba:77ff:fec3:2083",
+              "veth9e22ec6": "fe80::54b9:c4ff:fee2:e03c",
+              "vetha9d019c": "fe80::60ae:6fff:fef6:d50d"
+            },
+            "memory": [
+              {
+                "dedicated": 512,
+                "swap": 256
+              }
+            ],
+            "mount_point": [],
+            "network_interface": [
+              {
+                "bridge": "vmbr0",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "BC:24:11:2A:A8:BB",
+                "mtu": 0,
+                "name": "eth0",
+                "rate_limit": 0,
+                "vlan_id": 0
+              },
+              {
+                "bridge": "vmbr1",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "BC:24:11:F2:AF:41",
+                "mtu": 0,
+                "name": "eth1",
+                "rate_limit": 0,
+                "vlan_id": 0
+              }
+            ],
+            "node_name": "homelab",
+            "operating_system": [
+              {
+                "template_file_id": "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst",
+                "type": "ubuntu"
+              }
+            ],
+            "pool_id": null,
+            "protection": false,
+            "start_on_boot": true,
+            "started": true,
+            "startup": [],
+            "tags": [],
+            "template": false,
+            "timeout_clone": 1800,
+            "timeout_create": 1800,
+            "timeout_delete": 60,
+            "timeout_start": 300,
+            "timeout_update": 1800,
+            "unprivileged": true,
+            "vm_id": 110,
+            "wait_for_ip": []
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "initialization"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "user_account"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "password"
+              }
+            ]
+          ],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.immich",
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "mounts",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "7735209828061906605",
+            "triggers": {
+              "gpu": "true",
+              "idmap": "3000:100",
+              "mac_address": "BC:24:11:FA:4D:8A",
+              "mount_mp_indices": "0 1",
+              "mounts": "local-lvm:vm-116-immich-data:/data:backup,/mnt/pve/nas-photos:/photos",
+              "proxmox_host_ip": "192.168.8.10",
+              "proxmox_ssh_username": "terraform-admin",
+              "ssh_private_key_path": "~/.ssh/terraform_homelab",
+              "vm_id": "116"
+            }
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "dependencies": [
+            "module.immich.proxmox_virtual_environment_container.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.immich",
+      "mode": "managed",
+      "type": "proxmox_virtual_environment_container",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/bpg/proxmox\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "clone": [],
+            "console": [],
+            "cpu": [
+              {
+                "architecture": "amd64",
+                "cores": 6,
+                "units": 1024
+              }
+            ],
+            "description": "Immich photo management\n",
+            "device_passthrough": [],
+            "disk": [
+              {
+                "acl": false,
+                "datastore_id": "local-lvm",
+                "mount_options": [],
+                "path_in_datastore": "local-lvm:vm-116-disk-0",
+                "quota": false,
+                "replicate": false,
+                "size": 32
+              }
+            ],
+            "environment_variables": {},
+            "features": [
+              {
+                "fuse": false,
+                "keyctl": false,
+                "mount": [],
+                "nesting": true
+              }
+            ],
+            "hook_script_file_id": null,
+            "id": "116",
+            "idmap": [],
+            "initialization": [
+              {
+                "dns": [
+                  {
+                    "domain": "",
+                    "server": "",
+                    "servers": [
+                      "192.168.8.1"
+                    ]
+                  }
+                ],
+                "entrypoint": "",
+                "hostname": "lxc-immich",
+                "ip_config": [
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.8.46/24",
+                        "gateway": "192.168.8.1"
+                      }
+                    ],
+                    "ipv6": []
+                  },
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.50.16/24",
+                        "gateway": ""
+                      }
+                    ],
+                    "ipv6": []
+                  }
+                ],
+                "user_account": [
+                  {
+                    "keys": [
+                      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBTPKdIlz1r+ShjyFXmvn7K/gLHYQ7lXxjz0gJjyqUc terraform-homelab"
+                    ],
+                    "password": ""
+                  }
+                ]
+              }
+            ],
+            "ipv4": {
+              "eth0": "192.168.8.46",
+              "eth1": "192.168.50.16"
+            },
+            "ipv6": {
+              "eth0": "fe80::be24:11ff:fefa:4d8a",
+              "eth1": "fe80::be24:11ff:feec:69ff"
+            },
+            "memory": [
+              {
+                "dedicated": 8192,
+                "swap": 1024
+              }
+            ],
+            "mount_point": [
+              {
+                "acl": false,
+                "backup": true,
+                "mount_options": [],
+                "path": "/data",
+                "path_in_datastore": "local-lvm:vm-116-immich-data",
+                "quota": false,
+                "read_only": false,
+                "replicate": true,
+                "shared": false,
+                "size": "25G",
+                "volume": "local-lvm:vm-116-immich-data"
+              },
+              {
+                "acl": false,
+                "backup": false,
+                "mount_options": [],
+                "path": "/photos",
+                "path_in_datastore": "/mnt/pve/nas-photos",
+                "quota": false,
+                "read_only": false,
+                "replicate": true,
+                "shared": false,
+                "size": "",
+                "volume": "/mnt/pve/nas-photos"
+              }
+            ],
+            "network_interface": [
+              {
+                "bridge": "vmbr0",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "BC:24:11:FA:4D:8A",
+                "mtu": 0,
+                "name": "eth0",
+                "rate_limit": 0,
+                "vlan_id": 0
+              },
+              {
+                "bridge": "vmbr1",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "BC:24:11:EC:69:FF",
+                "mtu": 0,
+                "name": "eth1",
+                "rate_limit": 0,
+                "vlan_id": 0
+              }
+            ],
+            "node_name": "homelab",
+            "operating_system": [
+              {
+                "template_file_id": "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst",
+                "type": "ubuntu"
+              }
+            ],
+            "pool_id": null,
+            "protection": false,
+            "start_on_boot": true,
+            "started": true,
+            "startup": [],
+            "tags": [],
+            "template": false,
+            "timeout_clone": 1800,
+            "timeout_create": 1800,
+            "timeout_delete": 60,
+            "timeout_start": 300,
+            "timeout_update": 1800,
+            "unprivileged": true,
+            "vm_id": 116,
+            "wait_for_ip": []
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "initialization"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "user_account"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "password"
+              }
+            ]
+          ],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.media",
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "mounts",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "status": "tainted",
+          "schema_version": 0,
+          "attributes": {
+            "id": "1940944145274384712",
+            "triggers": {
+              "gpu": "true",
+              "idmap": "3000:100",
+              "mac_address": "bc:24:11:ae:0d:d9",
+              "mount_mp_indices": "0 1 2 3 4 5 6 7",
+              "mounts": "local-lvm:vm-111-media-data:/data:backup,/mnt/pve/nas-media/downloads:/media/downloads,/mnt/pve/nas-media/holidays:/media/holidays:ro,/mnt/pve/nas-media/kids:/media/kids:ro,/mnt/pve/nas-media/les-mills:/media/les-mills:ro,/mnt/pve/nas-media/movies:/media/movies:ro,/mnt/pve/nas-media/tv:/media/tv:ro,/mnt/pve/nas-books:/media/books",
+              "proxmox_host_ip": "192.168.8.10",
+              "proxmox_ssh_username": "terraform-admin",
+              "ssh_private_key_path": "~/.ssh/terraform_homelab",
+              "vm_id": "111"
+            }
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "dependencies": [
+            "module.media.proxmox_virtual_environment_container.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.media",
+      "mode": "managed",
+      "type": "proxmox_virtual_environment_container",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/bpg/proxmox\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "clone": [],
+            "console": [],
+            "cpu": [
+              {
+                "architecture": "amd64",
+                "cores": 4,
+                "units": 1024
+              }
+            ],
+            "description": "Media server\n",
+            "device_passthrough": [],
+            "disk": [
+              {
+                "acl": false,
+                "datastore_id": "local-lvm",
+                "mount_options": null,
+                "path_in_datastore": "local-lvm:vm-111-disk-0",
+                "quota": false,
+                "replicate": false,
+                "size": 16
+              }
+            ],
+            "environment_variables": null,
+            "features": [
+              {
+                "fuse": false,
+                "keyctl": false,
+                "mount": null,
+                "nesting": true
+              }
+            ],
+            "hook_script_file_id": null,
+            "id": "111",
+            "idmap": [],
+            "initialization": [
+              {
+                "dns": [
+                  {
+                    "domain": "",
+                    "server": "",
+                    "servers": [
+                      "192.168.8.1"
+                    ]
+                  }
+                ],
+                "entrypoint": "",
+                "hostname": "lxc-media",
+                "ip_config": [
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.8.41/24",
+                        "gateway": "192.168.8.1"
+                      }
+                    ],
+                    "ipv6": []
+                  },
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.50.11/24",
+                        "gateway": ""
+                      }
+                    ],
+                    "ipv6": []
+                  }
+                ],
+                "user_account": [
+                  {
+                    "keys": [
+                      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBTPKdIlz1r+ShjyFXmvn7K/gLHYQ7lXxjz0gJjyqUc terraform-homelab"
+                    ],
+                    "password": ""
+                  }
+                ]
+              }
+            ],
+            "ipv4": {
+              "eth0": "192.168.8.41",
+              "eth1": "192.168.50.11"
+            },
+            "ipv6": {
+              "eth0": "fe80::be24:11ff:feae:dd9",
+              "eth1": "fe80::be24:11ff:fe45:950f"
+            },
+            "memory": [
+              {
+                "dedicated": 2048,
+                "swap": 512
+              }
+            ],
+            "mount_point": [],
+            "network_interface": [
+              {
+                "bridge": "vmbr0",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "bc:24:11:ae:0d:d9",
+                "mtu": 0,
+                "name": "eth0",
+                "rate_limit": 0,
+                "vlan_id": 0
+              },
+              {
+                "bridge": "vmbr1",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "BC:24:11:45:95:0F",
+                "mtu": 0,
+                "name": "eth1",
+                "rate_limit": 0,
+                "vlan_id": 0
+              }
+            ],
+            "node_name": "homelab",
+            "operating_system": [
+              {
+                "template_file_id": "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst",
+                "type": "ubuntu"
+              }
+            ],
+            "pool_id": null,
+            "protection": false,
+            "start_on_boot": true,
+            "started": true,
+            "startup": [],
+            "tags": null,
+            "template": false,
+            "timeout_clone": 1800,
+            "timeout_create": 1800,
+            "timeout_delete": 60,
+            "timeout_start": 300,
+            "timeout_update": 1800,
+            "unprivileged": true,
+            "vm_id": 111,
+            "wait_for_ip": []
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "initialization"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "user_account"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "password"
+              }
+            ]
+          ],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.monitoring",
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "mounts",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "5714170908064461641",
+            "triggers": {
+              "gpu": "false",
+              "idmap": "",
+              "mac_address": "BC:24:11:2B:CD:86",
+              "mount_mp_indices": "0",
+              "mounts": "local-lvm:vm-113-monitoring-data:/data:backup",
+              "proxmox_host_ip": "192.168.8.10",
+              "proxmox_ssh_username": "terraform-admin",
+              "ssh_private_key_path": "~/.ssh/terraform_homelab",
+              "vm_id": "113"
+            }
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "dependencies": [
+            "module.monitoring.proxmox_virtual_environment_container.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.monitoring",
+      "mode": "managed",
+      "type": "proxmox_virtual_environment_container",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/bpg/proxmox\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "clone": [],
+            "console": [],
+            "cpu": [
+              {
+                "architecture": "amd64",
+                "cores": 2,
+                "units": 1024
+              }
+            ],
+            "description": "Loki + Grafana + Prometheus monitoring stack\n",
+            "device_passthrough": [],
+            "disk": [
+              {
+                "acl": false,
+                "datastore_id": "local-lvm",
+                "mount_options": [],
+                "path_in_datastore": "local-lvm:vm-113-disk-0",
+                "quota": false,
+                "replicate": false,
+                "size": 8
+              }
+            ],
+            "environment_variables": {},
+            "features": [
+              {
+                "fuse": false,
+                "keyctl": false,
+                "mount": [],
+                "nesting": true
+              }
+            ],
+            "hook_script_file_id": null,
+            "id": "113",
+            "idmap": [],
+            "initialization": [
+              {
+                "dns": [
+                  {
+                    "domain": "",
+                    "server": "",
+                    "servers": [
+                      "192.168.8.1"
+                    ]
+                  }
+                ],
+                "entrypoint": "",
+                "hostname": "lxc-monitoring",
+                "ip_config": [
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.8.43/24",
+                        "gateway": "192.168.8.1"
+                      }
+                    ],
+                    "ipv6": []
+                  },
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.50.13/24",
+                        "gateway": ""
+                      }
+                    ],
+                    "ipv6": []
+                  }
+                ],
+                "user_account": [
+                  {
+                    "keys": [
+                      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBTPKdIlz1r+ShjyFXmvn7K/gLHYQ7lXxjz0gJjyqUc terraform-homelab"
+                    ],
+                    "password": ""
+                  }
+                ]
+              }
+            ],
+            "ipv4": {
+              "br-0c7aca5ed269": "172.19.0.1",
+              "br-5b47686fad42": "172.21.0.1",
+              "br-95f30d9efa52": "172.18.0.1",
+              "br-f5a923d0ea16": "172.20.0.1",
+              "docker0": "172.17.0.1",
+              "eth0": "192.168.8.43",
+              "eth1": "192.168.50.13"
+            },
+            "ipv6": {
+              "br-0c7aca5ed269": "fe80::ac77:2bff:fea9:e7f",
+              "br-5b47686fad42": "fe80::acab:d3ff:fe8e:c571",
+              "br-95f30d9efa52": "fe80::9cac:7cff:fe10:b163",
+              "br-f5a923d0ea16": "fe80::f0e7:a2ff:fe55:4437",
+              "eth0": "fe80::be24:11ff:fe2b:cd86",
+              "eth1": "fe80::be24:11ff:fe73:e45d",
+              "veth606b786": "fe80::802a:89ff:fe42:d096",
+              "veth786ee76": "fe80::861:52ff:fe38:15d7",
+              "veth9ccc935": "fe80::e811:efff:feb9:632b",
+              "vethd711865": "fe80::6021:97ff:fe17:2b6"
+            },
+            "memory": [
+              {
+                "dedicated": 512,
+                "swap": 256
+              }
+            ],
+            "mount_point": [
+              {
+                "acl": false,
+                "backup": true,
+                "mount_options": [],
+                "path": "/data",
+                "path_in_datastore": "local-lvm:vm-113-monitoring-data",
+                "quota": false,
+                "read_only": false,
+                "replicate": true,
+                "shared": false,
+                "size": "2G",
+                "volume": "local-lvm:vm-113-monitoring-data"
+              }
+            ],
+            "network_interface": [
+              {
+                "bridge": "vmbr0",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "BC:24:11:2B:CD:86",
+                "mtu": 0,
+                "name": "eth0",
+                "rate_limit": 0,
+                "vlan_id": 0
+              },
+              {
+                "bridge": "vmbr1",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "BC:24:11:73:E4:5D",
+                "mtu": 0,
+                "name": "eth1",
+                "rate_limit": 0,
+                "vlan_id": 0
+              }
+            ],
+            "node_name": "homelab",
+            "operating_system": [
+              {
+                "template_file_id": "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst",
+                "type": "ubuntu"
+              }
+            ],
+            "pool_id": null,
+            "protection": false,
+            "start_on_boot": true,
+            "started": true,
+            "startup": [],
+            "tags": [],
+            "template": false,
+            "timeout_clone": 1800,
+            "timeout_create": 1800,
+            "timeout_delete": 60,
+            "timeout_start": 300,
+            "timeout_update": 1800,
+            "unprivileged": true,
+            "vm_id": 113,
+            "wait_for_ip": []
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "initialization"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "user_account"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "password"
+              }
+            ]
+          ],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.tools",
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "mounts",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": []
+    },
+    {
+      "module": "module.tools",
+      "mode": "managed",
+      "type": "proxmox_virtual_environment_container",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/bpg/proxmox\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "clone": [],
+            "console": [],
+            "cpu": [
+              {
+                "architecture": "amd64",
+                "cores": 2,
+                "units": 1024
+              }
+            ],
+            "description": "Internal tools\n",
+            "device_passthrough": [],
+            "disk": [
+              {
+                "acl": false,
+                "datastore_id": "local-lvm",
+                "mount_options": [],
+                "path_in_datastore": "local-lvm:vm-114-disk-0",
+                "quota": false,
+                "replicate": false,
+                "size": 8
+              }
+            ],
+            "environment_variables": {},
+            "features": [
+              {
+                "fuse": false,
+                "keyctl": false,
+                "mount": [],
+                "nesting": true
+              }
+            ],
+            "hook_script_file_id": null,
+            "id": "114",
+            "idmap": [],
+            "initialization": [
+              {
+                "dns": [
+                  {
+                    "domain": "",
+                    "server": "",
+                    "servers": [
+                      "192.168.8.1"
+                    ]
+                  }
+                ],
+                "entrypoint": "",
+                "hostname": "lxc-tools",
+                "ip_config": [
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.8.44/24",
+                        "gateway": "192.168.8.1"
+                      }
+                    ],
+                    "ipv6": []
+                  },
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.50.14/24",
+                        "gateway": ""
+                      }
+                    ],
+                    "ipv6": []
+                  }
+                ],
+                "user_account": [
+                  {
+                    "keys": [
+                      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBTPKdIlz1r+ShjyFXmvn7K/gLHYQ7lXxjz0gJjyqUc terraform-homelab"
+                    ],
+                    "password": ""
+                  }
+                ]
+              }
+            ],
+            "ipv4": {
+              "br-10abf43d79a9": "172.18.0.1",
+              "br-5e8a7e28a2b5": "172.20.0.1",
+              "br-904b149c53d2": "172.19.0.1",
+              "docker0": "172.17.0.1",
+              "eth0": "192.168.8.44",
+              "eth1": "192.168.50.14"
+            },
+            "ipv6": {
+              "br-10abf43d79a9": "fe80::b067:37ff:febe:b90b",
+              "br-5e8a7e28a2b5": "fe80::587a:40ff:fea6:e10f",
+              "br-904b149c53d2": "fe80::850:fff:fe59:18a7",
+              "eth0": "fe80::be24:11ff:fe94:3c1f",
+              "eth1": "fe80::be24:11ff:fe6f:6328",
+              "veth43c8090": "fe80::1481:7eff:fe4f:613e",
+              "veth8545b4e": "fe80::8cf7:caff:feea:1e78",
+              "vethca44ea2": "fe80::9403:c9ff:fe26:74aa"
+            },
+            "memory": [
+              {
+                "dedicated": 1024,
+                "swap": 256
+              }
+            ],
+            "mount_point": [],
+            "network_interface": [
+              {
+                "bridge": "vmbr0",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "BC:24:11:94:3C:1F",
+                "mtu": 0,
+                "name": "eth0",
+                "rate_limit": 0,
+                "vlan_id": 0
+              },
+              {
+                "bridge": "vmbr1",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "BC:24:11:6F:63:28",
+                "mtu": 0,
+                "name": "eth1",
+                "rate_limit": 0,
+                "vlan_id": 0
+              }
+            ],
+            "node_name": "homelab",
+            "operating_system": [
+              {
+                "template_file_id": "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst",
+                "type": "ubuntu"
+              }
+            ],
+            "pool_id": null,
+            "protection": false,
+            "start_on_boot": true,
+            "started": true,
+            "startup": [],
+            "tags": [],
+            "template": false,
+            "timeout_clone": 1800,
+            "timeout_create": 1800,
+            "timeout_delete": 60,
+            "timeout_start": 300,
+            "timeout_update": 1800,
+            "unprivileged": true,
+            "vm_id": 114,
+            "wait_for_ip": []
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "initialization"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "user_account"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "password"
+              }
+            ]
+          ],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.vault",
+      "mode": "managed",
+      "type": "null_resource",
+      "name": "mounts",
+      "provider": "provider[\"registry.terraform.io/hashicorp/null\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "2525849339704578659",
+            "triggers": {
+              "gpu": "false",
+              "idmap": "",
+              "mac_address": "BC:24:11:5B:0B:77",
+              "mount_mp_indices": "0",
+              "mounts": "local-lvm:vm-115-vault-data:/data:backup",
+              "proxmox_host_ip": "192.168.8.10",
+              "proxmox_ssh_username": "terraform-admin",
+              "ssh_private_key_path": "~/.ssh/terraform_homelab",
+              "vm_id": "115"
+            }
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "dependencies": [
+            "module.vault.proxmox_virtual_environment_container.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.vault",
+      "mode": "managed",
+      "type": "proxmox_virtual_environment_container",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/bpg/proxmox\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "clone": [],
+            "console": [],
+            "cpu": [
+              {
+                "architecture": "amd64",
+                "cores": 1,
+                "units": 1024
+              }
+            ],
+            "description": "Bitwarden Vault LXC container\n",
+            "device_passthrough": [],
+            "disk": [
+              {
+                "acl": false,
+                "datastore_id": "local-lvm",
+                "mount_options": [],
+                "path_in_datastore": "local-lvm:vm-115-disk-0",
+                "quota": false,
+                "replicate": false,
+                "size": 4
+              }
+            ],
+            "environment_variables": {},
+            "features": [
+              {
+                "fuse": false,
+                "keyctl": false,
+                "mount": [],
+                "nesting": true
+              }
+            ],
+            "hook_script_file_id": null,
+            "id": "115",
+            "idmap": [],
+            "initialization": [
+              {
+                "dns": [
+                  {
+                    "domain": "",
+                    "server": "",
+                    "servers": [
+                      "192.168.8.1"
+                    ]
+                  }
+                ],
+                "entrypoint": "",
+                "hostname": "lxc-vault",
+                "ip_config": [
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.8.45/24",
+                        "gateway": "192.168.8.1"
+                      }
+                    ],
+                    "ipv6": []
+                  },
+                  {
+                    "ipv4": [
+                      {
+                        "address": "192.168.50.15/24",
+                        "gateway": ""
+                      }
+                    ],
+                    "ipv6": []
+                  }
+                ],
+                "user_account": [
+                  {
+                    "keys": [
+                      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBTPKdIlz1r+ShjyFXmvn7K/gLHYQ7lXxjz0gJjyqUc terraform-homelab"
+                    ],
+                    "password": ""
+                  }
+                ]
+              }
+            ],
+            "ipv4": {
+              "br-077a0f4aa31f": "172.20.0.1",
+              "br-23104d817b2d": "172.18.0.1",
+              "br-b31fdebaaac1": "172.19.0.1",
+              "br-cd534e3fd498": "172.21.0.1",
+              "docker0": "172.17.0.1",
+              "eth0": "192.168.8.45",
+              "eth1": "192.168.50.15"
+            },
+            "ipv6": {
+              "br-077a0f4aa31f": "fe80::f4a1:a1ff:fe1d:39dc",
+              "br-23104d817b2d": "fe80::c4ab:c6ff:feb9:961a",
+              "br-b31fdebaaac1": "fe80::20d8:f3ff:fe0d:79f5",
+              "br-cd534e3fd498": "fe80::589f:8ff:fe94:4bb3",
+              "eth0": "fe80::be24:11ff:fe5b:b77",
+              "eth1": "fe80::be24:11ff:feb0:36ac",
+              "veth02bfc41": "fe80::d831:bfff:febd:8530",
+              "veth1cb3632": "fe80::2cbc:e5ff:fe62:6090",
+              "veth248c875": "fe80::3837:e9ff:fe0b:877e",
+              "veth54f256d": "fe80::d49b:d7ff:fe83:33d1",
+              "veth61e58be": "fe80::4f5:f2ff:fe05:707f"
+            },
+            "memory": [
+              {
+                "dedicated": 512,
+                "swap": 256
+              }
+            ],
+            "mount_point": [
+              {
+                "acl": false,
+                "backup": true,
+                "mount_options": [],
+                "path": "/data",
+                "path_in_datastore": "local-lvm:vm-115-vault-data",
+                "quota": false,
+                "read_only": false,
+                "replicate": true,
+                "shared": false,
+                "size": "2G",
+                "volume": "local-lvm:vm-115-vault-data"
+              }
+            ],
+            "network_interface": [
+              {
+                "bridge": "vmbr0",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "BC:24:11:5B:0B:77",
+                "mtu": 0,
+                "name": "eth0",
+                "rate_limit": 0,
+                "vlan_id": 0
+              },
+              {
+                "bridge": "vmbr1",
+                "enabled": true,
+                "firewall": false,
+                "mac_address": "BC:24:11:B0:36:AC",
+                "mtu": 0,
+                "name": "eth1",
+                "rate_limit": 0,
+                "vlan_id": 0
+              }
+            ],
+            "node_name": "homelab",
+            "operating_system": [
+              {
+                "template_file_id": "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst",
+                "type": "ubuntu"
+              }
+            ],
+            "pool_id": null,
+            "protection": false,
+            "start_on_boot": true,
+            "started": true,
+            "startup": [],
+            "tags": [],
+            "template": false,
+            "timeout_clone": 1800,
+            "timeout_create": 1800,
+            "timeout_delete": 60,
+            "timeout_start": 300,
+            "timeout_update": 1800,
+            "unprivileged": true,
+            "vm_id": 115,
+            "wait_for_ip": []
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "initialization"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "user_account"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "password"
+              }
+            ]
+          ],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    }
+  ],
+  "check_results": null
+}

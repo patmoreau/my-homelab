@@ -1,0 +1,47 @@
+- name: Create directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/immich"
+    state: directory
+    mode: "0755"
+
+- name: Create data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0777"
+  loop:
+    - /data/immich
+    - /data/immich/postgres
+    - /data/immich/model-cache
+
+- name: Copy docker-compose.yaml
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: "{{ docker_compose_dir }}/immich/docker-compose.yaml"
+    mode: "0644"
+
+- name: Copy .env file
+  ansible.builtin.template:
+    src: .env.j2
+    dest: "{{ docker_compose_dir }}/immich/.env"
+    mode: "0600"
+
+- name: Start
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}/immich"
+    state: present
+
+- name: Install immich-go
+  ansible.builtin.get_url:
+    url: "https://github.com/simulot/immich-go/releases/download/{{ immich_go_version }}/immich-go_Linux_x86_64.tar.gz"
+    dest: /tmp/immich-go.tar.gz
+    mode: "0644"
+  register: immich_go_download
+
+- name: Extract immich-go
+  ansible.builtin.unarchive:
+    src: /tmp/immich-go.tar.gz
+    dest: /usr/local/bin
+    remote_src: true
+    mode: "0755"
+  when: immich_go_download.changed

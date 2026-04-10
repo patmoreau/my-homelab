@@ -6,10 +6,11 @@ One-time configuration on the QNAP. For UID mapping and NFS permissions on the P
 
 Create the following shared folders in **Control Panel → Shared Folders → Create**:
 
-| Folder      | Purpose                               |
-| ----------- | ------------------------------------- |
-| `nas-media` | Jellyfin, Transmission, Calibre media |
-| `nas-books` | Calibre book library                  |
+| Folder       | Purpose                               |
+| ------------ | ------------------------------------- |
+| `nas-media`  | Jellyfin, Transmission, Calibre media |
+| `nas-books`  | Calibre book library                  |
+| `nas-photos` | Immich photo library                  |
 
 ## 2. NFS access
 
@@ -29,9 +30,9 @@ cat /etc/exports
 
 Create service accounts in the QTS web UI, then lock them down via SSH. See [lxc_nfs_uid_mapping.md](lxc_nfs_uid_mapping.md) for the UID forcing and ownership steps.
 
-| Account     | UID    | Used by                         |
-| ----------- | ------ | ------------------------------- |
-| `svc-media` | `3000` | Jellyfin, Transmission, Calibre |
+| Account     | UID    | Used by                                 |
+| ----------- | ------ | --------------------------------------- |
+| `svc-media` | `3000` | Jellyfin, Transmission, Calibre, Immich |
 
 ## 4. service-watcher SSH key
 

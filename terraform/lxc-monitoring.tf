@@ -24,6 +24,6 @@ module "monitoring" {
   terraform_ssh_private_key = var.terraform_ssh_private_key
 
   mounts = [
-    { volume = "local-lvm:vm-${var.lxc_vm_ids["monitoring"]}-monitoring-data", mp = "/data", backup = true },
+    { host = "/mnt/containers/lxc-monitoring", mp = "/data" },
   ]
 }

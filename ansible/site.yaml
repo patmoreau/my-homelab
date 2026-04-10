@@ -42,6 +42,11 @@
   roles:
     - vaultwarden
 
+- name: Deploy Immich
+  hosts: lxc-immich
+  roles:
+    - immich
+
 - name: Deploy Promtail
   hosts: lxc:!lxc-monitoring
   roles:

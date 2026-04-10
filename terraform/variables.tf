@@ -76,6 +76,7 @@ variable "lxc_vm_ids" {
     monitoring = 113
     tools      = 114
     vault      = 115
+    immich     = 116
   }
 }
 
@@ -89,6 +90,7 @@ variable "lxc_ips" {
     monitoring = 43
     tools      = 44
     vault      = 45
+    immich     = 46
   }
 }
 
@@ -102,5 +104,6 @@ variable "lxc_ips_eth1" {
     monitoring = 13
     tools      = 14
     vault      = 15
+    immich     = 16
   }
 }

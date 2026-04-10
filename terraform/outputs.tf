@@ -6,6 +6,7 @@ output "lxc_ips" {
     monitoring = module.monitoring.ip
     tools      = module.tools.ip
     vault      = module.vault.ip
+    immich     = module.immich.ip
   }
 }
 
@@ -17,5 +18,6 @@ output "lxc_ids" {
     monitoring = module.monitoring.vm_id
     tools      = module.tools.vm_id
     vault      = module.vault.vm_id
+    immich     = module.immich.vm_id
   }
 }

@@ -84,6 +84,7 @@ Both modules need a `terraform.tfvars`. Key values to set:
 | lxc-monitoring | 113   | 192.168.8.43 | Prometheus, Loki, Grafana                        |
 | lxc-tools      | 114   | 192.168.8.44 | Homepage                                         |
 | lxc-vault      | 115   | 192.168.8.45 | Vaultwarden                                      |
+| lxc-immich     | 116   | 192.168.8.46 | Immich photo management                          |
 
 ## Workflow
 

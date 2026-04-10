@@ -39,6 +39,7 @@
     - ghost.yaml
     - grafana.yaml
     - homepage.yaml
+    - immich.yaml
     - jellyfin.yaml
     - service-watcher.yaml
     - traefik.yaml

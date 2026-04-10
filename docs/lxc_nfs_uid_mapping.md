@@ -34,7 +34,7 @@ sudo chmod -R 770 /share/nas-media
 
 Add entries to `/etc/subuid` and `/etc/subgid` on the Proxmox host so it can map the service UIDs into the containers:
 
-```
+```text
 root:100000:65536
 root:2000:1
 root:3000:1

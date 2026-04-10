@@ -1,0 +1,3 @@
+nas_puid: 3000
+nas_pgid: 100
+immich_go_version: "v0.31.0"

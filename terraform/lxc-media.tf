@@ -27,8 +27,7 @@ module "media" {
   gpu_passthrough = true
 
   mounts = [
-    { volume = "local-lvm:vm-${var.lxc_vm_ids["media"]}-media-data", mp = "/data", backup = true },
-    { host = "/mnt/pve/nas-media/jellyfin", mp = "/media/jellyfin_old" },
+    { host = "/mnt/containers/lxc-media", mp = "/data" },
     { host = "/mnt/pve/nas-media/downloads", mp = "/media/downloads" },
     { host = "/mnt/pve/nas-media/holidays", mp = "/media/holidays", ro = true },
     { host = "/mnt/pve/nas-media/kids", mp = "/media/kids", ro = true },

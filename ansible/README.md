@@ -60,6 +60,9 @@ These must be populated to deploy all services:
 | `vault_transmission_pass`               | transmission    |                                                      |
 | `vault_yubiko_client_id`                | vaultwarden     | YubiKey OTP client ID                                |
 | `vault_yubiko_secret_key`               | vaultwarden     | YubiKey OTP secret                                   |
+| `vault_immich_db_username`              | immich          | PostgreSQL username                                  |
+| `vault_immich_db_password`              | immich          | PostgreSQL password                                  |
+| `vault_immich_db_name`                  | immich          | PostgreSQL database name                             |
 
 To base64-encode the QNAP SSH key:
 

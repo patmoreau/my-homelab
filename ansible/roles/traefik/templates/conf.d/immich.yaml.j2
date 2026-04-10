@@ -1,0 +1,13 @@
+http:
+  routers:
+    immich:
+      rule: "Host(`immich.homelab.lan`)"
+      entryPoints:
+        - web
+      service: immich
+
+  services:
+    immich:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-immich']['ansible_host'] }}:2283"
