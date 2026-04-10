@@ -37,6 +37,7 @@
     dest: /tmp/immich-go.tar.gz
     mode: "0644"
   register: immich_go_download
+  notify: Extract immich-go
 
 - name: Extract immich-go
   ansible.builtin.unarchive:
@@ -44,4 +45,3 @@
     dest: /usr/local/bin
     remote_src: true
     mode: "0755"
-  when: immich_go_download.changed

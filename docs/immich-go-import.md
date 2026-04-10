@@ -63,7 +63,7 @@ file /photos/takeout/takeout-*.zip
 immich-go can read Takeout ZIPs without extracting them:
 
 ```bash
-immich-go upload google-photos \
+immich-go upload from-google-photos \
   --server http://localhost:2283 \
   --api-key <your-api-key> \
   /photos/takeout/
