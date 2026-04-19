@@ -118,6 +118,8 @@ resource "null_resource" "mounts" {
   depends_on = [proxmox_virtual_environment_container.this]
 
   triggers = {
+    memory               = proxmox_virtual_environment_container.this.memory[0].dedicated
+    cores                = proxmox_virtual_environment_container.this.cpu[0].cores
     mac_address          = proxmox_virtual_environment_container.this.network_interface[0].mac_address
     mounts               = join(",", [for i, m in var.mounts : "${coalesce(m.volume, m.host)}:${m.mp}${m.ro ? ":ro" : ""}${m.backup ? ":backup" : ""}"])
     mount_mp_indices     = join(" ", [for i, m in var.mounts : tostring(i)])

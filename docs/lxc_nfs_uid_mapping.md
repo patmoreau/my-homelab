@@ -76,7 +76,7 @@ These values are set per-host in Ansible:
 
 NFS shares are mounted on Proxmox and bind-mounted into LXC containers via Terraform `mounts`. Example from `lxc-media.tf`:
 
-```
+```text
 { host = "/mnt/pve/nas-media/movies", mp = "/media/movies", ro = true }
 { host = "/mnt/pve/nas-media/downloads", mp = "/media/downloads" }
 { host = "/mnt/pve/nas-books", mp = "/media/books" }

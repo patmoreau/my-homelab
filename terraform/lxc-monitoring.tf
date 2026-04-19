@@ -6,9 +6,9 @@ module "monitoring" {
   vm_id       = var.lxc_vm_ids["monitoring"]
 
   cpu_cores        = 2
-  memory_dedicated = 512
-  memory_swap      = 256
-  disk_size        = 8
+  memory_dedicated = 2048
+  memory_swap      = 512
+  disk_size        = 16
 
   proxmox_node    = var.proxmox_node
   dns_server      = var.dns_server

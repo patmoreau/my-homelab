@@ -36,7 +36,12 @@ immich-go upload from-google-photos \
   --server http://localhost:2283 \
   --api-key "$IMMICH_API_KEY" \
   --log-file /opt/docker/immich/immich-go.log \
-  /photos/takeout/
+  --log-level warn \
+  --concurrent-tasks 1 \
+  --manage-raw-jpeg=StackCoverRaw \
+  --manage-burst=Stack \
+  --on-errors continue \
+  /photos/takeout/*.zip
 ```
 
 The TUI renders normally in the terminal while structured logs go to the file.
