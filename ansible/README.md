@@ -63,6 +63,11 @@ These must be populated to deploy all services:
 | `vault_immich_db_username`              | immich          | PostgreSQL username                                  |
 | `vault_immich_db_password`              | immich          | PostgreSQL password                                  |
 | `vault_immich_db_name`                  | immich          | PostgreSQL database name                             |
+| `vault_immich_api_key`                  | homepage        | Immich API Key for widget                            |
+| `vault_nextcloud_username`              | homepage        | Nextcloud widget auth                                |
+| `vault_nextcloud_password`              | homepage        | Nextcloud widget auth                                |
+| `vault_cloudflare_zone_id`              | homepage        | Cloudflare widget zone ID                            |
+| `vault_cloudflare_api_key`              | homepage        | Cloudflare widget API key                            |
 
 To base64-encode the QNAP SSH key:
 

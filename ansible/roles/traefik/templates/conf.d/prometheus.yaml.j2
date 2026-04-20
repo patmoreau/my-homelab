@@ -1,0 +1,13 @@
+http:
+  routers:
+    prometheus:
+      rule: "Host(`prometheus.homelab.lan`)"
+      entryPoints:
+        - web
+      service: prometheus
+
+  services:
+    prometheus:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-monitoring']['ansible_host'] }}:9090"

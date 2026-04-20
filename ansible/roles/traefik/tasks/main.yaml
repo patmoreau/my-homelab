@@ -41,6 +41,7 @@
     - homepage.yaml
     - immich.yaml
     - jellyfin.yaml
+    - prometheus.yaml
     - service-watcher.yaml
     - traefik.yaml
     - transmission.yaml
