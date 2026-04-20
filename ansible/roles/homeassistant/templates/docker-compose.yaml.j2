@@ -1,0 +1,15 @@
+services:
+  homeassistant:
+    image: lscr.io/linuxserver/homeassistant:latest
+    container_name: homeassistant
+    ports:
+      - 8123:8123
+    network_mode: host
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /data/config:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped

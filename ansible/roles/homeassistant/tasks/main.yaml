@@ -1,0 +1,45 @@
+- name: Create directory
+  ansible.builtin.file:
+    path: '{{ docker_compose_dir }}/homeassistant'
+    state: directory
+    mode: '0755'
+
+- name: Copy docker-compose.yaml
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: '{{ docker_compose_dir }}/homeassistant/docker-compose.yaml'
+    mode: '0644'
+
+- name: Copy .env file
+  ansible.builtin.template:
+    src: .env.j2
+    dest: '{{ docker_compose_dir }}/homeassistant/.env'
+    mode: '0600'
+
+- name: Start
+  community.docker.docker_compose_v2:
+    project_src: '{{ docker_compose_dir }}/homeassistant'
+    state: present
+
+- name: Wait for configuration.yaml to be generated
+  ansible.builtin.wait_for:
+    path: /data/config/configuration.yaml
+    state: present
+    timeout: 60
+
+- name: Configure trusted proxies
+  ansible.builtin.blockinfile:
+    path: /data/config/configuration.yaml
+    marker: '# {mark} ANSIBLE MANAGED BLOCK - TRAEFIK'
+    block: |
+      http:
+        use_x_forwarded_for: true
+        trusted_proxies:
+          - {{ hostvars['lxc-gateway']['ansible_host'] }}
+  register: ha_config
+
+- name: Restart Home Assistant to apply config
+  community.docker.docker_compose_v2:
+    project_src: '{{ docker_compose_dir }}/homeassistant'
+    state: restarted
+  when: ha_config.changed

@@ -16,3 +16,5 @@ all:
           ansible_host: 192.168.8.45
         lxc-immich:
           ansible_host: 192.168.8.46
+        lxc-homeassistant:
+          ansible_host: 192.168.8.47

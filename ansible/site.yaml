@@ -51,3 +51,8 @@
   hosts: lxc:!lxc-monitoring
   roles:
     - promtail
+
+- name: Deploy Home Assistant
+  hosts: lxc-homeassistant
+  roles:
+    - homeassistant

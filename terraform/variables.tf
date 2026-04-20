@@ -70,13 +70,14 @@ variable "lxc_vm_ids" {
   description = "VM IDs for each LXC container"
   type        = map(number)
   default = {
-    gateway    = 110
-    media      = 111
-    essere     = 112
-    monitoring = 113
-    tools      = 114
-    vault      = 115
-    immich     = 116
+    gateway       = 110
+    media         = 111
+    essere        = 112
+    monitoring    = 113
+    tools         = 114
+    vault         = 115
+    immich        = 116
+    homeassistant = 117
   }
 }
 
@@ -84,13 +85,14 @@ variable "lxc_ips" {
   description = "Host part of the eth0 IP, combined with network_prefix to form the full address (e.g., 40 → 192.168.8.40)"
   type        = map(number)
   default = {
-    gateway    = 40
-    media      = 41
-    essere     = 42
-    monitoring = 43
-    tools      = 44
-    vault      = 45
-    immich     = 46
+    gateway       = 40
+    media         = 41
+    essere        = 42
+    monitoring    = 43
+    tools         = 44
+    vault         = 45
+    immich        = 46
+    homeassistant = 47
   }
 }
 
@@ -98,12 +100,13 @@ variable "lxc_ips_eth1" {
   description = "Host part of the eth1 IP, combined with network_prefix_eth1 to form the full address (e.g., 10 → 192.168.50.10)"
   type        = map(number)
   default = {
-    gateway    = 10
-    media      = 11
-    essere     = 12
-    monitoring = 13
-    tools      = 14
-    vault      = 15
-    immich     = 16
+    gateway       = 10
+    media         = 11
+    essere        = 12
+    monitoring    = 13
+    tools         = 14
+    vault         = 15
+    immich        = 16
+    homeassistant = 17
   }
 }

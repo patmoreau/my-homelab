@@ -9,7 +9,7 @@ Terraform provisions all LXC containers on Proxmox using the `bpg/proxmox` provi
 | Main               | `terraform/`                    | Creates all LXC containers            |
 | Persistent storage | `terraform/persistent-storage/` | Creates NFS/storage mounts (run once) |
 
-Each LXC is created via a shared `modules/lxc/` module with two network interfaces (vmbr0 + vmbr1).
+Each LXC is created via a shared `modules/lxc/` module with two network interfaces (vmbr0 + vmbr1). ID mapping internally relies on the `bpg/proxmox` provider's native `idmap` blocks to prevent Terraform state drift.
 
 ## Proxmox prerequisites
 
@@ -76,15 +76,16 @@ Both modules need a `terraform.tfvars`. Key values to set:
 
 ## LXC containers
 
-| Name           | VM ID | Primary IP   | Purpose                                          |
-| -------------- | ----- | ------------ | ------------------------------------------------ |
-| lxc-gateway    | 110   | 192.168.8.40 | Traefik, Cloudflare tunnel                       |
-| lxc-media      | 111   | 192.168.8.41 | Jellyfin, Transmission, Calibre, service-watcher |
-| lxc-essere     | 112   | 192.168.8.42 | WordPress, Ghost                                 |
-| lxc-monitoring | 113   | 192.168.8.43 | Prometheus, Loki, Grafana                        |
-| lxc-tools      | 114   | 192.168.8.44 | Homepage                                         |
-| lxc-vault      | 115   | 192.168.8.45 | Vaultwarden                                      |
-| lxc-immich     | 116   | 192.168.8.46 | Immich photo management                          |
+| Name              | VM ID | Primary IP   | Purpose                                          |
+| ----------------- | ----- | ------------ | ------------------------------------------------ |
+| lxc-gateway       | 110   | 192.168.8.40 | Traefik, Cloudflare tunnel                       |
+| lxc-media         | 111   | 192.168.8.41 | Jellyfin, Transmission, Calibre, service-watcher |
+| lxc-essere        | 112   | 192.168.8.42 | WordPress, Ghost                                 |
+| lxc-monitoring    | 113   | 192.168.8.43 | Prometheus, Loki, Grafana                        |
+| lxc-tools         | 114   | 192.168.8.44 | Homepage                                         |
+| lxc-vault         | 115   | 192.168.8.45 | Vaultwarden                                      |
+| lxc-immich        | 116   | 192.168.8.46 | Immich photo management                          |
+| lxc-homeassistant | 117   | 192.168.8.47 | Home automation                                  |
 
 ## Workflow
 

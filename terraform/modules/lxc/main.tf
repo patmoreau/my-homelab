@@ -78,6 +78,66 @@ resource "proxmox_virtual_environment_container" "this" {
   lifecycle {
     ignore_changes = [mount_point]
   }
+
+  dynamic "idmap" {
+    for_each = var.nas_idmap != null ? [1] : []
+    content {
+      type         = "uid"
+      container_id = 0
+      host_id      = 100000
+      size         = var.nas_idmap.uid
+    }
+  }
+
+  dynamic "idmap" {
+    for_each = var.nas_idmap != null ? [1] : []
+    content {
+      type         = "uid"
+      container_id = var.nas_idmap.uid
+      host_id      = var.nas_idmap.uid
+      size         = 1
+    }
+  }
+
+  dynamic "idmap" {
+    for_each = var.nas_idmap != null ? [1] : []
+    content {
+      type         = "uid"
+      container_id = var.nas_idmap.uid + 1
+      host_id      = 100000 + var.nas_idmap.uid + 1
+      size         = 65536 - var.nas_idmap.uid - 1
+    }
+  }
+
+  dynamic "idmap" {
+    for_each = var.nas_idmap != null ? [1] : []
+    content {
+      type         = "gid"
+      container_id = 0
+      host_id      = 100000
+      size         = var.nas_idmap.gid
+    }
+  }
+
+  dynamic "idmap" {
+    for_each = var.nas_idmap != null ? [1] : []
+    content {
+      type         = "gid"
+      container_id = var.nas_idmap.gid
+      host_id      = var.nas_idmap.gid
+      size         = 1
+    }
+  }
+
+  dynamic "idmap" {
+    for_each = var.nas_idmap != null ? [1] : []
+    content {
+      type         = "gid"
+      container_id = var.nas_idmap.gid + 1
+      host_id      = 100000 + var.nas_idmap.gid + 1
+      size         = 65536 - var.nas_idmap.gid - 1
+    }
+  }
 }
 
 locals {
@@ -102,14 +162,6 @@ locals {
     # Ensure Proxmox host allows passthrough of these ids via subuid/subgid
     "grep -qF 'root:${local._idmap_uid}:1' /etc/subuid || echo 'root:${local._idmap_uid}:1' | sudo tee -a /etc/subuid",
     "grep -qF 'root:${local._idmap_gid}:1' /etc/subgid || echo 'root:${local._idmap_gid}:1' | sudo tee -a /etc/subgid",
-    # UID idmap entries in LXC conf
-    "grep -qF 'lxc.idmap: u 0 100000 ${local._idmap_uid}' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.idmap: u 0 100000 ${local._idmap_uid}' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
-    "grep -qF 'lxc.idmap: u ${local._idmap_uid} ${local._idmap_uid} 1' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.idmap: u ${local._idmap_uid} ${local._idmap_uid} 1' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
-    "grep -qF 'lxc.idmap: u ${local._idmap_uid + 1} ${100000 + local._idmap_uid + 1} ${65536 - local._idmap_uid - 1}' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.idmap: u ${local._idmap_uid + 1} ${100000 + local._idmap_uid + 1} ${65536 - local._idmap_uid - 1}' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
-    # GID idmap entries in LXC conf
-    "grep -qF 'lxc.idmap: g 0 100000 ${local._idmap_gid}' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.idmap: g 0 100000 ${local._idmap_gid}' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
-    "grep -qF 'lxc.idmap: g ${local._idmap_gid} ${local._idmap_gid} 1' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.idmap: g ${local._idmap_gid} ${local._idmap_gid} 1' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
-    "grep -qF 'lxc.idmap: g ${local._idmap_gid + 1} ${100000 + local._idmap_gid + 1} ${65536 - local._idmap_gid - 1}' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.idmap: g ${local._idmap_gid + 1} ${100000 + local._idmap_gid + 1} ${65536 - local._idmap_gid - 1}' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
   ] : []
 }
 
