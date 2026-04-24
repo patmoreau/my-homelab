@@ -11,6 +11,9 @@ services:
       - JELLYFIN_PublishedServerUrl=${JELLYFIN_PublishedServerUrl}
     volumes:
       - /data/jellyfin:/config
+      - ./config/cache:/config/cache
+      - ./config/log:/config/log
+      - ./config/transcodes:/config/transcodes
       - /media/downloads/complete:/data/downloads:ro
       - /media/holidays:/data/holidays:ro
       - /media/kids:/data/kids:ro

@@ -1,32 +1,35 @@
 - name: Create directory
   ansible.builtin.file:
-    path: "{{ docker_compose_dir }}/jellyfin"
+    path: '{{ docker_compose_dir }}/jellyfin'
     state: directory
-    mode: "0755"
+    mode: '0755'
 
 - name: Create data directories
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: '{{ item }}'
     state: directory
-    owner: "{{ nas_puid }}"
-    group: "{{ nas_pgid }}"
-    mode: "0777"
+    owner: '{{ nas_puid }}'
+    group: '{{ nas_pgid }}'
+    mode: '0755'
   loop:
     - /data/jellyfin
+    - '{{ docker_compose_dir }}/jellyfin/config/cache'
+    - '{{ docker_compose_dir }}/jellyfin/config/log'
+    - '{{ docker_compose_dir }}/jellyfin/config/transcodes'
 
 - name: Copy docker-compose.yaml
   ansible.builtin.template:
     src: docker-compose.yaml.j2
-    dest: "{{ docker_compose_dir }}/jellyfin/docker-compose.yaml"
-    mode: "0644"
+    dest: '{{ docker_compose_dir }}/jellyfin/docker-compose.yaml'
+    mode: '0644'
 
 - name: Copy .env file
   ansible.builtin.template:
     src: .env.j2
-    dest: "{{ docker_compose_dir }}/jellyfin/.env"
-    mode: "0600"
+    dest: '{{ docker_compose_dir }}/jellyfin/.env'
+    mode: '0600'
 
 - name: Start
   community.docker.docker_compose_v2:
-    project_src: "{{ docker_compose_dir }}/jellyfin"
+    project_src: '{{ docker_compose_dir }}/jellyfin'
     state: present
