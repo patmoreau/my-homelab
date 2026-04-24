@@ -1,5 +1,10 @@
 all:
   children:
+    hypervisor:
+      hosts:
+        pve-homelab:
+          ansible_host: 192.168.8.10
+
     lxc:
       hosts:
         lxc-gateway:

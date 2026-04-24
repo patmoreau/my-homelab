@@ -1,0 +1,18 @@
+http:
+  routers:
+    pve:
+      rule: "Host(`{{ proxmox_domain }}`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: pve
+      middlewares:
+        - global-headers
+
+  services:
+    pve:
+      loadBalancer:
+        serversTransport: insecure-transport
+        servers:
+          - url: "https://{{ hostvars['pve-homelab']['ansible_host'] }}:8006"

@@ -50,6 +50,7 @@
     - immich.yaml
     - jellyfin.yaml
     - pbs.yaml
+    - pve.yaml
     - prometheus.yaml
     - service-watcher.yaml
     - traefik.yaml
