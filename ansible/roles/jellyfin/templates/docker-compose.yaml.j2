@@ -8,7 +8,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
-      - JELLYFIN_PublishedServerUrl=jellyfin.homelab.lan
+      - JELLYFIN_PublishedServerUrl=${JELLYFIN_PublishedServerUrl}
     volumes:
       - /data/jellyfin:/config
       - /media/downloads/complete:/data/downloads:ro
