@@ -42,6 +42,7 @@
     - homepage.yaml
     - immich.yaml
     - jellyfin.yaml
+    - pbs.yaml
     - prometheus.yaml
     - service-watcher.yaml
     - traefik.yaml

@@ -1,0 +1,86 @@
+---
+# ---------------------------------------------------------------------------
+# Proxmox Backup Server — Debian 13 (Trixie)
+# ---------------------------------------------------------------------------
+
+- name: Add Proxmox Backup Server GPG key
+  ansible.builtin.get_url:
+    url: https://enterprise.proxmox.com/debian/proxmox-release-trixie.gpg
+    dest: /etc/apt/trusted.gpg.d/proxmox-release-trixie.gpg
+    mode: "0644"
+
+- name: Add Proxmox Backup Server no-subscription repository
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/pbs-no-subscription.list
+    content: |
+      # Proxmox Backup Server — no-subscription repository (Debian 13 Trixie)
+      deb http://download.proxmox.com/debian/pbs trixie pbs-no-subscription
+    mode: "0644"
+
+- name: Disable any apt sources referencing the PBS enterprise repository
+  ansible.builtin.shell: |
+    files=$(grep -rl "enterprise.proxmox.com/debian/pbs" /etc/apt/ 2>/dev/null || true)
+    if [ -n "$files" ]; then
+      echo "$files" | xargs rm -f
+      echo "removed"
+    else
+      echo "not_found"
+    fi
+  register: enterprise_removal
+  changed_when: "'removed' in enterprise_removal.stdout"
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 0
+
+- name: Install Proxmox Backup Server
+  ansible.builtin.apt:
+    name: proxmox-backup-server
+    state: present
+
+- name: Ensure PBS service is enabled and started
+  ansible.builtin.systemd:
+    name: proxmox-backup
+    enabled: true
+    state: started
+
+- name: Wait for PBS API to become ready
+  ansible.builtin.wait_for:
+    port: 8007
+    host: "127.0.0.1"
+    delay: 5
+    timeout: 60
+
+# ---------------------------------------------------------------------------
+# Configure admin user — pmoreau@pbs mapped to the PVE PAM account
+# PBS manages its own user database; we create a matching local user and
+# grant it the Admin role on / so it has full root-equivalent access.
+# ---------------------------------------------------------------------------
+
+- name: Check if PBS admin user already exists
+  ansible.builtin.command:
+    cmd: proxmox-backup-manager user list --output-format json
+  register: pbs_users
+  changed_when: false
+
+- name: Create PBS admin user ({{ vault_pbs_admin_username }})
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager user create {{ vault_pbs_admin_username }}
+      --password {{ vault_pbs_admin_password }}
+      --email {{ vault_pbs_admin_email }}
+      --comment "Homelab admin — mirrors PVE pmoreau@pam"
+      --enable true
+  when: vault_pbs_admin_username not in pbs_users.stdout
+  no_log: true
+
+- name: Grant Admin role on / to PBS admin user
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager acl update / Admin
+      --auth-id {{ vault_pbs_admin_username }}
+      --propagate true
+  register: acl_result
+  changed_when: acl_result.rc == 0
+  # Idempotent: re-applying the same ACL is a no-op on PBS

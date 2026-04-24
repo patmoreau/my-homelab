@@ -8,6 +8,7 @@ output "lxc_ips" {
     vault         = module.vault.ip
     immich        = module.immich.ip
     homeassistant = module.homeassistant.ip
+    pbs           = module.pbs.ip
   }
 }
 
@@ -21,5 +22,6 @@ output "lxc_ids" {
     vault         = module.vault.vm_id
     immich        = module.immich.vm_id
     homeassistant = module.homeassistant.vm_id
+    pbs           = module.pbs.vm_id
   }
 }

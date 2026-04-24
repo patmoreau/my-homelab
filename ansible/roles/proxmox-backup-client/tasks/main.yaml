@@ -1,0 +1,41 @@
+---
+# ---------------------------------------------------------------------------
+# Proxmox Backup Client — Ubuntu 24.04 (Noble)
+# Ubuntu 24.04 is binary-compatible with Proxmox Debian Bookworm packages.
+# ---------------------------------------------------------------------------
+
+- name: Add Proxmox GPG key (Bookworm)
+  ansible.builtin.get_url:
+    url: https://enterprise.proxmox.com/debian/proxmox-release-bookworm.gpg
+    dest: /etc/apt/trusted.gpg.d/proxmox-release-bookworm.gpg
+    mode: "0644"
+
+- name: Add Proxmox PBS no-subscription repository (Bookworm)
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/pbs-client-no-subscription.list
+    content: |
+      # Proxmox Backup Client — no-subscription repository (Debian Bookworm)
+      deb http://download.proxmox.com/debian/pbs bookworm pbs-no-subscription
+    mode: "0644"
+
+- name: Disable any apt sources referencing the PBS enterprise repository
+  ansible.builtin.shell: |
+    files=$(grep -rl "enterprise.proxmox.com/debian/pbs" /etc/apt/ 2>/dev/null || true)
+    if [ -n "$files" ]; then
+      echo "$files" | xargs rm -f
+      echo "removed"
+    else
+      echo "not_found"
+    fi
+  register: enterprise_removal
+  changed_when: "'removed' in enterprise_removal.stdout"
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 0
+
+- name: Install Proxmox Backup Client
+  ansible.builtin.apt:
+    name: proxmox-backup-client
+    state: present

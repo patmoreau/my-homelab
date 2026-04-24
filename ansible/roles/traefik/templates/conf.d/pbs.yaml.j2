@@ -1,0 +1,19 @@
+http:
+  routers:
+    pbs:
+      rule: "Host(`pbs.homelab.lan`)"
+      entryPoints:
+        - web
+      service: pbs
+
+  services:
+    pbs:
+      loadBalancer:
+        # PBS web UI runs on HTTPS with a self-signed certificate
+        serversTransport: pbs-skip-tls
+        servers:
+          - url: "https://{{ hostvars['lxc-pbs']['ansible_host'] }}:8007"
+
+  serversTransports:
+    pbs-skip-tls:
+      insecureSkipVerify: true

@@ -27,6 +27,12 @@
     state: present
     timeout: 60
 
+- name: Install HACS via installation script in docker
+  ansible.builtin.command: docker exec homeassistant bash -c "wget -O - https://get.hacs.xyz | bash -"
+  args:
+    creates: /data/config/custom_components/hacs
+  register: hacs_install
+
 - name: Configure trusted proxies
   ansible.builtin.blockinfile:
     path: /data/config/configuration.yaml
@@ -42,4 +48,4 @@
   community.docker.docker_compose_v2:
     project_src: '{{ docker_compose_dir }}/homeassistant'
     state: restarted
-  when: ha_config.changed
+  when: ha_config.changed or hacs_install.changed

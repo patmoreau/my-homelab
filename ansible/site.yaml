@@ -1,9 +1,10 @@
 - name: Provision all LXC
-  hosts: lxc
+  hosts: lxc:!lxc-pbs
   roles:
     - docker
     - node_exporter
     - cadvisor
+    - proxmox-backup-client
 
 - name: Deploy Gateway
   hosts: lxc-gateway
@@ -48,7 +49,7 @@
     - immich
 
 - name: Deploy Promtail
-  hosts: lxc:!lxc-monitoring
+  hosts: lxc:!lxc-monitoring:!lxc-pbs
   roles:
     - promtail
 
@@ -56,3 +57,8 @@
   hosts: lxc-homeassistant
   roles:
     - homeassistant
+
+- name: Deploy Proxmox Backup Server
+  hosts: lxc-pbs
+  roles:
+    - proxmox-backup-server

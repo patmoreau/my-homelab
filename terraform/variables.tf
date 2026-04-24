@@ -78,6 +78,7 @@ variable "lxc_vm_ids" {
     vault         = 115
     immich        = 116
     homeassistant = 117
+    pbs           = 118
   }
 }
 
@@ -93,6 +94,7 @@ variable "lxc_ips" {
     vault         = 45
     immich        = 46
     homeassistant = 47
+    pbs           = 48
   }
 }
 
@@ -108,5 +110,6 @@ variable "lxc_ips_eth1" {
     vault         = 15
     immich        = 16
     homeassistant = 17
+    pbs           = 18
   }
 }
