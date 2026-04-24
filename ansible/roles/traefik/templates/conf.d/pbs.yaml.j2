@@ -1,19 +1,16 @@
 http:
   routers:
     pbs:
-      rule: "Host(`pbs.homelab.lan`)"
+      rule: "Host(`pbs.moreaulab.ca`)"
       entryPoints:
-        - web
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: pbs
 
   services:
     pbs:
       loadBalancer:
-        # PBS web UI runs on HTTPS with a self-signed certificate
-        serversTransport: pbs-skip-tls
+        serversTransport: insecure-transport
         servers:
           - url: "https://{{ hostvars['lxc-pbs']['ansible_host'] }}:8007"
-
-  serversTransports:
-    pbs-skip-tls:
-      insecureSkipVerify: true

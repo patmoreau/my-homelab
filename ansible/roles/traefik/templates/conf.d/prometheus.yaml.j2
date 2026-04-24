@@ -1,9 +1,11 @@
 http:
   routers:
     prometheus:
-      rule: "Host(`prometheus.homelab.lan`)"
+      rule: "Host(`prometheus.moreaulab.ca`)"
       entryPoints:
-        - web
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: prometheus
 
   services:

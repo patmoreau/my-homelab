@@ -1,7 +1,9 @@
 http:
   routers:
     traefik-dashboard:
-      rule: "Host(`gateway.homelab.lan`)"
+      rule: "Host(`gateway.moreaulab.ca`)"
       entryPoints:
-        - web
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: api@internal

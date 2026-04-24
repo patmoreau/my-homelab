@@ -7,12 +7,73 @@ services:
       - no-new-privileges:true
     ports:
       - 80:80
+      - 443:443
       - 8080:8080
     networks:
       - gateway
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
     volumes:
       - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
       - ./conf.d:/etc/traefik/conf.d:ro
+      - ./acme.json:/etc/traefik/acme.json
+      - certs:/etc/traefik/certs
+
+  certs-dumper:
+    image: ldez/traefik-certs-dumper:v2.8.3
+    container_name: traefik-certs-dumper
+    restart: unless-stopped
+    entrypoint: |
+      sh -c '
+        apk add --no-cache inotify-tools openssh-client &&
+        CERT_DIR="/etc/traefik/certs/{{ pbs_domain }}" &&
+        LAST_HASH="" &&
+        deploy_to_pbs() {
+          HASH=$$(md5sum "$$CERT_DIR/certificate.crt" 2>/dev/null || echo "") &&
+          if [ "$$HASH" = "$$LAST_HASH" ]; then
+            echo "[certs-dumper] PBS cert unchanged, skipping deploy"
+            return 0
+          fi &&
+          echo "[certs-dumper] Deploying cert to PBS..." &&
+          ssh -i /root/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=10 \
+            root@{{ hostvars["lxc-pbs"]["ansible_host"] }} \
+            "cat > /etc/proxmox-backup/proxy.pem" \
+            < "$$CERT_DIR/certificate.crt" &&
+          ssh -i /root/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=10 \
+            root@{{ hostvars["lxc-pbs"]["ansible_host"] }} \
+            "cat > /etc/proxmox-backup/proxy.key" \
+            < "$$CERT_DIR/privatekey.key" &&
+          ssh -i /root/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=10 \
+            root@{{ hostvars["lxc-pbs"]["ansible_host"] }} \
+            "systemctl restart proxmox-backup-proxy" &&
+          LAST_HASH="$$HASH" &&
+          echo "[certs-dumper] PBS cert deployed successfully"
+        } &&
+        while true; do
+          traefik-certs-dumper file \
+            --version v2 \
+            --source /etc/traefik/acme.json \
+            --dest /etc/traefik/certs \
+            --domain-subdir &&
+          if [ -d "$$CERT_DIR" ]; then
+            deploy_to_pbs || echo "[certs-dumper] SSH deploy failed, will retry on next cert change"
+          fi &&
+          inotifywait -e modify /etc/traefik/acme.json
+        done
+      '
+    volumes:
+      - ./acme.json:/etc/traefik/acme.json:ro
+      - certs:/etc/traefik/certs
+      - ./certs-dumper-key:/root/.ssh/deploy_key:ro
+
+volumes:
+  certs:
 
 networks:
   gateway:

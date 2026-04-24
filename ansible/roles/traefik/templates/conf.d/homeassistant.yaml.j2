@@ -1,9 +1,11 @@
 http:
   routers:
     homeassistant:
-      rule: "Host(`homeassistant.homelab.lan`)"
+      rule: "Host(`ha.moreaulab.ca`)"
       entryPoints:
-        - web
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: homeassistant
 
   services:

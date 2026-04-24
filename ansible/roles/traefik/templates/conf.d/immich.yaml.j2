@@ -1,9 +1,11 @@
 http:
   routers:
     immich:
-      rule: "Host(`immich.homelab.lan`)"
+      rule: "Host(`immich.moreaulab.ca`)"
       entryPoints:
-        - web
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: immich
 
   services:

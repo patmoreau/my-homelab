@@ -1,9 +1,11 @@
 http:
   routers:
     homepage:
-      rule: "Host(`home.homelab.lan`)"
+      rule: "Host(`home.moreaulab.ca`)"
       entryPoints:
-        - web
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: homepage
 
   services:

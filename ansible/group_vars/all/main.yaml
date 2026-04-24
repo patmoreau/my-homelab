@@ -7,3 +7,5 @@ nas_puid: 0
 nas_pgid: 0
 wordpress_version: "6.9.4"
 timezone: "America/Montreal"
+traefik_acme_email: "patrick@drifterapps.com"
+pbs_domain: "pbs.moreaulab.ca"

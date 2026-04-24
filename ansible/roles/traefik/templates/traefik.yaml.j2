@@ -1,0 +1,36 @@
+log:
+  level: INFO
+
+api:
+  dashboard: true
+  insecure: false
+
+providers:
+  file:
+    directory: /etc/traefik/conf.d
+    watch: true
+
+entryPoints:
+  web:
+    address: ':80'
+    forwardedHeaders:
+      trustedIPs: ["127.0.0.1/8", "10.0.0.0/8", "192.168.0.0/16", "172.16.0.0/12"]
+    http:
+      middlewares:
+        - global-headers@file
+  websecure:
+    address: ':443'
+    forwardedHeaders:
+      trustedIPs: ["127.0.0.1/8", "10.0.0.0/8", "192.168.0.0/16", "172.16.0.0/12"]
+    http:
+      middlewares:
+        - global-headers@file
+
+certificatesResolvers:
+  cloudflare:
+    acme:
+      email: {{ traefik_acme_email }}
+      storage: /etc/traefik/acme.json
+      dnsChallenge:
+        provider: cloudflare
+        resolvers: ['1.1.1.1:53', '8.8.8.8:53']

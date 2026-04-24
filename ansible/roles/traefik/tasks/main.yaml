@@ -16,8 +16,8 @@
     mode: '0755'
 
 - name: Copy traefik.yaml
-  ansible.builtin.copy:
-    src: traefik.yaml
+  ansible.builtin.template:
+    src: traefik.yaml.j2
     dest: '{{ docker_compose_dir }}/traefik/traefik.yaml'
     mode: '0644'
 
@@ -27,12 +27,19 @@
     dest: '{{ docker_compose_dir }}/traefik/docker-compose.yaml'
     mode: '0644'
 
+- name: Copy .env file
+  ansible.builtin.template:
+    src: .env.j2
+    dest: '{{ docker_compose_dir }}/traefik/.env'
+    mode: '0600'
+
 - name: Copy conf.d files
   ansible.builtin.template:
     src: 'conf.d/{{ item }}.j2'
     dest: '{{ docker_compose_dir }}/traefik/conf.d/{{ item }}'
     mode: '0644'
   loop:
+    - global.yaml
     - calibre.yaml
     - essere.yaml
     - filebrowser.yaml
@@ -48,6 +55,22 @@
     - traefik.yaml
     - transmission.yaml
     - vaultwarden.yaml
+
+- name: Generate certs-dumper SSH deploy key (if absent)
+  community.crypto.openssh_keypair:
+    path: '{{ docker_compose_dir }}/traefik/certs-dumper-key'
+    type: ed25519
+    comment: traefik-certs-dumper@lxc-gateway
+    mode: '0600'
+  register: certs_dumper_keypair
+
+- name: Ensure acme.json exists with correct permissions
+  ansible.builtin.file:
+    path: '{{ docker_compose_dir }}/traefik/acme.json'
+    state: touch
+    mode: '0600'
+    modification_time: preserve
+    access_time: preserve
 
 - name: Start
   community.docker.docker_compose_v2:

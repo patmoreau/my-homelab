@@ -1,17 +1,11 @@
 http:
-  middlewares:
-    ghost-https:
-      headers:
-        customRequestHeaders:
-          X-Forwarded-Proto: "https"
-
   routers:
     ghost:
       rule: "Host(`ghost.moreaulab.ca`)"
       entryPoints:
-        - web
-      middlewares:
-        - ghost-https
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: ghost
 
   services:

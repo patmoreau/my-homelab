@@ -13,15 +13,17 @@ Infrastructure-as-code for a Proxmox-based home server. LXC containers are provi
 
 ## LXC containers
 
-| Container      | Primary IP   | Services                                             |
-| -------------- | ------------ | ---------------------------------------------------- |
-| lxc-gateway    | 192.168.8.40 | Traefik (reverse proxy), Cloudflare tunnel, Promtail |
-| lxc-media      | 192.168.8.41 | Jellyfin, Transmission, Calibre-Web, service-watcher |
-| lxc-essere     | 192.168.8.42 | WordPress / Ghost, MariaDB                           |
-| lxc-monitoring | 192.168.8.43 | Prometheus, Loki, Grafana                            |
-| lxc-tools      | 192.168.8.44 | Homepage dashboard                                   |
-| lxc-vault      | 192.168.8.45 | Vaultwarden (Bitwarden-compatible)                   |
-| lxc-immich     | 192.168.8.46 | Immich photo management                              |
+| Container         | Primary IP   | Services                                             |
+| ----------------- | ------------ | ---------------------------------------------------- |
+| lxc-gateway       | 192.168.8.40 | Traefik (reverse proxy), Cloudflare tunnel, Promtail |
+| lxc-media         | 192.168.8.41 | Jellyfin, Transmission, Calibre-Web, service-watcher |
+| lxc-essere        | 192.168.8.42 | WordPress / Ghost, MariaDB                           |
+| lxc-monitoring    | 192.168.8.43 | Prometheus, Loki, Grafana                            |
+| lxc-tools         | 192.168.8.44 | Homepage dashboard                                   |
+| lxc-vault         | 192.168.8.45 | Vaultwarden (Bitwarden-compatible)                   |
+| lxc-immich        | 192.168.8.46 | Immich photo management                              |
+| lxc-homeassistant | 192.168.8.47 | Home automation                                      |
+| lxc-pbs           | 192.168.8.48 | Proxmox Backup Server (Debian 13)                    |
 
 ## Quick start
 
@@ -60,6 +62,8 @@ The following services are configured in this homelab:
 | **Grafana**         | [grafana.homelab.lan](http://grafana.homelab.lan)                 | Metrics and log dashboards (Prometheus + Loki)                        |
 | **Ghost**           | [essere.homelab.lan](http://essere.homelab.lan)                   | Blog platform                                                         |
 | **Service Watcher** | [service-watcher.homelab.lan](http://service-watcher.homelab.lan) | Custom Node.js utility monitoring QNAP and other services             |
+| **Home Assistant**  | [ha.moreaulab.ca](https://ha.moreaulab.ca)                        | Home automation platform                                              |
+| **PBS**             | [pbs.moreaulab.ca](https://pbs.moreaulab.ca)                      | Enterprise backup solution for Proxmox                                |
 
 ### Volumes & Mounts
 

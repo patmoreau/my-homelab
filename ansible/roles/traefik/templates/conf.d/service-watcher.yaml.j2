@@ -1,9 +1,11 @@
 http:
   routers:
     service-watcher:
-      rule: "Host(`service-watcher.homelab.lan`)"
+      rule: "Host(`service-watcher.moreaulab.ca`)"
       entryPoints:
-        - web
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: service-watcher
 
   services:

@@ -1,9 +1,11 @@
 http:
   routers:
     jellyfin:
-      rule: "Host(`jellyfin.homelab.lan`)"
+      rule: "Host(`jellyfin.moreaulab.ca`)"
       entryPoints:
-        - web
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: jellyfin
 
   services:

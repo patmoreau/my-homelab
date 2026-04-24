@@ -3,7 +3,9 @@ http:
     vaultwarden:
       rule: "Host(`vault.moreaulab.ca`)"
       entryPoints:
-        - web
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: vaultwarden
 
   services:

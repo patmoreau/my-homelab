@@ -1,9 +1,11 @@
 http:
   routers:
     transmission:
-      rule: "Host(`transmission.homelab.lan`)"
+      rule: "Host(`transmission.moreaulab.ca`)"
       entryPoints:
-        - web
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: transmission
 
   services:

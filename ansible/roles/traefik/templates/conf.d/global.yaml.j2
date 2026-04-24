@@ -1,0 +1,22 @@
+http:
+  serversTransports:
+    insecure-transport:
+      insecureSkipVerify: true
+
+  middlewares:
+    # This middleware fixes mixed-content and trust issues for all services
+    global-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+          X-Forwarded-Ssl: "on"
+          X-Forwarded-Port: "443"
+        sslProxyHeaders:
+          X-Forwarded-Proto: "https"
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        forceSTSHeader: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        frameDeny: true

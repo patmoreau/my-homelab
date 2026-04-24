@@ -1,41 +1,41 @@
 - Media:
     - Jellyfin:
         icon: jellyfin.png
-        href: http://jellyfin.homelab.lan
+        href: https://jellyfin.moreaulab.ca
         description: Movies & TV Shows
         widget:
           type: jellyfin
-          url: http://jellyfin.homelab.lan
+          url: https://jellyfin.moreaulab.ca
           key: {{HOMEPAGE_VAR_JELLYFIN_API_KEY}}
 
     - Books:
         icon: calibre-web.png
-        href: http://books.homelab.lan
+        href: https://books.moreaulab.ca
         description: E-book Library
         widget:
           type: calibreweb
-          url: http://books.homelab.lan
+          url: https://books.moreaulab.ca
           username: {{HOMEPAGE_VAR_CALIBREWEB_USERNAME}}
           password: {{HOMEPAGE_VAR_CALIBREWEB_PASSWORD}}
 
     - Transmission:
         icon: transmission.png
-        href: http://transmission.homelab.lan
+        href: https://transmission.moreaulab.ca
         description: Torrent Client
         widget:
           type: transmission
-          url: http://transmission.homelab.lan
+          url: https://transmission.moreaulab.ca
           rpcUrl: /transmission/
           username: {{HOMEPAGE_VAR_TRANSMISSION_USERNAME}}
           password: {{HOMEPAGE_VAR_TRANSMISSION_PASSWORD}}
 
     - Filebrowser:
         icon: filebrowser.png
-        href: http://filebrowser.homelab.lan
+        href: https://filebrowser.moreaulab.ca
         description: File Browser
         widget:
           type: filebrowser
-          url: http://filebrowser.homelab.lan
+          url: https://filebrowser.moreaulab.ca
           username: {{HOMEPAGE_VAR_FILEBROWSER_USERNAME}}
           password: {{HOMEPAGE_VAR_FILEBROWSER_PASSWORD}}
           # authHeader: X-My-Header # If using Proxy header authentication
@@ -46,7 +46,7 @@
         href: https://qnap.homelab.lan
         widget:
           type: customapi
-          url: http://service-watcher.homelab.lan/api/qnap
+          url: https://service-watcher.moreaulab.ca/api/qnap
           mappings:
             - field: Status
               label: Status
@@ -71,11 +71,11 @@
 
     - Traefik:
         icon: traefik.png
-        href: http://gateway.homelab.lan
+        href: https://gateway.moreaulab.ca
         description: Reverse Proxy
         widget:
           type: traefik
-          url: http://gateway.homelab.lan
+          url: https://gateway.moreaulab.ca
 
     - Qnap:
         icon: qnap.png
@@ -93,11 +93,11 @@
 - Self-Hosted:
     - Immich:
         icon: immich.png
-        href: http://immich.homelab.lan
+        href: https://immich.moreaulab.ca
         description: Photo & Video Backup
         widget:
           type: immich
-          url: http://immich.homelab.lan
+          url: https://immich.moreaulab.ca
           key: {{HOMEPAGE_VAR_IMMICH_API_KEY}}
           fields: ['photos', 'videos', 'storage']
           version: 2
@@ -105,28 +105,28 @@
 - Observability:
     - Grafana:
         icon: grafana.png
-        href: http://grafana.homelab.lan
+        href: https://grafana.moreaulab.ca
         description: Metrics Dashboard
         widget:
           type: grafana
           version: 2
-          url: http://grafana.homelab.lan
+          url: https://grafana.moreaulab.ca
           username: {{HOMEPAGE_VAR_GRAFANA_ADMIN_USER}}
           password: {{HOMEPAGE_VAR_GRAFANA_ADMIN_PASSWORD}}
 
     - Prometheus:
         icon: prometheus.png
-        href: http://prometheus.homelab.lan
+        href: https://prometheus.moreaulab.ca
         description: Metrics Server
         widget:
           type: prometheus
-          url: http://prometheus.homelab.lan
+          url: https://prometheus.moreaulab.ca
 
 - Security & Network:
     - Vaultwarden:
         icon: vaultwarden.png
-        href: http://vaultwarden.homelab.lan
-        ping: vaultwarden.homelab.lan
+        href: https://vault.moreaulab.ca
+        ping: vault.moreaulab.ca
         description: Password Manager
 
     - Cloudflare:
@@ -140,10 +140,10 @@
 
     - Home Assistant:
         icon: homeassistant.png
-        href: http://homeassistant.homelab.lan
+        href: https://ha.moreaulab.ca
         widget:
           type: homeassistant
-          url: http://homeassistant.homelab.lan
+          url: https://ha.moreaulab.ca
           key: {{HOMEPAGE_VAR_HOMEASSISTANT_API_KEY}}
           custom:
             - state: sensor.total_power

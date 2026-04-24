@@ -84,3 +84,19 @@
   register: acl_result
   changed_when: acl_result.rc == 0
   # Idempotent: re-applying the same ACL is a no-op on PBS
+
+# ---------------------------------------------------------------------------
+# TLS certificate deployment from Traefik certs-dumper
+# The traefik-certs-dumper sidecar (running on lxc-gateway) SSHes the
+# Let's Encrypt cert here and restarts proxmox-backup-proxy automatically.
+# We only need to authorise its deploy key on this host.
+# ---------------------------------------------------------------------------
+
+- name: Authorize traefik-certs-dumper deploy key on PBS
+  ansible.posix.authorized_key:
+    user: root
+    key: "{{ hostvars['lxc-gateway']['certs_dumper_keypair']['public_key'] }}"
+    comment: traefik-certs-dumper@lxc-gateway
+    state: present
+  when: hostvars['lxc-gateway']['certs_dumper_keypair'] is defined
+

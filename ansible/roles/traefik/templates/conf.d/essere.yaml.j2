@@ -1,9 +1,12 @@
 http:
   routers:
     essere:
-      rule: "Host(`essere.ca`) || Host(`www.essere.ca`) || Host(`essere.homelab.lan`)"
+      rule: "Host(`essere.ca`) || Host(`www.essere.ca`)"
       entryPoints:
         - web
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: essere
 
   services:

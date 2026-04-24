@@ -1,9 +1,11 @@
 http:
   routers:
     filebrowser:
-      rule: "Host(`filebrowser.homelab.lan`)"
+      rule: "Host(`filebrowser.moreaulab.ca`)"
       entryPoints:
-        - web
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: filebrowser
 
   services:

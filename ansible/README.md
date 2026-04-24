@@ -6,15 +6,25 @@ Ansible connects to all LXC hosts as `root` using the `~/.ssh/terraform_homelab`
 
 Key config files:
 
-| File                              | Purpose                                          | Git        |
-| --------------------------------- | ------------------------------------------------ | ---------- |
-| `ansible.cfg`                     | Sets inventory, vault password file, SSH options | Committed  |
-| `inventory/hosts.yaml`            | LXC host IPs                                     | Committed  |
-| `group_vars/all/main.yaml`        | Shared variables (user, paths, timezone)         | Committed  |
-| `group_vars/all/vault.yaml`       | Plaintext secrets — Ansible reads this           | Gitignored |
-| `group_vars/all/vault.yaml.vault` | Encrypted copy of vault.yaml                     | Committed  |
-| `.vault_pass`                     | Vault password file (one line, plain text)       | Gitignored |
-| `vault.sh`                        | Helper script to edit/encrypt/decrypt vault      | Committed  |
+| File                              | Purpose                                                          | Git        |
+| --------------------------------- | ---------------------------------------------------------------- | ---------- |
+| `ansible.cfg`                     | Sets inventory, vault password file, SSH options                 | Committed  |
+| `inventory/hosts.yaml`            | LXC host IPs                                                     | Committed  |
+| `group_vars/all/main.yaml`        | Shared variables (user, paths, timezone, ACME email, PBS domain) | Committed  |
+| `group_vars/all/vault.yaml`       | Plaintext secrets — Ansible reads this                           | Gitignored |
+| `group_vars/all/vault.yaml.vault` | Encrypted copy of vault.yaml                                     | Committed  |
+| `.vault_pass`                     | Vault password file (one line, plain text)                       | Gitignored |
+| `vault.sh`                        | Helper script to edit/encrypt/decrypt vault                      | Committed  |
+| `requirements.yml`                | Ansible Galaxy collection dependencies                           | Committed  |
+
+## First-time setup
+
+Install required Ansible Galaxy collections (run once on your local machine from the `ansible/` directory):
+
+```bash
+cd ansible
+ansible-galaxy collection install -r requirements.yml
+```
 
 ## Vault workflow
 

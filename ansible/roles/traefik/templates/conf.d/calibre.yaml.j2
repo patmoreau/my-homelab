@@ -1,9 +1,11 @@
 http:
   routers:
     calibre:
-      rule: "Host(`books.homelab.lan`)"
+      rule: "Host(`books.moreaulab.ca`)"
       entryPoints:
-        - web
+        - websecure
+      tls:
+        certResolver: cloudflare
       service: calibre
 
   services:
