@@ -3,6 +3,9 @@
         icon: jellyfin.png
         href: https://jellyfin.moreaulab.ca
         description: Movies & TV Shows
+        proxmoxNode: homelab
+        proxmoxVMID: 111
+        proxmoxType: lxc
         widget:
           type: jellyfin
           url: https://jellyfin.moreaulab.ca
@@ -60,11 +63,11 @@
 - Infrastructure:
     - Proxmox:
         icon: proxmox.png
-        href: https://proxmox.homelab.lan:8006
+        href: https://pve.moreaulab.ca
         description: Virtual Machine Manager
         widget:
           type: proxmox
-          url: https://proxmox.homelab.lan:8006
+          url: https://pve.moreaulab.ca
           username: {{HOMEPAGE_VAR_PROXMOX_USERNAME}}
           password: {{HOMEPAGE_VAR_PROXMOX_PASSWORD}}
           node: homelab
@@ -73,6 +76,9 @@
         icon: traefik.png
         href: https://gateway.moreaulab.ca
         description: Reverse Proxy
+        proxmoxNode: homelab
+        proxmoxVMID: 110
+        proxmoxType: lxc
         widget:
           type: traefik
           url: https://gateway.moreaulab.ca
@@ -95,6 +101,9 @@
         icon: immich.png
         href: https://immich.moreaulab.ca
         description: Photo & Video Backup
+        proxmoxNode: homelab
+        proxmoxVMID: 116
+        proxmoxType: lxc
         widget:
           type: immich
           url: https://immich.moreaulab.ca
@@ -107,6 +116,9 @@
         icon: grafana.png
         href: https://grafana.moreaulab.ca
         description: Metrics Dashboard
+        proxmoxNode: homelab
+        proxmoxVMID: 113
+        proxmoxType: lxc
         widget:
           type: grafana
           version: 2
@@ -128,6 +140,9 @@
         href: https://vault.moreaulab.ca
         ping: vault.moreaulab.ca
         description: Password Manager
+        proxmoxNode: homelab
+        proxmoxVMID: 115
+        proxmoxType: lxc
 
     - Cloudflare:
         icon: cloudflare.png
@@ -141,6 +156,9 @@
     - Home Assistant:
         icon: homeassistant.png
         href: https://ha.moreaulab.ca
+        proxmoxNode: homelab
+        proxmoxVMID: 117
+        proxmoxType: lxc
         widget:
           type: homeassistant
           url: https://ha.moreaulab.ca
