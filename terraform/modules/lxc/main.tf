@@ -56,7 +56,7 @@ resource "proxmox_virtual_environment_container" "this" {
 
   operating_system {
     template_file_id = var.lxc_template
-    type             = "ubuntu"
+    type             = var.os_type
   }
 
   disk {
@@ -94,7 +94,7 @@ resource "proxmox_virtual_environment_container" "this" {
     content {
       type         = "uid"
       container_id = var.nas_idmap.uid
-      host_id      = var.nas_idmap.uid
+      host_id      = coalesce(var.nas_idmap.host_uid, var.nas_idmap.uid)
       size         = 1
     }
   }
@@ -124,7 +124,7 @@ resource "proxmox_virtual_environment_container" "this" {
     content {
       type         = "gid"
       container_id = var.nas_idmap.gid
-      host_id      = var.nas_idmap.gid
+      host_id      = coalesce(var.nas_idmap.host_gid, var.nas_idmap.gid)
       size         = 1
     }
   }
@@ -160,8 +160,8 @@ locals {
 
   idmap_commands = var.nas_idmap != null ? [
     # Ensure Proxmox host allows passthrough of these ids via subuid/subgid
-    "grep -qF 'root:${local._idmap_uid}:1' /etc/subuid || echo 'root:${local._idmap_uid}:1' | sudo tee -a /etc/subuid",
-    "grep -qF 'root:${local._idmap_gid}:1' /etc/subgid || echo 'root:${local._idmap_gid}:1' | sudo tee -a /etc/subgid",
+    "grep -qF 'root:${coalesce(var.nas_idmap.host_uid, var.nas_idmap.uid)}:1' /etc/subuid || echo 'root:${coalesce(var.nas_idmap.host_uid, var.nas_idmap.uid)}:1' | sudo tee -a /etc/subuid",
+    "grep -qF 'root:${coalesce(var.nas_idmap.host_gid, var.nas_idmap.gid)}:1' /etc/subgid || echo 'root:${coalesce(var.nas_idmap.host_gid, var.nas_idmap.gid)}:1' | sudo tee -a /etc/subgid",
   ] : []
 }
 

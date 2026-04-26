@@ -76,17 +76,17 @@ Both modules need a `terraform.tfvars`. Key values to set:
 
 ## LXC containers
 
-| Name              | VM ID | Primary IP   | Purpose                                          |
-| ----------------- | ----- | ------------ | ------------------------------------------------ |
-| lxc-gateway       | 110   | 192.168.8.40 | Traefik, Cloudflare tunnel                       |
-| lxc-media         | 111   | 192.168.8.41 | Jellyfin, Transmission, Calibre, service-watcher |
-| lxc-essere        | 112   | 192.168.8.42 | WordPress, Ghost                                 |
-| lxc-monitoring    | 113   | 192.168.8.43 | Prometheus, Loki, Grafana                        |
-| lxc-tools         | 114   | 192.168.8.44 | Homepage                                         |
-| lxc-vault         | 115   | 192.168.8.45 | Vaultwarden                                      |
-| lxc-immich        | 116   | 192.168.8.46 | Immich photo management                          |
-| lxc-homeassistant | 117   | 192.168.8.47 | Home automation                                  |
-| lxc-pbs           | 118   | 192.168.8.48 | Proxmox Backup Server (Debian 13)                |
+| Name              | VM ID | Primary IP   | Purpose                                              |
+| ----------------- | ----- | ------------ | ---------------------------------------------------- |
+| lxc-gateway       | 110   | 192.168.8.40 | Traefik, Cloudflare tunnel                           |
+| lxc-media         | 111   | 192.168.8.41 | Jellyfin, Transmission, Calibre, service-watcher     |
+| lxc-essere        | 112   | 192.168.8.42 | WordPress, Ghost                                     |
+| lxc-monitoring    | 113   | 192.168.8.43 | Prometheus, Loki, Grafana                            |
+| lxc-tools         | 114   | 192.168.8.44 | Homepage                                             |
+| lxc-vault         | 115   | 192.168.8.45 | Vaultwarden                                          |
+| lxc-immich        | 116   | 192.168.8.46 | Immich photo management                              |
+| lxc-homeassistant | 117   | 192.168.8.47 | Home automation                                      |
+| lxc-pbs           | 118   | 192.168.8.48 | Proxmox Backup Server + NAS mount (/mnt/nas-backups) |
 
 ## Workflow
 

@@ -62,6 +62,11 @@ variable "disk_size" {
   default = 4
 }
 
+variable "os_type" {
+  type    = string
+  default = "ubuntu"
+}
+
 variable "mounts" {
   description = "Bind mounts or Proxmox storage volume mounts applied via pct set. Use 'host' for bind mounts, 'volume' for an existing Proxmox volid (e.g. from module.lxc_volume.volids)."
   type = list(object({
@@ -99,10 +104,12 @@ variable "hwaddr_eth0" {
 }
 
 variable "nas_idmap" {
-  description = "NAS UID/GID passthrough mapping. Maps a single uid:gid from the NAS directly into the unprivileged container so bind-mounted NAS shares have correct ownership."
+  description = "NAS UID/GID passthrough mapping. Maps a single uid:gid from the container to a specific uid:gid on the host (e.g. for NFS)."
   type = object({
-    uid = number
-    gid = number
+    uid      = number
+    gid      = number
+    host_uid = optional(number)
+    host_gid = optional(number)
   })
   default = null
 }

@@ -7,7 +7,7 @@
   ansible.builtin.get_url:
     url: https://enterprise.proxmox.com/debian/proxmox-release-trixie.gpg
     dest: /etc/apt/trusted.gpg.d/proxmox-release-trixie.gpg
-    mode: "0644"
+    mode: '0644'
 
 - name: Add Proxmox Backup Server no-subscription repository
   ansible.builtin.copy:
@@ -15,19 +15,22 @@
     content: |
       # Proxmox Backup Server — no-subscription repository (Debian 13 Trixie)
       deb http://download.proxmox.com/debian/pbs trixie pbs-no-subscription
-    mode: "0644"
+    mode: '0644'
+
+- name: Find apt sources referencing the PBS enterprise repository
+  ansible.builtin.find:
+    paths: /etc/apt/
+    contains: 'enterprise.proxmox.com/debian/pbs'
+    recurse: true
+  register: pbs_enterprise_sources
 
 - name: Disable any apt sources referencing the PBS enterprise repository
-  ansible.builtin.shell: |
-    files=$(grep -rl "enterprise.proxmox.com/debian/pbs" /etc/apt/ 2>/dev/null || true)
-    if [ -n "$files" ]; then
-      echo "$files" | xargs rm -f
-      echo "removed"
-    else
-      echo "not_found"
-    fi
-  register: enterprise_removal
-  changed_when: "'removed' in enterprise_removal.stdout"
+  ansible.builtin.file:
+    path: '{{ item.path }}'
+    state: absent
+  loop: '{{ pbs_enterprise_sources.files }}'
+  loop_control:
+    label: '{{ item.path }}'
 
 - name: Update apt cache
   ansible.builtin.apt:
@@ -48,9 +51,27 @@
 - name: Wait for PBS API to become ready
   ansible.builtin.wait_for:
     port: 8007
-    host: "127.0.0.1"
+    host: '127.0.0.1'
     delay: 5
     timeout: 60
+
+# ---------------------------------------------------------------------------
+# NAS mount permissions
+# ---------------------------------------------------------------------------
+
+- name: Create svc-backup user matching NAS UID
+  ansible.builtin.user:
+    name: svc-backup
+    uid: 3001
+    group: users
+    shell: /usr/sbin/nologin
+    system: true
+
+- name: Add backup user to users group for NAS mount access
+  ansible.builtin.user:
+    name: backup
+    groups: users
+    append: true
 
 # ---------------------------------------------------------------------------
 # Configure admin user — pmoreau@pbs mapped to the PVE PAM account
@@ -73,6 +94,7 @@
       --comment "Homelab admin — mirrors PVE pmoreau@pam"
       --enable true
   when: vault_pbs_admin_username not in pbs_users.stdout
+  changed_when: true
   no_log: true
 
 - name: Grant Admin role on / to PBS admin user
@@ -100,3 +122,56 @@
     state: present
   when: hostvars['lxc-gateway']['certs_dumper_keypair'] is defined
 
+# ---------------------------------------------------------------------------
+# Datastore Auto-Provisioning
+# Bypasses NFS chown restrictions for unprivileged containers
+# ---------------------------------------------------------------------------
+
+- name: Check if datastore is already initialized
+  ansible.builtin.stat:
+    path: /mnt/nas-backups/datastore/.chunks
+  register: datastore_chunks
+
+- name: Pre-create datastore chunk directories as backup user
+  ansible.builtin.shell: |
+    mkdir -p /mnt/nas-backups/datastore/.chunks
+    cd /mnt/nas-backups/datastore/.chunks
+    for i in {0..255}; do
+        prefix=$(printf "%02x" $i)
+        mkdir -p $(printf "${prefix}%02x " {0..255})
+    done
+  args:
+    executable: /bin/bash
+  environment:
+    ANSIBLE_REMOTE_TMP: /tmp
+  become: true
+  become_user: backup
+  become_method: ansible.builtin.su
+  become_flags: '-s /bin/bash'
+  when: not datastore_chunks.stat.exists
+  changed_when: true
+
+- name: Ensure PBS datastore configuration file exists
+  ansible.builtin.copy:
+    dest: /etc/proxmox-backup/datastore.cfg
+    content: ''
+    force: false
+    owner: backup
+    group: backup
+    mode: '0640'
+
+- name: Clean up legacy Ansible markers from PBS config
+  ansible.builtin.lineinfile:
+    path: /etc/proxmox-backup/datastore.cfg
+    regexp: '^# (BEGIN|END) ANSIBLE MANAGED BLOCK'
+    state: absent
+
+- name: Register datastore in Proxmox Backup Server configuration
+  ansible.builtin.shell: |
+    if ! grep -q "datastore: nas-backups" /etc/proxmox-backup/datastore.cfg; then
+        printf "\ndatastore: nas-backups\n    path /mnt/nas-backups/datastore\n" >> /etc/proxmox-backup/datastore.cfg
+        echo "changed"
+    fi
+  register: datastore_cfg
+  changed_when: "'changed' in datastore_cfg.stdout"
+  notify: Reload PBS proxy

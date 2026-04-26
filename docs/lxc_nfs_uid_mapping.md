@@ -8,6 +8,7 @@ All LXC containers run as **unprivileged** (`unprivileged: true`). NFS shares fr
 | ------ | ---------------------------------------------------------------------- |
 | `2000` | General media service accounts (`svc-media`)                           |
 | `3000` | Sensitive service accounts (used by media Docker containers as `PUID`) |
+| `3001` | PBS Backup service account (`svc-backup`)                              |
 | `100`  | Shared GID (users group on QNAP)                                       |
 
 ## 1. QNAP: create service accounts
@@ -38,6 +39,7 @@ Add entries to `/etc/subuid` and `/etc/subgid` on the Proxmox host so it can map
 root:100000:65536
 root:2000:1
 root:3000:1
+root:3001:1
 ```
 
 Apply to both `/etc/subuid` and `/etc/subgid`.
