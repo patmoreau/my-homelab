@@ -63,7 +63,7 @@
     type: ed25519
     comment: traefik-certs-dumper@lxc-gateway
     mode: '0600'
-  register: certs_dumper_keypair
+  register: traefik_certs_dumper_keypair
 
 - name: Ensure acme.json exists with correct permissions
   ansible.builtin.file:

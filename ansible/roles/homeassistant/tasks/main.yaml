@@ -31,7 +31,7 @@
   ansible.builtin.command: docker exec homeassistant bash -c "wget -O - https://get.hacs.xyz | bash -"
   args:
     creates: /data/config/custom_components/hacs
-  register: hacs_install
+  register: homeassistant_hacs_install
 
 - name: Configure trusted proxies
   ansible.builtin.blockinfile:
@@ -42,10 +42,10 @@
         use_x_forwarded_for: true
         trusted_proxies:
           - {{ hostvars['lxc-gateway']['ansible_host'] }}
-  register: ha_config
+  register: homeassistant_config
 
 - name: Restart Home Assistant to apply config
   community.docker.docker_compose_v2:
     project_src: '{{ docker_compose_dir }}/homeassistant'
     state: restarted
-  when: ha_config.changed or hacs_install.changed
+  when: homeassistant_config.changed or homeassistant_hacs_install.changed

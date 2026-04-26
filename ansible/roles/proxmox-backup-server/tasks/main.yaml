@@ -17,20 +17,20 @@
       deb http://download.proxmox.com/debian/pbs trixie pbs-no-subscription
     mode: '0644'
 
-- name: Find apt sources referencing the PBS enterprise repository
-  ansible.builtin.find:
-    paths: /etc/apt/
-    contains: 'enterprise.proxmox.com/debian/pbs'
-    recurse: true
-  register: pbs_enterprise_sources
-
 - name: Disable any apt sources referencing the PBS enterprise repository
-  ansible.builtin.file:
-    path: '{{ item.path }}'
-    state: absent
-  loop: '{{ pbs_enterprise_sources.files }}'
-  loop_control:
-    label: '{{ item.path }}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    files=$(grep -rl "enterprise.proxmox.com/debian/pbs" /etc/apt/ 2>/dev/null || true)
+    if [ -n "$files" ]; then
+      echo "$files" | xargs rm -f
+      echo "removed"
+    else
+      echo "not_found"
+    fi
+  args:
+    executable: /bin/bash
+  register: enterprise_removal
+  changed_when: "'removed' in enterprise_removal.stdout"
 
 - name: Update apt cache
   ansible.builtin.apt:
@@ -41,6 +41,21 @@
   ansible.builtin.apt:
     name: proxmox-backup-server
     state: present
+
+- name: Disable PBS enterprise repository created by post-install script
+  ansible.builtin.shell: |
+    set -o pipefail
+    files=$(grep -rl "enterprise.proxmox.com/debian/pbs" /etc/apt/ 2>/dev/null || true)
+    if [ -n "$files" ]; then
+      echo "$files" | xargs rm -f
+      echo "removed"
+    else
+      echo "not_found"
+    fi
+  args:
+    executable: /bin/bash
+  register: enterprise_removal_post
+  changed_when: "'removed' in enterprise_removal_post.stdout"
 
 - name: Ensure PBS service is enabled and started
   ansible.builtin.systemd:
@@ -168,10 +183,61 @@
 
 - name: Register datastore in Proxmox Backup Server configuration
   ansible.builtin.shell: |
+    set -o pipefail
     if ! grep -q "datastore: nas-backups" /etc/proxmox-backup/datastore.cfg; then
         printf "\ndatastore: nas-backups\n    path /mnt/nas-backups/datastore\n" >> /etc/proxmox-backup/datastore.cfg
         echo "changed"
     fi
+  args:
+    executable: /bin/bash
   register: datastore_cfg
   changed_when: "'changed' in datastore_cfg.stdout"
   notify: Reload PBS proxy
+
+# ---------------------------------------------------------------------------
+# Backup client service account
+# A dedicated pbs-realm user (backup-client@pbs) is created with the
+# vault-managed password so any LXC container running proxmox-backup-client
+# can use the same credentials without manual token generation.
+# ---------------------------------------------------------------------------
+
+- name: Check if backup-client@pbs user already exists
+  ansible.builtin.command:
+    cmd: proxmox-backup-manager user list --output-format json
+  register: pbs_all_users
+  changed_when: false
+
+- name: Create backup-client@pbs user
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager user create backup-client@pbs
+      --password {{ vault_pbs_client_password }}
+      --comment "Ansible backup client — used by all LXC backup jobs"
+      --enable true
+  when: "'backup-client@pbs' not in pbs_all_users.stdout"
+  changed_when: true
+  no_log: true
+
+- name: Grant DatastoreBackup ACL to backup-client@pbs on nas-backups datastore
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager acl update /datastore/nas-backups DatastoreBackup
+      --auth-id backup-client@pbs
+  changed_when: false
+  # Idempotent: re-applying the same ACL is a no-op on PBS
+
+# ---------------------------------------------------------------------------
+# Expose TLS fingerprint as a host fact so proxmox-backup-client roles
+# can write it into their env file without interactive prompts.
+# ---------------------------------------------------------------------------
+
+- name: Read PBS TLS certificate fingerprint
+  ansible.builtin.command:
+    cmd: openssl x509 -noout -fingerprint -sha256 -in /etc/proxmox-backup/proxy.pem
+  register: pbs_cert_fingerprint_raw
+  changed_when: false
+  failed_when: pbs_cert_fingerprint_raw.rc != 0
+
+- name: Set pbs_cert_fingerprint host fact
+  ansible.builtin.set_fact:
+    pbs_cert_fingerprint: "{{ pbs_cert_fingerprint_raw.stdout | regex_replace('.*=', '') | lower }}"

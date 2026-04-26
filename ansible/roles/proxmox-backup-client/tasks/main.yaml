@@ -4,11 +4,18 @@
 # Ubuntu 24.04 is binary-compatible with Proxmox Debian Bookworm packages.
 # ---------------------------------------------------------------------------
 
+- name: Ensure PBS hostname resolves via /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '.*{{ pbs_domain }}'
+    line: "{{ hostvars['lxc-pbs']['ansible_host'] }}\t{{ pbs_domain }}"
+    state: present
+
 - name: Add Proxmox GPG key (Bookworm)
   ansible.builtin.get_url:
     url: https://enterprise.proxmox.com/debian/proxmox-release-bookworm.gpg
     dest: /etc/apt/trusted.gpg.d/proxmox-release-bookworm.gpg
-    mode: "0644"
+    mode: '0644'
 
 - name: Add Proxmox PBS no-subscription repository (Bookworm)
   ansible.builtin.copy:
@@ -16,10 +23,11 @@
     content: |
       # Proxmox Backup Client — no-subscription repository (Debian Bookworm)
       deb http://download.proxmox.com/debian/pbs bookworm pbs-no-subscription
-    mode: "0644"
+    mode: '0644'
 
 - name: Disable any apt sources referencing the PBS enterprise repository
   ansible.builtin.shell: |
+    set -o pipefail
     files=$(grep -rl "enterprise.proxmox.com/debian/pbs" /etc/apt/ 2>/dev/null || true)
     if [ -n "$files" ]; then
       echo "$files" | xargs rm -f
@@ -27,6 +35,8 @@
     else
       echo "not_found"
     fi
+  args:
+    executable: /bin/bash
   register: enterprise_removal
   changed_when: "'removed' in enterprise_removal.stdout"
 
@@ -39,3 +49,39 @@
   ansible.builtin.apt:
     name: proxmox-backup-client
     state: present
+
+- name: Ensure proxmox-backup configuration directory exists
+  ansible.builtin.file:
+    path: /etc/proxmox-backup
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Deploy PBS client credentials file
+  ansible.builtin.template:
+    src: pbs-client.env.j2
+    dest: /etc/proxmox-backup/pbs-client.env
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Create PBS backup systemd service
+  ansible.builtin.template:
+    src: pbs-backup.service.j2
+    dest: /etc/systemd/system/pbs-backup.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload systemd
+
+- name: Create PBS backup systemd timer
+  ansible.builtin.template:
+    src: pbs-backup.timer.j2
+    dest: /etc/systemd/system/pbs-backup.timer
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Reload systemd
+    - Enable and start PBS backup timer

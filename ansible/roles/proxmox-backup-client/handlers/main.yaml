@@ -1,0 +1,10 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable and start PBS backup timer
+  ansible.builtin.systemd:
+    name: pbs-backup.timer
+    enabled: true
+    state: started
