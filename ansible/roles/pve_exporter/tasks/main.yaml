@@ -1,0 +1,27 @@
+- name: Create monitoring_shared network
+  community.docker.docker_network:
+    name: monitoring_shared
+    state: present
+
+- name: Create directory
+  ansible.builtin.file:
+    path: '{{ docker_compose_dir }}/pve_exporter'
+    state: directory
+    mode: '0755'
+
+- name: Copy pve.yml config
+  ansible.builtin.template:
+    src: pve.yml.j2
+    dest: '{{ docker_compose_dir }}/pve_exporter/pve.yml'
+    mode: '0644'
+
+- name: Copy docker-compose.yaml
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: '{{ docker_compose_dir }}/pve_exporter/docker-compose.yaml'
+    mode: '0644'
+
+- name: Start
+  community.docker.docker_compose_v2:
+    project_src: '{{ docker_compose_dir }}/pve_exporter'
+    state: present

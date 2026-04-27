@@ -9,7 +9,7 @@ Key config files:
 | File                              | Purpose                                                  | Git        |
 | --------------------------------- | -------------------------------------------------------- | ---------- |
 | `ansible.cfg`                     | Sets inventory, vault password file, SSH options         | Committed  |
-| `inventory/hosts.yaml`            | LXC and Hypervisor host IPs                              | Committed  |
+| `inventory/hosts.yaml`            | LXC and Hypervisors host IPs                             | Committed  |
 | `group_vars/all/main.yaml`        | Shared variables (user, paths, domains, node name, etc.) | Committed  |
 | `group_vars/all/vault.yaml`       | Plaintext secrets — Ansible reads this                   | Gitignored |
 | `group_vars/all/vault.yaml.vault` | Encrypted copy of vault.yaml                             | Committed  |
@@ -46,45 +46,45 @@ cd ansible && ./vault.sh decrypt
 
 These must be populated to deploy all services:
 
-| Variable                                | Used by                | Notes                                                 |
-| --------------------------------------- | ---------------------- | ----------------------------------------------------- |
-| `vault_bitwarden_admin_token`           | vaultwarden            | Argon2 hash                                           |
-| `vault_bitwarden_mariadb_root_password` | vaultwarden            |                                                       |
-| `vault_bitwarden_mariadb_password`      | vaultwarden            |                                                       |
-| `vault_calibre_username`                | homepage               | Calibre-web basic auth                                |
-| `vault_calibre_password`                | homepage               |                                                       |
-| `vault_cloudflare_tunnel_token`         | cloudflare             | Cloudflare Zero Trust tunnel token                    |
-| `vault_essere_mariadb_root_password`    | essere                 |                                                       |
-| `vault_essere_mariadb_password`         | essere                 |                                                       |
-| `vault_filebrowser_username`            | filebrowser            |                                                       |
-| `vault_filebrowser_password`            | filebrowser            |                                                       |
-| `vault_grafana_admin_user`              | grafana                |                                                       |
-| `vault_grafana_admin_password`          | grafana                |                                                       |
-| `vault_jellyfin_api_key`                | homepage               | Jellyfin API key for widget                           |
-| `vault_proxmox_username`                | homepage               | Proxmox API token (`user@pam!token`)                  |
-| `vault_proxmox_password`                | homepage               | Proxmox API token secret                              |
-| `vault_qnap_username`                   | service-watcher        | SSH user on QNAP                                      |
-| `vault_qnap_password`                   | service-watcher        | QNAP user password                                    |
-| `vault_qnap_ssh_private_key`            | service-watcher        | Base64-encoded `id_ed25519_qnap_monitor` private key  |
-| `vault_transmission_user`               | transmission           |                                                       |
-| `vault_transmission_pass`               | transmission           |                                                       |
-| `vault_yubiko_client_id`                | vaultwarden            | YubiKey OTP client ID                                 |
-| `vault_yubiko_secret_key`               | vaultwarden            | YubiKey OTP secret                                    |
-| `vault_immich_db_username`              | immich                 | PostgreSQL username                                   |
-| `vault_immich_db_password`              | immich                 | PostgreSQL password                                   |
-| `vault_immich_db_name`                  | immich                 | PostgreSQL database name                              |
-| `vault_immich_api_key`                  | homepage               | Immich API Key for widget                             |
-| `vault_nextcloud_username`              | homepage               | Nextcloud widget auth                                 |
-| `vault_nextcloud_password`              | homepage               | Nextcloud widget auth                                 |
-| `vault_cloudflare_zone_id`              | homepage               | Cloudflare widget zone ID                             |
-| `vault_cloudflare_api_key`              | homepage               | Cloudflare widget API key                             |
-| `vault_pbs_admin_username`              | proxmox-backup-server  | PBS user in `user@realm` format (e.g. `pmoreau@pbs`)  |
-| `vault_pbs_admin_password`              | proxmox-backup-server  | Initial password for the PBS admin user               |
-| `vault_pbs_admin_email`                 | proxmox-backup-server  | Email address for the PBS admin user                  |
-| `vault_pbs_client_repository`           | proxmox-backup-client  | PBS repository string (`user@realm@host:datastore`) — created automatically by proxmox-backup-server role |
-| `vault_pbs_client_password`             | proxmox-backup-client  | Password for `backup-client@pbs` — set once in vault, reused by all LXC containers |
-| `vault_proxmox_token_id`                | traefik (certs-dumper) | Proxmox API Token ID                                  |
-| `vault_proxmox_token_secret`            | traefik (certs-dumper) | Proxmox API Token Secret                              |
+| Variable                                | Used by                              | Notes                                                                                                     |
+| --------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `vault_bitwarden_admin_token`           | vaultwarden                          | Argon2 hash                                                                                               |
+| `vault_bitwarden_mariadb_root_password` | vaultwarden                          |                                                                                                           |
+| `vault_bitwarden_mariadb_password`      | vaultwarden                          |                                                                                                           |
+| `vault_calibre_username`                | homepage                             | Calibre-web basic auth                                                                                    |
+| `vault_calibre_password`                | homepage                             |                                                                                                           |
+| `vault_cloudflare_tunnel_token`         | cloudflare                           | Cloudflare Zero Trust tunnel token                                                                        |
+| `vault_essere_mariadb_root_password`    | essere                               |                                                                                                           |
+| `vault_essere_mariadb_password`         | essere                               |                                                                                                           |
+| `vault_filebrowser_username`            | filebrowser                          |                                                                                                           |
+| `vault_filebrowser_password`            | filebrowser                          |                                                                                                           |
+| `vault_grafana_admin_user`              | grafana                              |                                                                                                           |
+| `vault_grafana_admin_password`          | grafana                              |                                                                                                           |
+| `vault_jellyfin_api_key`                | homepage                             | Jellyfin API key for widget                                                                               |
+| `vault_proxmox_username`                | homepage                             | Proxmox API token (`user@pam!token`)                                                                      |
+| `vault_proxmox_password`                | homepage                             | Proxmox API token secret                                                                                  |
+| `vault_qnap_username`                   | service-watcher                      | SSH user on QNAP                                                                                          |
+| `vault_qnap_password`                   | service-watcher                      | QNAP user password                                                                                        |
+| `vault_qnap_ssh_private_key`            | service-watcher                      | Base64-encoded `id_ed25519_qnap_monitor` private key                                                      |
+| `vault_transmission_user`               | transmission                         |                                                                                                           |
+| `vault_transmission_pass`               | transmission                         |                                                                                                           |
+| `vault_yubiko_client_id`                | vaultwarden                          | YubiKey OTP client ID                                                                                     |
+| `vault_yubiko_secret_key`               | vaultwarden                          | YubiKey OTP secret                                                                                        |
+| `vault_immich_db_username`              | immich                               | PostgreSQL username                                                                                       |
+| `vault_immich_db_password`              | immich                               | PostgreSQL password                                                                                       |
+| `vault_immich_db_name`                  | immich                               | PostgreSQL database name                                                                                  |
+| `vault_immich_api_key`                  | homepage                             | Immich API Key for widget                                                                                 |
+| `vault_nextcloud_username`              | homepage                             | Nextcloud widget auth                                                                                     |
+| `vault_nextcloud_password`              | homepage                             | Nextcloud widget auth                                                                                     |
+| `vault_cloudflare_zone_id`              | homepage                             | Cloudflare widget zone ID                                                                                 |
+| `vault_cloudflare_api_key`              | homepage                             | Cloudflare widget API key                                                                                 |
+| `vault_pbs_admin_username`              | proxmox-backup-server                | PBS user in `user@realm` format (e.g. `pmoreau@pbs`)                                                      |
+| `vault_pbs_admin_password`              | proxmox-backup-server                | Initial password for the PBS admin user                                                                   |
+| `vault_pbs_admin_email`                 | proxmox-backup-server                | Email address for the PBS admin user                                                                      |
+| `vault_pbs_client_repository`           | proxmox-backup-client                | PBS repository string (`user@realm@host:datastore`) — created automatically by proxmox-backup-server role |
+| `vault_pbs_client_password`             | proxmox-backup-client                | Password for `backup-client@pbs` — set once in vault, reused by all LXC containers                        |
+| `vault_proxmox_token_id`                | traefik (certs-dumper), pve_exporter | Proxmox API Token ID (`user@realm!tokenname`)                                                             |
+| `vault_proxmox_token_secret`            | traefik (certs-dumper), pve_exporter | Proxmox API Token Secret                                                                                  |
 
 To base64-encode the QNAP SSH key:
 

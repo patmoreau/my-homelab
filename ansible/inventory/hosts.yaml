@@ -1,9 +1,13 @@
 all:
   children:
-    hypervisor:
+    hypervisors:
       hosts:
         pve-homelab:
           ansible_host: 192.168.8.10
+    backup_servers:
+      hosts:
+        lxc-pbs:
+          ansible_host: 192.168.8.48
 
     lxc:
       hosts:

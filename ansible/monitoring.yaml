@@ -1,0 +1,21 @@
+# ansible/site.yaml (or monitoring.yaml)
+- name: Setup Infrastructure Monitoring
+  hosts: backup_servers
+  become: true
+  vars:
+    # URL for Promtail to push logs to Loki
+    loki_url: 'http://192.168.8.43:3100/loki/api/v1/push'
+
+    # Configure Promtail to scrape standard system logs
+    promtail_config_scrape_configs:
+      - job_name: system
+        static_configs:
+          - targets:
+              - localhost
+            labels:
+              job: varlogs
+              host: '{{ inventory_hostname }}'
+              __path__: /var/log/*log
+
+  roles:
+    - role: promtail

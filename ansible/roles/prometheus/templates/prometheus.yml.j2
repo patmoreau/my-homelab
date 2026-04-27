@@ -6,22 +6,49 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+        labels:
+          instance: 'lxc-monitoring'
 
   - job_name: 'node_exporter'
     static_configs:
-      - targets:
 {% for host in groups['lxc'] %}
-          - '{{ hostvars[host]['ansible_host'] }}:9100'
+      - targets: ['{{ hostvars[host]['ansible_host'] }}:9100']
+        labels:
+          container_name: '{{ host }}'
 {% endfor %}
+    relabel_configs:
+      - source_labels: [container_name]
+        target_label: instance
 
   - job_name: 'cadvisor'
     static_configs:
-      - targets:
-{% for host in groups['lxc'] %}
-          - '{{ hostvars[host]['ansible_host'] }}:9338'
+{% for host in groups['lxc'] if host != 'lxc-pbs' %}
+      - targets: ['{{ hostvars[host]['ansible_host'] }}:9338']
+        labels:
+          container_name: '{{ host }}'
 {% endfor %}
+    relabel_configs:
+      - source_labels: [container_name]
+        target_label: instance
 
   - job_name: 'service_watcher'
     static_configs:
       - targets:
           - '{{ hostvars['lxc-media']['ansible_host'] }}:{{ hostvars['lxc-media'].get('service_watcher_port', 3000) }}'
+
+  - job_name: 'pve'
+    static_configs:
+      - targets:
+{% for host in groups['hypervisors'] %}
+          - '{{ hostvars[host]['ansible_host'] }}'
+{% endfor %}
+    metrics_path: /pve
+    params:
+      module: [default]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 'pve_exporter:9221'

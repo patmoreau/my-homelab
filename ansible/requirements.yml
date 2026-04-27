@@ -3,3 +3,5 @@ collections:
   - name: community.docker
   - name: community.crypto
   - name: ansible.posix
+  - name: prometheus.prometheus
+  - name: grafana.grafana

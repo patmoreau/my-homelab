@@ -38,6 +38,7 @@
     - prometheus
     - loki
     - grafana
+    - pve_exporter
     - proxmox-backup-client
 
 - name: Deploy Tools

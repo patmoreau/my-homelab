@@ -1,0 +1,5 @@
+default:
+  user: {{ vault_pve_token_id.split('!')[0] }}
+  token_name: {{ vault_pve_token_id.split('!')[1] }}
+  token_value: {{ vault_pve_token_secret }}
+  verify_ssl: false

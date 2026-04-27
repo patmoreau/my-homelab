@@ -1,28 +1,28 @@
 - name: Create directory
   ansible.builtin.file:
-    path: "{{ docker_compose_dir }}/prometheus"
+    path: '{{ docker_compose_dir }}/prometheus'
     state: directory
-    mode: "0755"
+    mode: '0755'
 
 - name: Create config directory
   ansible.builtin.file:
-    path: "{{ docker_compose_dir }}/prometheus/config"
+    path: '{{ docker_compose_dir }}/prometheus/config'
     state: directory
-    mode: "0755"
+    mode: '0755'
 
 - name: Copy prometheus config
   ansible.builtin.template:
     src: prometheus.yml.j2
-    dest: "{{ docker_compose_dir }}/prometheus/config/prometheus.yml"
-    mode: "0644"
+    dest: '{{ docker_compose_dir }}/prometheus/config/prometheus.yml'
+    mode: '0644'
 
 - name: Copy docker-compose.yaml
   ansible.builtin.template:
     src: docker-compose.yaml.j2
-    dest: "{{ docker_compose_dir }}/prometheus/docker-compose.yaml"
-    mode: "0644"
+    dest: '{{ docker_compose_dir }}/prometheus/docker-compose.yaml'
+    mode: '0644'
 
 - name: Start
   community.docker.docker_compose_v2:
-    project_src: "{{ docker_compose_dir }}/prometheus"
+    project_src: '{{ docker_compose_dir }}/prometheus'
     state: present
