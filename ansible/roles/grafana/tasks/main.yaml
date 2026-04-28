@@ -12,17 +12,36 @@
   loop:
     - /data/grafana
 
-- name: Create config directory
+- name: Create config directories
   ansible.builtin.file:
-    path: "{{ docker_compose_dir }}/grafana/config/datasources"
+    path: "{{ docker_compose_dir }}/grafana/config/{{ item }}"
     state: directory
     mode: "0755"
+  loop:
+    - datasources
+    - dashboards
+    - dashboard_files
 
 - name: Copy datasources.yml
   ansible.builtin.template:
     src: datasources.yml.j2
     dest: "{{ docker_compose_dir }}/grafana/config/datasources/datasources.yml"
     mode: "0644"
+
+- name: Copy dashboards.yml
+  ansible.builtin.template:
+    src: dashboards.yml.j2
+    dest: "{{ docker_compose_dir }}/grafana/config/dashboards/dashboards.yml"
+    mode: "0644"
+
+- name: Copy dashboard files
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ docker_compose_dir }}/grafana/config/dashboard_files/{{ item }}"
+    mode: "0644"
+  loop:
+    - node-exporter-full.json
+    - proxmox-cluster.json
 
 - name: Copy docker-compose.yaml
   ansible.builtin.template:

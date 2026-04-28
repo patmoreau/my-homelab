@@ -12,3 +12,5 @@ services:
     volumes:
       - /data/grafana:/var/lib/grafana
       - ./config/datasources:/etc/grafana/provisioning/datasources
+      - ./config/dashboards:/etc/grafana/provisioning/dashboards
+      - ./config/dashboard_files:/var/lib/grafana/dashboards
