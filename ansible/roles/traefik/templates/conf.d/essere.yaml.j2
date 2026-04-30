@@ -1,5 +1,12 @@
 http:
   routers:
+    essere-directus:
+      rule: "Host(`essere.moreaulab.ca`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: essere-directus
     essere:
       rule: "Host(`essere.ca`) || Host(`www.essere.ca`)"
       entryPoints:
@@ -8,9 +15,29 @@ http:
       tls:
         certResolver: cloudflare
       service: essere
+    essere-directus-on-essere:
+      rule: "Host(`essere.ca`) && PathPrefix(`/directus`)"
+      entryPoints:
+        - web
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: essere-directus
+      middlewares:
+        - essere-directus-strip-prefix
 
   services:
+    essere-directus:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-essere']['ansible_host'] }}:8055"
     essere:
       loadBalancer:
         servers:
-          - url: "http://{{ hostvars['lxc-essere']['ansible_host'] }}:80"
+          - url: "http://{{ hostvars['lxc-essere']['ansible_host'] }}:3000"
+
+  middlewares:
+    essere-directus-strip-prefix:
+      stripPrefix:
+        prefixes:
+          - "/directus"

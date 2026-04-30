@@ -1,59 +1,72 @@
-- name: Create folder
+- name: Create project folder
   ansible.builtin.file:
-    path: "{{ docker_compose_dir }}/essere"
+    path: '{{ docker_compose_dir }}/essere'
     state: directory
-    mode: "0755"
+    mode: '0755'
 
 - name: Create data directories
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: '{{ item }}'
     state: directory
-    mode: "0777"
+    # Using 777 can be risky, but ensures Docker volume access in LXC
+    # if user mapping isn't perfectly aligned.
+    mode: '0777'
   loop:
-    - /data/nginx
-    - /data/mariadb
-    - /data/wordpress
-    - /data/ghostdb
-    - /data/ghost
+    - /data/postgres
+    - /data/directus_uploads
 
-- name: Download and extract WordPress
-  ansible.builtin.unarchive:
-    src: "https://wordpress.org/wordpress-{{ wordpress_version }}.tar.gz"
-    dest: /data/wordpress
-    remote_src: true
-    extra_opts:
-      - "--strip-components=1"
-      - "--no-same-owner"
-      - "--no-same-permissions"
-    creates: /data/wordpress/wp-settings.php
-    mode: "0755"
-
-- name: Ensure wp-content directories are writable
-  ansible.builtin.file:
-    path: /data/wordpress
-    state: directory
-    mode: "0777"
-    recurse: true
-
-- name: Generate wp-config.php
+- name: Copy deployment files
   ansible.builtin.template:
-    src: wp-config.php.j2
-    dest: /data/wordpress/wp-config.php
-    mode: "0644"
+    src: '{{ item.src }}'
+    dest: '{{ docker_compose_dir }}/essere/{{ item.dest }}'
+    mode: '{{ item.mode }}'
+  loop:
+    - {src: 'docker-compose.yaml.j2', dest: 'docker-compose.yaml', mode: '0644'}
+    - {src: '.env.j2', dest: '.env', mode: '0600'}
 
-- name: Copy docker-compose.yaml
-  ansible.builtin.template:
-    src: docker-compose.yaml.j2
-    dest: "{{ docker_compose_dir }}/essere/docker-compose.yaml"
-    mode: "0644"
+- name: Export Docker image to tarball locally
+  delegate_to: localhost
+  # Become: false ensures it runs as your local user who has Docker socket access
+  become: false
+  ansible.builtin.shell: |
+    set -o pipefail
+    docker save {{ image_name }}:{{ image_tag }} -o {{ tmp_archive }}
+  args:
+    executable: /bin/bash
+  # Check if image exists before saving to avoid crashes
+  changed_when: true
 
-- name: Create .env file
-  ansible.builtin.template:
-    src: .env.j2
-    dest: "{{ docker_compose_dir }}/essere/.env"
-    mode: "0600"
+- name: Transfer image archive to LXC
+  ansible.builtin.copy:
+    src: '{{ tmp_archive }}'
+    dest: '{{ tmp_archive }}'
+    mode: '0644'
 
-- name: Start
+- name: Load image into Docker on the LXC
+  ansible.builtin.shell: |
+    set -o pipefail
+    docker load -i {{ tmp_archive }}
+  args:
+    executable: /bin/bash
+  register: docker_load_result
+  changed_when: "'Loaded image' in docker_load_result.stdout"
+
+- name: Clean up archives
+  block:
+    - name: Remove remote archive
+      ansible.builtin.file:
+        path: '{{ tmp_archive }}'
+        state: absent
+    - name: Remove local archive
+      delegate_to: localhost
+      become: false
+      ansible.builtin.file:
+        path: '{{ tmp_archive }}'
+        state: absent
+
+- name: Start containers
   community.docker.docker_compose_v2:
-    project_src: "{{ docker_compose_dir }}/essere"
+    project_src: '{{ docker_compose_dir }}/essere'
     state: present
+    # Forces recreation if the image was updated
+    pull: never
