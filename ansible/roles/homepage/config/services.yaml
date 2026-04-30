@@ -153,6 +153,18 @@
           tunnelid: {{HOMEPAGE_VAR_CLOUDFLARE_TUNNEL_ID}}
           key: {{HOMEPAGE_VAR_CLOUDFLARE_API_KEY}}
 
+    - Tailscale:
+        icon: tailscale.png
+        href: https://tailscale.com
+        description: VPN Client
+        widget:
+          type: tailscale
+          deviceid: {{HOMEPAGE_VAR_TAILSCALE_DEVICE_ID}}
+          key: {{HOMEPAGE_VAR_TAILSCALE_API_KEY}}
+          custom:
+            - state: tailscale_metrics.tailscale_byte_received
+            - state: tailscale_metrics.tailscale_byte_sent
+
     - Home Assistant:
         icon: homeassistant.png
         href: https://ha.moreaulab.ca
