@@ -58,6 +58,36 @@
     group: root
     mode: '0700'
 
+- name: Discover PBS TLS fingerprint from endpoint when facts are unavailable
+  ansible.builtin.shell: |
+    set -o pipefail
+    openssl s_client -connect {{ pbs_domain }}:8007 -servername {{ pbs_domain }} < /dev/null 2>/dev/null \
+      | openssl x509 -noout -fingerprint -sha256 \
+      | sed 's/.*=//' \
+      | tr 'A-F' 'a-f'
+  args:
+    executable: /bin/bash
+  register: pbs_discovered_fingerprint
+  changed_when: false
+  when:
+    - hostvars.get('lxc-pbs', {}).get('pbs_cert_fingerprint', '') | length == 0
+    - pbs_client_fingerprint is not defined or not pbs_client_fingerprint
+
+- name: Resolve effective PBS client fingerprint
+  ansible.builtin.set_fact:
+    pbs_client_effective_fingerprint: >-
+      {{
+        hostvars.get('lxc-pbs', {}).get('pbs_cert_fingerprint', '')
+        or (pbs_client_fingerprint | default(''))
+        or (pbs_discovered_fingerprint.stdout | default(''))
+      }}
+
+- name: Ensure PBS client fingerprint is available
+  ansible.builtin.assert:
+    that:
+      - pbs_client_effective_fingerprint | length > 0
+    fail_msg: 'Unable to resolve PBS TLS fingerprint from lxc-pbs facts, pbs_client_fingerprint, or live endpoint {{ pbs_domain }}:8007'
+
 - name: Deploy PBS client credentials file
   ansible.builtin.template:
     src: pbs-client.env.j2
@@ -85,3 +115,10 @@
   notify:
     - Reload systemd
     - Enable and start PBS backup timer
+
+- name: Ensure PBS backup timer is enabled and running
+  ansible.builtin.systemd:
+    name: pbs-backup.timer
+    enabled: true
+    state: started
+    daemon_reload: true

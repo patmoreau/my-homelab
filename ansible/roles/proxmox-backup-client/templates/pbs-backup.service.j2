@@ -1,11 +1,13 @@
 [Unit]
 Description=Daily Proxmox Backup Client Job for {{ pbs_backup_path | default('/data') }}
 After=network.target
-ConditionPathExists={{ pbs_backup_path | default('/data') }}
 
 [Service]
 Type=oneshot
 EnvironmentFile=/etc/proxmox-backup/pbs-client.env
+
+# Fail loudly if the configured backup path is missing.
+ExecStartPre=/usr/bin/test -d {{ pbs_backup_path | default('/data') }}
 
 # Backs up the directory mapped inside the LXC container to a pxar archive
 ExecStart=/usr/bin/proxmox-backup-client backup {{ pbs_backup_archive_name | default('data') }}.pxar:{{ pbs_backup_path | default('/data') }}
