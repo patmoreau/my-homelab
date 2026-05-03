@@ -12,7 +12,7 @@ services:
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128
     group_add:
-      - "993" # render group
+      - "{{ immich_render_gid }}" # render group
     environment:
       DB_HOSTNAME: database
       DB_USERNAME: ${DB_USERNAME}
@@ -34,7 +34,7 @@ services:
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128
     group_add:
-      - "993" # render group
+      - "{{ immich_render_gid }}" # render group
     environment:
       - IMMICH_MACHINE_LEARNING_GPU_TYPE=vaapi
       - DEVICE_NAME=/dev/dri/renderD128

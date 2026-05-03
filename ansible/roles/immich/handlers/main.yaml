@@ -1,0 +1,6 @@
+- name: Extract immich-go
+  ansible.builtin.unarchive:
+    src: /tmp/immich-go.tar.gz
+    dest: /usr/local/bin
+    remote_src: true
+    mode: '0755'

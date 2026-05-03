@@ -79,6 +79,8 @@ variable "lxc_vm_ids" {
     immich        = 116
     homeassistant = 117
     pbs           = 118
+    ollama        = 119
+    open-webui    = 120
   }
 }
 
@@ -95,6 +97,8 @@ variable "lxc_ips" {
     immich        = 46
     homeassistant = 47
     pbs           = 48
+    ollama        = 49
+    open-webui    = 50
   }
 }
 
@@ -111,5 +115,7 @@ variable "lxc_ips_eth1" {
     immich        = 16
     homeassistant = 17
     pbs           = 18
+    ollama        = 19
+    open-webui    = 20
   }
 }

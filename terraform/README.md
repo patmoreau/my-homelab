@@ -53,6 +53,20 @@ Host proxmox
   IdentitiesOnly yes
 ```
 
+### 4. Ollama Phoenix iGPU prerequisites (lxc-ollama)
+
+For Ryzen 9 8945HS / Radeon 780M (gfx1101), keep the `lxc-ollama` container unprivileged and configure the Proxmox host as follows:
+
+- BIOS: set UMA Frame Buffer Size to `16GB` (avoid `Auto` for stable ROCm detection).
+- Device permissions: ensure `/dev/kfd` and `/dev/dri/renderD128` are world-readable/writable (`0666`) via persistent udev rules.
+- Render group mapping: identify host `render` GID (commonly `993` or `108`) and set `gpu_render_gid` in `terraform/lxc-ollama.tf` accordingly.
+
+With `gpu_passthrough = true` and `gpu_render_gid` configured, the module appends:
+
+- `lxc.mount.entry` for `/dev/kfd` and `/dev/dri`
+- `lxc.idmap` gid mapping lines for the selected render gid
+- matching `root:<gid>:1` entry in `/etc/subgid` on the Proxmox host
+
 ## terraform.tfvars
 
 Both modules need a `terraform.tfvars`. Key values to set:
@@ -87,6 +101,8 @@ Both modules need a `terraform.tfvars`. Key values to set:
 | lxc-immich        | 116   | 192.168.8.46 | Immich photo management                              |
 | lxc-homeassistant | 117   | 192.168.8.47 | Home automation                                      |
 | lxc-pbs           | 118   | 192.168.8.48 | Proxmox Backup Server + NAS mount (/mnt/nas-backups) |
+| lxc-ollama        | 119   | 192.168.8.49 | Ollama LLM inference server (GPU passthrough)        |
+| lxc-open-webui    | 120   | 192.168.8.50 | Open WebUI frontend for Ollama                        |
 
 ## Workflow
 

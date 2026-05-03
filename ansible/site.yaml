@@ -68,3 +68,14 @@
   roles:
     - homeassistant
     - proxmox-backup-client
+
+- name: Deploy Ollama
+  hosts: lxc-ollama
+  roles:
+    - ollama
+
+- name: Deploy Open WebUI
+  hosts: lxc-open-webui
+  roles:
+    - open-webui
+    - proxmox-backup-client

@@ -141,7 +141,7 @@ resource "proxmox_virtual_environment_container" "this" {
 }
 
 locals {
-  has_provisioner = length(var.mounts) > 0 || var.gpu_passthrough || var.nas_idmap != null
+  has_provisioner = length(var.mounts) > 0 || var.gpu_passthrough || var.nas_idmap != null || var.gpu_render_gid != null
 
   _idmap_uid = var.nas_idmap != null ? var.nas_idmap.uid : 0
   _idmap_gid = var.nas_idmap != null ? var.nas_idmap.gid : 0
@@ -153,9 +153,20 @@ locals {
   ]
 
   gpu_commands = var.gpu_passthrough ? [
+    "grep -q 'lxc.cgroup2.devices.allow: c 235:0' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.cgroup2.devices.allow: c 235:0 rwm' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
     "grep -q 'lxc.cgroup2.devices.allow: c 226:0' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.cgroup2.devices.allow: c 226:0 rwm' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
     "grep -q 'lxc.cgroup2.devices.allow: c 226:128' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.cgroup2.devices.allow: c 226:128 rwm' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
+    "grep -q 'lxc.mount.entry: /dev/kfd' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.mount.entry: /dev/kfd dev/kfd none bind,optional,create=file' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
     "grep -q 'lxc.mount.entry: /dev/dri' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
+  ] : []
+
+  gpu_render_idmap_commands = var.gpu_render_gid != null ? [
+    # Ensure Proxmox host allows passthrough of the render gid via subgid
+    "grep -qF 'root:${var.gpu_render_gid}:1' /etc/subgid || echo 'root:${var.gpu_render_gid}:1' | sudo tee -a /etc/subgid",
+    "grep -q 'lxc.idmap: u 0 100000 65536' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.idmap: u 0 100000 65536' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
+    "grep -q 'lxc.idmap: g 0 100000 ${var.gpu_render_gid}' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.idmap: g 0 100000 ${var.gpu_render_gid}' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
+    "grep -q 'lxc.idmap: g ${var.gpu_render_gid} ${var.gpu_render_gid} 1' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.idmap: g ${var.gpu_render_gid} ${var.gpu_render_gid} 1' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
+    "grep -q 'lxc.idmap: g ${var.gpu_render_gid + 1} ${100000 + var.gpu_render_gid + 1} ${65536 - var.gpu_render_gid - 1}' /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf || echo 'lxc.idmap: g ${var.gpu_render_gid + 1} ${100000 + var.gpu_render_gid + 1} ${65536 - var.gpu_render_gid - 1}' | sudo tee -a /etc/pve/lxc/${proxmox_virtual_environment_container.this.vm_id}.conf",
   ] : []
 
   idmap_commands = var.nas_idmap != null ? [
@@ -176,6 +187,7 @@ resource "null_resource" "mounts" {
     mounts               = join(",", [for i, m in var.mounts : "${coalesce(m.volume, m.host)}:${m.mp}${m.ro ? ":ro" : ""}${m.backup ? ":backup" : ""}"])
     mount_mp_indices     = join(" ", [for i, m in var.mounts : tostring(i)])
     gpu                  = tostring(var.gpu_passthrough)
+    gpu_render_gid       = var.gpu_render_gid != null ? tostring(var.gpu_render_gid) : ""
     idmap                = var.nas_idmap != null ? "${var.nas_idmap.uid}:${var.nas_idmap.gid}" : ""
     vm_id                = tostring(var.vm_id)
     proxmox_host_ip      = var.proxmox_host_ip
@@ -219,6 +231,7 @@ resource "null_resource" "mounts" {
       # does not overwrite our appended lines during a concurrent pct operation
       local.mount_commands,
       local.gpu_commands,
+      local.gpu_render_idmap_commands,
       local.idmap_commands,
       [
         "sudo /usr/sbin/pct start ${proxmox_virtual_environment_container.this.vm_id}",

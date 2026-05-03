@@ -1,0 +1,15 @@
+http:
+  routers:
+    open-webui:
+      rule: "Host(`ollama.moreaulab.ca`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: open-webui
+
+  services:
+    open-webui:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-open-webui']['ansible_host'] }}:3000"

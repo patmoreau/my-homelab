@@ -29,3 +29,7 @@ all:
           ansible_host: 192.168.8.47
         lxc-pbs:
           ansible_host: 192.168.8.48
+        lxc-ollama:
+          ansible_host: 192.168.8.49
+        lxc-open-webui:
+          ansible_host: 192.168.8.50

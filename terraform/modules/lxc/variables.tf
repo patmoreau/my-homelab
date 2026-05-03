@@ -85,6 +85,17 @@ variable "gpu_passthrough" {
   default     = false
 }
 
+variable "gpu_render_gid" {
+  description = "Optional host/container GID to passthrough for the render group on unprivileged LXCs (for example 993 or 108)."
+  type        = number
+  default     = null
+
+  validation {
+    condition     = var.gpu_render_gid == null || var.nas_idmap == null
+    error_message = "gpu_render_gid cannot be used with nas_idmap because both features define explicit gid mappings."
+  }
+}
+
 variable "proxmox_host_ip" {
   type = string
 }

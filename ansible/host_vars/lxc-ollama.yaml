@@ -1,0 +1,6 @@
+promtail_extra_volumes:
+  - /var/log/ollama:/var/log/ollama:ro
+
+promtail_file_scrape_paths:
+  - job: ollama
+    path: /var/log/ollama/*.log
