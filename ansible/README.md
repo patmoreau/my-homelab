@@ -86,6 +86,21 @@ These must be populated to deploy all services:
 | `vault_proxmox_token_id`                | traefik (certs-dumper), pve_exporter | Proxmox API Token ID (`user@realm!tokenname`)                                                             |
 | `vault_proxmox_token_secret`            | traefik (certs-dumper), pve_exporter | Proxmox API Token Secret                                                                                  |
 
+## PBS prune and cleanup policy
+
+The `proxmox-backup-server` role enforces a daily prune job and daily garbage-collection schedule for the `nas-backups` datastore.
+
+Shared variables in `group_vars/all/main.yaml`:
+
+| Variable                 | Default | Purpose                                 |
+| ------------------------ | ------- | --------------------------------------- |
+| `pbs_prune_schedule`     | `daily` | Calendar schedule for prune job         |
+| `pbs_gc_schedule`        | `daily` | Calendar schedule for datastore cleanup |
+| `pbs_prune_keep_last`    | `7`     | Keep last N snapshots                   |
+| `pbs_prune_keep_daily`   | `14`    | Keep daily snapshots                    |
+| `pbs_prune_keep_weekly`  | `8`     | Keep weekly snapshots                   |
+| `pbs_prune_keep_monthly` | `6`     | Keep monthly snapshots                  |
+
 To base64-encode the QNAP SSH key:
 
 ```bash

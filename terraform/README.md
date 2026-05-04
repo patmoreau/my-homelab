@@ -94,7 +94,7 @@ Both modules need a `terraform.tfvars`. Key values to set:
 | ----------------- | ----- | ------------ | ---------------------------------------------------- |
 | lxc-gateway       | 110   | 192.168.8.40 | Traefik, Cloudflare tunnel                           |
 | lxc-media         | 111   | 192.168.8.41 | Jellyfin, Transmission, Calibre, service-watcher     |
-| lxc-essere        | 112   | 192.168.8.42 | WordPress, Ghost                                     |
+| lxc-essere        | 112   | 192.168.8.42 | Directus, react                                      |
 | lxc-monitoring    | 113   | 192.168.8.43 | Prometheus, Loki, Grafana                            |
 | lxc-tools         | 114   | 192.168.8.44 | Homepage                                             |
 | lxc-vault         | 115   | 192.168.8.45 | Vaultwarden                                          |
@@ -102,7 +102,7 @@ Both modules need a `terraform.tfvars`. Key values to set:
 | lxc-homeassistant | 117   | 192.168.8.47 | Home automation                                      |
 | lxc-pbs           | 118   | 192.168.8.48 | Proxmox Backup Server + NAS mount (/mnt/nas-backups) |
 | lxc-ollama        | 119   | 192.168.8.49 | Ollama LLM inference server (GPU passthrough)        |
-| lxc-open-webui    | 120   | 192.168.8.50 | Open WebUI frontend for Ollama                        |
+| lxc-open-webui    | 120   | 192.168.8.50 | Open WebUI frontend for Ollama                       |
 
 ## Workflow
 

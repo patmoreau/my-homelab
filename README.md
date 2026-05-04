@@ -17,7 +17,7 @@ Infrastructure-as-code for a Proxmox-based home server. LXC containers are provi
 | ----------------- | ------------ | ---------------------------------------------------- |
 | lxc-gateway       | 192.168.8.40 | Traefik (reverse proxy), Cloudflare tunnel, Promtail |
 | lxc-media         | 192.168.8.41 | Jellyfin, Transmission, Calibre-Web, service-watcher |
-| lxc-essere        | 192.168.8.42 | WordPress / Ghost, MariaDB                           |
+| lxc-essere        | 192.168.8.42 | Directus, React, postgres                            |
 | lxc-monitoring    | 192.168.8.43 | Prometheus, Loki, Grafana                            |
 | lxc-tools         | 192.168.8.44 | Homepage dashboard                                   |
 | lxc-vault         | 192.168.8.45 | Vaultwarden (Bitwarden-compatible)                   |

@@ -195,6 +195,47 @@
   notify: Reload PBS proxy
 
 # ---------------------------------------------------------------------------
+# Backup retention and cleanup policy
+# ---------------------------------------------------------------------------
+
+- name: List existing PBS prune jobs
+  ansible.builtin.command:
+    cmd: proxmox-backup-manager prune-job list --output-format json
+  register: pbs_prune_jobs
+  changed_when: false
+
+- name: Create prune job for nas-backups datastore
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager prune-job create nas-backups-daily
+      --store nas-backups
+      --schedule {{ pbs_prune_schedule }}
+      --keep-last {{ pbs_prune_keep_last }}
+      --keep-daily {{ pbs_prune_keep_daily }}
+      --keep-weekly {{ pbs_prune_keep_weekly }}
+      --keep-monthly {{ pbs_prune_keep_monthly }}
+  when: "'\"id\":\"nas-backups-daily\"' not in (pbs_prune_jobs.stdout | regex_replace('\\s+', ''))"
+  changed_when: true
+
+- name: Enforce retention settings on nas-backups prune job
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager prune-job update nas-backups-daily
+      --schedule {{ pbs_prune_schedule }}
+      --keep-last {{ pbs_prune_keep_last }}
+      --keep-daily {{ pbs_prune_keep_daily }}
+      --keep-weekly {{ pbs_prune_keep_weekly }}
+      --keep-monthly {{ pbs_prune_keep_monthly }}
+  changed_when: false
+
+- name: Enforce datastore garbage-collection schedule
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager datastore update nas-backups
+      --gc-schedule {{ pbs_gc_schedule }}
+  changed_when: false
+
+# ---------------------------------------------------------------------------
 # Backup client service account
 # A dedicated pbs-realm user (backup-client@pbs) is created with the
 # vault-managed password so any LXC container running proxmox-backup-client
