@@ -48,8 +48,8 @@
     docker load -i {{ tmp_archive }}
   args:
     executable: /bin/bash
-  register: docker_load_result
-  changed_when: "'Loaded image' in docker_load_result.stdout"
+  register: essere_docker_load_result
+  changed_when: "'Loaded image' in essere_docker_load_result.stdout"
 
 - name: Clean up archives
   block:

@@ -1,9 +1,10 @@
 admin_email: patrick@drifterapps.com
-admin_password: '{{vault_essere_admin_password}}'
-directus_secret: '{{vault_essere_directus_secret}}'
+admin_password: '{{ vault_essere_admin_password }}'
+directus_secret: '{{ vault_essere_directus_secret }}'
+mail_api_key: '{{ vault_mail_api_key }}'
 postgres_db: directus
-postgres_user: '{{vault_essere_postgres_user}}'
-postgres_password: '{{vault_essere_postgres_password}}'
+postgres_user: '{{ vault_essere_postgres_user }}'
+postgres_password: '{{ vault_essere_postgres_password }}'
 image_name: 'essere-app'
 image_tag: 'latest'
 tmp_archive: '/tmp/{{ image_name }}.tar'
