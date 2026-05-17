@@ -7,7 +7,7 @@ module "media" {
 
   cpu_cores        = 4
   memory_dedicated = 2048
-  memory_swap      = 512
+  memory_swap      = 1024
   disk_size        = 16
 
   proxmox_node    = var.proxmox_node
@@ -29,11 +29,11 @@ module "media" {
   mounts = [
     { host = "/mnt/containers/lxc-media", mp = "/data" },
     { host = "/mnt/pve/nas-media/downloads", mp = "/media/downloads" },
-    { host = "/mnt/pve/nas-media/holidays", mp = "/media/holidays", ro = true },
-    { host = "/mnt/pve/nas-media/kids", mp = "/media/kids", ro = true },
-    { host = "/mnt/pve/nas-media/les-mills", mp = "/media/les-mills", ro = true },
-    { host = "/mnt/pve/nas-media/movies", mp = "/media/movies", ro = true },
-    { host = "/mnt/pve/nas-media/tv", mp = "/media/tv", ro = true },
+    { host = "/mnt/pve/nas-media/holidays", mp = "/media/holidays" },
+    { host = "/mnt/pve/nas-media/kids", mp = "/media/kids" },
+    { host = "/mnt/pve/nas-media/les-mills", mp = "/media/les-mills" },
+    { host = "/mnt/pve/nas-media/movies", mp = "/media/movies" },
+    { host = "/mnt/pve/nas-media/tv", mp = "/media/tv" },
     { host = "/mnt/pve/nas-books", mp = "/media/books" },
   ]
 
