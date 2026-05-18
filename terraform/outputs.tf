@@ -9,8 +9,6 @@ output "lxc_ips" {
     immich        = module.immich.ip
     homeassistant = module.homeassistant.ip
     pbs           = module.pbs.ip
-    ollama        = module.ollama.ip
-    open-webui    = module.open_webui.ip
   }
 }
 
@@ -25,7 +23,5 @@ output "lxc_ids" {
     immich        = module.immich.vm_id
     homeassistant = module.homeassistant.vm_id
     pbs           = module.pbs.vm_id
-    ollama        = module.ollama.vm_id
-    open-webui    = module.open_webui.vm_id
   }
 }

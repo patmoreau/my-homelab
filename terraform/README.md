@@ -101,8 +101,6 @@ Both modules need a `terraform.tfvars`. Key values to set:
 | lxc-immich        | 116   | 192.168.8.46 | Immich photo management                              |
 | lxc-homeassistant | 117   | 192.168.8.47 | Home automation                                      |
 | lxc-pbs           | 118   | 192.168.8.48 | Proxmox Backup Server + NAS mount (/mnt/nas-backups) |
-| lxc-ollama        | 119   | 192.168.8.49 | Ollama LLM inference server (GPU passthrough)        |
-| lxc-open-webui    | 120   | 192.168.8.50 | Open WebUI frontend for Ollama                       |
 
 ## Workflow
 

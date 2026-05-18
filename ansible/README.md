@@ -107,20 +107,6 @@ To base64-encode the QNAP SSH key:
 base64 -i ~/.ssh/id_ed25519_qnap_monitor | tr -d '\n'
 ```
 
-## Ollama (native on lxc-ollama)
-
-The `ollama` role installs Ollama directly on the host (not Docker) for better ROCm stability on Phoenix APUs.
-
-- Installs prerequisites: `zstd`, `mesa-utils`, `pciutils`, `curl`
-- Installs Ollama via `https://ollama.com/install.sh`
-- Enforces mapped `render` gid with `ollama_render_gid` (default `993`)
-- Writes `/etc/systemd/system/ollama.service.d/override.conf` with:
-  - `HSA_OVERRIDE_GFX_VERSION=11.0.1`
-  - `ROCR_VISIBLE_DEVICES=0`
-  - `OLLAMA_HOST=0.0.0.0`
-
-If the Proxmox host render gid is not `993`, override `ollama_render_gid` (for example in host vars) to match Terraform `gpu_render_gid`.
-
 The `immich` role also supports a configurable render gid via `immich_render_gid` (default `993`) to match hosts where `render` is not `993`.
 
 ## Deploy playbook
@@ -144,5 +130,3 @@ ansible-playbook -i inventory/hosts.yaml site.yaml
 cd ansible
 ansible-playbook -i inventory/hosts.yaml site.yaml --limit lxc-media
 ```
-
-Open WebUI is deployed by the `open-webui` role on `lxc-open-webui`, and Traefik routes `open-webui.moreaulab.ca` to that host on port `3000`.

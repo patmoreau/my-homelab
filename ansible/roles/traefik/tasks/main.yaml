@@ -48,7 +48,6 @@
     - homepage.yaml
     - immich.yaml
     - jellyfin.yaml
-    - open-webui.yaml
     - pbs.yaml
     - pve.yaml
     - prometheus.yaml
