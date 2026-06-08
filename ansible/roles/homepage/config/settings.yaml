@@ -26,3 +26,6 @@ layout:
   Security & Network:
     style: row
     columns: 2
+  Smart Home:
+    style: row
+    columns: 2

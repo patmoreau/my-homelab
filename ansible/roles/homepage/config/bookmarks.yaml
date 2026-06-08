@@ -3,18 +3,9 @@
 # https://gethomepage.dev/configs/bookmarks
 
 - Media:
-    - Jellyfin:
-        - abbr: JF
-          href: https://jellyfin.moreaulab.ca
-    - Filebrowser:
-        - abbr: FB
-          href: https://filebrowser.moreaulab.ca
     - Book Orbit:
         - abbr: BO
           href: https://books.moreaulab.ca
-    - Transmission:
-        - abbr: TR
-          href: https://transmission.moreaulab.ca
 
 - Developer:
     - Github:

@@ -33,23 +33,6 @@
           password: {{HOMEPAGE_VAR_FILEBROWSER_PASSWORD}}
           # authHeader: X-My-Header # If using Proxy header authentication
 
-- Docker:
-    - Qnap Watcher:
-        icon: qnap.png
-        href: https://qnap.homelab.lan
-        widget:
-          type: customapi
-          url: https://service-watcher.moreaulab.ca/api/qnap
-          mappings:
-            - field: Status
-              label: Status
-            - field: LastCheck
-              label: Last Check
-            - field: Progress
-              label: Progress
-            - field: FinishIn
-              label: Finish In
-
 - Infrastructure:
     - Proxmox:
         icon: proxmox.png
@@ -87,6 +70,15 @@
           fields: ['cpuUsage', 'memUsage', 'systemTempC', 'volumeUsage']
 
 - Self-Hosted:
+    - Book Orbit:
+        icon: sh-bookorbit.png
+        href: https://books.moreaulab.ca
+        description: Book Manager
+        ping: books.moreaulab.ca
+        proxmoxNode: homelab
+        proxmoxVMID: 111
+        proxmoxType: lxc
+
     - Immich:
         icon: immich.png
         href: https://immich.moreaulab.ca
@@ -123,6 +115,24 @@
         widget:
           type: prometheus
           url: https://prometheus.moreaulab.ca
+          fields: ['targets_up', 'targets_down', 'alerts_total']
+
+    - Qnap Watcher:
+        icon: qnap.png
+        href: https://qnap.homelab.lan
+        description: QNAP Backup Status
+        widget:
+          type: customapi
+          url: https://service-watcher.moreaulab.ca/api/qnap
+          mappings:
+            - field: Status
+              label: Status
+            - field: LastCheck
+              label: Last Check
+            - field: Progress
+              label: Progress
+            - field: FinishIn
+              label: Finish In
 
 - Security & Network:
     - Vaultwarden:
@@ -155,8 +165,9 @@
             - state: tailscale_metrics.tailscale_byte_received
             - state: tailscale_metrics.tailscale_byte_sent
 
+- Smart Home:
     - Home Assistant:
-        icon: homeassistant.png
+        icon: sh-home-assistant.png
         href: https://ha.moreaulab.ca
         proxmoxNode: homelab
         proxmoxVMID: 117

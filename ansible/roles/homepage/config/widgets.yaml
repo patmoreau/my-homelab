@@ -2,6 +2,19 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/configs/info-widgets/
 
+- greeting:
+    text_size: xl
+    text: Welcome to MoreauLab
+
+- openweathermap:
+    label: Montréal
+    latitude: 45.5017
+    longitude: -73.5673
+    units: metric
+    provider: openweathermap
+    apiKey: "{{HOMEPAGE_VAR_OPENWEATHERMAP_API_KEY}}"
+    cache: 5
+
 - resources:
     cpu: true
     memory: true
@@ -14,4 +27,9 @@
     showSearchSuggestions: true
     target: _blank
 
-- time:
+- datetime:
+    text_size: xl
+    format:
+      dateStyle: long
+      timeStyle: short
+      hourCycle: h23
