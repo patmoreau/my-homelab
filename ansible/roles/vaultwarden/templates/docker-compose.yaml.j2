@@ -25,7 +25,7 @@ services:
       - vault_external
 
   mariadb:
-    image: lscr.io/linuxserver/mariadb:latest
+    image: lscr.io/linuxserver/mariadb:11.4.12-r0-ls220
     container_name: vaultwarden_db
     restart: unless-stopped
     expose:
