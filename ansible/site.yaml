@@ -19,7 +19,7 @@
 - name: Deploy Media
   hosts: lxc-media
   roles:
-    - calibre
+    - book-orbit
     - jellyfin
     - transmission
     - filebrowser

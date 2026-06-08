@@ -2,4 +2,7 @@ nas_puid: 3000
 nas_pgid: 100
 
 service_watcher_qnap_ip: 192.168.50.1
-service_watcher_targets: ""
+service_watcher_targets: ''
+bookorbit_postgres_password: '{{ vault_bookorbit_postgres_password }}'
+bookorbit_jwt_token: '{{ vault_bookorbit_jwt_token }}'
+bookorbit_setup_bootstrap_token: '{{ vault_bookorbit_setup_bootstrap_token }}'

@@ -51,8 +51,6 @@ These must be populated to deploy all services:
 | `vault_bitwarden_admin_token`           | vaultwarden                          | Argon2 hash                                                                                               |
 | `vault_bitwarden_mariadb_root_password` | vaultwarden                          |                                                                                                           |
 | `vault_bitwarden_mariadb_password`      | vaultwarden                          |                                                                                                           |
-| `vault_calibre_username`                | homepage                             | Calibre-web basic auth                                                                                    |
-| `vault_calibre_password`                | homepage                             |                                                                                                           |
 | `vault_cloudflare_tunnel_token`         | cloudflare                           | Cloudflare Zero Trust tunnel token                                                                        |
 | `vault_essere_mariadb_root_password`    | essere                               |                                                                                                           |
 | `vault_essere_mariadb_password`         | essere                               |                                                                                                           |

@@ -93,7 +93,7 @@ Both modules need a `terraform.tfvars`. Key values to set:
 | Name              | VM ID | Primary IP   | Purpose                                              |
 | ----------------- | ----- | ------------ | ---------------------------------------------------- |
 | lxc-gateway       | 110   | 192.168.8.40 | Traefik, Cloudflare tunnel                           |
-| lxc-media         | 111   | 192.168.8.41 | Jellyfin, Transmission, Calibre, service-watcher     |
+| lxc-media         | 111   | 192.168.8.41 | Jellyfin, Transmission, Book Orbit, service-watcher  |
 | lxc-essere        | 112   | 192.168.8.42 | Directus, react                                      |
 | lxc-monitoring    | 113   | 192.168.8.43 | Prometheus, Loki, Grafana                            |
 | lxc-tools         | 114   | 192.168.8.44 | Homepage                                             |

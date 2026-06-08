@@ -16,7 +16,7 @@ Infrastructure-as-code for a Proxmox-based home server. LXC containers are provi
 | Container         | Primary IP   | Services                                             |
 | ----------------- | ------------ | ---------------------------------------------------- |
 | lxc-gateway       | 192.168.8.40 | Traefik (reverse proxy), Cloudflare tunnel, Promtail |
-| lxc-media         | 192.168.8.41 | Jellyfin, Transmission, Calibre-Web, service-watcher |
+| lxc-media         | 192.168.8.41 | Jellyfin, Transmission, Book orbit, service-watcher  |
 | lxc-essere        | 192.168.8.42 | Directus, React, postgres                            |
 | lxc-monitoring    | 192.168.8.43 | Prometheus, Loki, Grafana                            |
 | lxc-tools         | 192.168.8.44 | Homepage dashboard                                   |
@@ -54,7 +54,7 @@ The following services are configured in this homelab:
 | **Traefik**         | [gateway.homelab.lan](http://gateway.homelab.lan)                 | Reverse proxy managing access to all services                         |
 | **Homepage**        | [home.homelab.lan](http://home.homelab.lan)                       | Customizable dashboard for all homelab services                       |
 | **Jellyfin**        | [jellyfin.homelab.lan](http://jellyfin.homelab.lan)               | Media server for movies, TV, and other media                          |
-| **Calibre-Web**     | [books.homelab.lan](http://books.homelab.lan)                     | Web app for browsing and downloading eBooks                           |
+| **Book Orbit**      | [books.homelab.lan](http://books.homelab.lan)                     | Web app for browsing and downloading eBooks                           |
 | **Transmission**    | [transmission.homelab.lan](http://transmission.homelab.lan)       | BitTorrent client                                                     |
 | **Filebrowser**     | [filebrowser.homelab.lan](http://filebrowser.homelab.lan)         | Web-based file manager                                                |
 | **Immich**          | [immich.homelab.lan](http://immich.homelab.lan)                   | Self-hosted photo and video management                                |
@@ -77,6 +77,6 @@ NFS shares from the NAS are mounted on the Proxmox host under `/mnt/pve/` and bi
 | `/mnt/pve/nas-media/kids`      | `/media/kids`         | Jellyfin (read-only)           |
 | `/mnt/pve/nas-media/holidays`  | `/media/holidays`     | Jellyfin (read-only)           |
 | `/mnt/pve/nas-media/les-mills` | `/media/les-mills`    | Jellyfin (read-only)           |
-| `/mnt/pve/nas-books`           | `/media/books`        | Calibre-Web (read/write)       |
+| `/mnt/pve/nas-books`           | `/media/books`        | Book Orbit (read/write)        |
 | `/mnt/pve/nas-photos`          | `/photos`             | Immich (read/write)            |
 | `/mnt/containers/lxc-*`        | `/data`               | All LXCs (persistent app data) |

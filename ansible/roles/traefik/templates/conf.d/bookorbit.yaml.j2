@@ -1,15 +1,15 @@
 http:
   routers:
-    calibre:
+    bookorbit:
       rule: "Host(`books.moreaulab.ca`)"
       entryPoints:
         - websecure
       tls:
         certResolver: cloudflare
-      service: calibre
+      service: bookorbit
 
   services:
-    calibre:
+    bookorbit:
       loadBalancer:
         servers:
-          - url: "http://{{ hostvars['lxc-media']['ansible_host'] }}:8083"
+          - url: "http://{{ hostvars['lxc-media']['ansible_host'] }}:3001"

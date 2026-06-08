@@ -40,7 +40,7 @@
     mode: '0644'
   loop:
     - global.yaml
-    - calibre.yaml
+    - bookorbit.yaml
     - essere.yaml
     - filebrowser.yaml
     - grafana.yaml
