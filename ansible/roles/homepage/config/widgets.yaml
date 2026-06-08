@@ -8,7 +8,10 @@
     disk: /
 
 - search:
-    provider: google
+    provider: custom
+    url: https://www.qwant.com/?q=
+    suggestionUrl: https://api.qwant.com/v3/suggest/?q=
+    showSearchSuggestions: true
     target: _blank
 
 - time:
