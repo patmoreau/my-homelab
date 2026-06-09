@@ -39,6 +39,7 @@
     - loki
     - grafana
     - pve_exporter
+    - blackbox_exporter
     - proxmox-backup-client
 
 - name: Deploy Tools

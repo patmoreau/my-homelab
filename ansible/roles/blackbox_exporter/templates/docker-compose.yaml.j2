@@ -1,0 +1,18 @@
+services:
+  blackbox_exporter:
+    image: prom/blackbox-exporter:v0.25.0
+    container_name: blackbox_exporter
+    restart: unless-stopped
+    ports:
+      - 9115:9115
+    networks:
+      - monitoring_shared
+    volumes:
+      - ./blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+    command:
+      - '--config.file=/etc/blackbox_exporter/config.yml'
+
+networks:
+  monitoring_shared:
+    name: monitoring_shared
+    external: true

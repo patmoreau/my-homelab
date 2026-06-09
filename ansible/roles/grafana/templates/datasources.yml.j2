@@ -16,6 +16,7 @@ datasources:
     isDefault: true
 
   - name: Loki
+    uid: Loki
     type: loki
     url: http://{{ hostvars['lxc-monitoring']['ansible_host'] }}:3100
     access: proxy

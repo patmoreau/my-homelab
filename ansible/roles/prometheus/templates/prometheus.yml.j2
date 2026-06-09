@@ -36,6 +36,43 @@ scrape_configs:
       - targets:
           - '{{ hostvars['lxc-media']['ansible_host'] }}:{{ hostvars['lxc-media'].get('service_watcher_port', 3000) }}'
 
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets: ['http://{{ hostvars["lxc-vault"]["ansible_host"] }}:8080/alive']
+        labels:
+          service: 'vaultwarden'
+      - targets: ['http://{{ hostvars["lxc-essere"]["ansible_host"] }}:3000']
+        labels:
+          service: 'essere-app'
+      - targets: ['http://{{ hostvars["lxc-essere"]["ansible_host"] }}:8055/server/health']
+        labels:
+          service: 'essere-directus'
+      - targets: ['http://{{ hostvars["lxc-media"]["ansible_host"] }}:3001/api/v1/health']
+        labels:
+          service: 'book-orbit'
+      - targets: ['http://{{ hostvars["lxc-media"]["ansible_host"] }}:8096']
+        labels:
+          service: 'jellyfin'
+      - targets: ['http://{{ hostvars["lxc-immich"]["ansible_host"] }}:2283/api/server/ping']
+        labels:
+          service: 'immich'
+      - targets: ['http://{{ hostvars["lxc-homeassistant"]["ansible_host"] }}:8123']
+        labels:
+          service: 'homeassistant'
+      - targets: ['http://{{ hostvars["lxc-tools"]["ansible_host"] }}:3000']
+        labels:
+          service: 'homepage'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 'blackbox_exporter:9115'
+
   - job_name: 'pve'
     static_configs:
       - targets:

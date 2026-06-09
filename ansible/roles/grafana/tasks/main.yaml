@@ -42,6 +42,7 @@
   loop:
     - node-exporter-full.json
     - proxmox-cluster.json
+    - homelab-services.json
 
 - name: Copy docker-compose.yaml
   ansible.builtin.template:

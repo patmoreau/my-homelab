@@ -15,6 +15,7 @@
     src: prometheus.yml.j2
     dest: '{{ docker_compose_dir }}/prometheus/config/prometheus.yml'
     mode: '0644'
+  notify: Reload prometheus config
 
 - name: Copy docker-compose.yaml
   ansible.builtin.template:

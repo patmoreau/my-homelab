@@ -84,6 +84,32 @@ These must be populated to deploy all services:
 | `vault_proxmox_token_id`                | traefik (certs-dumper), pve_exporter | Proxmox API Token ID (`user@realm!tokenname`)                                                             |
 | `vault_proxmox_token_secret`            | traefik (certs-dumper), pve_exporter | Proxmox API Token Secret                                                                                  |
 
+## Monitoring roles
+
+| Role | Host | Purpose |
+|------|------|---------|
+| `prometheus` | lxc-monitoring | Metrics collection |
+| `loki` | lxc-monitoring | Log aggregation |
+| `grafana` | lxc-monitoring | Dashboards (includes "Homelab Services Health" dashboard) |
+| `pve_exporter` | lxc-monitoring | Proxmox metrics |
+| `blackbox_exporter` | lxc-monitoring | HTTP health probing for all services (port 9115) |
+| `node_exporter` | all LXC | System metrics (port 9100) |
+| `cadvisor` | all LXC (except pbs) | Container metrics (port 9338) |
+| `promtail` | all LXC (except monitoring, pbs) | Ships Docker logs to Loki |
+
+The `blackbox_exporter` role probes the following HTTP endpoints every 15 s and reports `probe_success` (0/1) and `probe_duration_seconds` to Prometheus:
+
+| Service | Internal endpoint |
+|---------|------------------|
+| Vaultwarden | `http://192.168.8.45:8080/alive` |
+| Essere app | `http://192.168.8.42:3000` |
+| Essere Directus | `http://192.168.8.42:8055/server/health` |
+| Book Orbit | `http://192.168.8.41:3001/api/v1/health` |
+| Jellyfin | `http://192.168.8.41:8096` |
+| Immich | `http://192.168.8.46:2283/api/server/ping` |
+| Home Assistant | `http://192.168.8.47:8123` |
+| Homepage | `http://192.168.8.44:3000` |
+
 ## PBS prune and cleanup policy
 
 The `proxmox-backup-server` role enforces a daily prune job and daily garbage-collection schedule for the `nas-backups` datastore.
