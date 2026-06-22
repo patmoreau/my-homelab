@@ -35,6 +35,15 @@ resource "proxmox_virtual_environment_container" "this" {
       }
     }
 
+    dynamic "ip_config" {
+      for_each = var.vlan_interfaces
+      content {
+        ipv4 {
+          address = "dhcp"
+        }
+      }
+    }
+
     user_account {
       keys = [var.ssh_public_key]
     }
@@ -73,6 +82,16 @@ resource "proxmox_virtual_environment_container" "this" {
   network_interface {
     name   = "eth1"
     bridge = "vmbr1"
+  }
+
+  dynamic "network_interface" {
+    for_each = var.vlan_interfaces
+    content {
+      name        = network_interface.value.name
+      bridge      = network_interface.value.bridge
+      vlan_id     = network_interface.value.vlan
+      mac_address = network_interface.value.mac_address
+    }
   }
 
   lifecycle {

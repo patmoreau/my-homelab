@@ -26,4 +26,9 @@ module "homeassistant" {
   mounts = [
     { host = "/mnt/containers/lxc-homeassistant", mp = "/data" }
   ]
+
+  vlan_interfaces = [
+    # Static MAC pins the IoT DHCP reservation (192.168.10.167) across container recreation.
+    { name = "eth2", bridge = "vmbr0", vlan = 10, mac_address = "BC:24:11:00:BF:1F" }
+  ]
 }

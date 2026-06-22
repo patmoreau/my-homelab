@@ -114,6 +114,17 @@ variable "hwaddr_eth0" {
   default     = null
 }
 
+variable "vlan_interfaces" {
+  description = "Additional VLAN-tagged interfaces (DHCP) to attach to this container. Set mac_address to pin a static MAC so DHCP reservations survive container recreation."
+  type = list(object({
+    name        = string
+    bridge      = string
+    vlan        = number
+    mac_address = optional(string)
+  }))
+  default = []
+}
+
 variable "nas_idmap" {
   description = "NAS UID/GID passthrough mapping. Maps a single uid:gid from the container to a specific uid:gid on the host (e.g. for NFS)."
   type = object({
