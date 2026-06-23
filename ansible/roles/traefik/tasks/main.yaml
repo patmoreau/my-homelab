@@ -48,10 +48,12 @@
     - homepage.yaml
     - immich.yaml
     - jellyfin.yaml
+    - nas.yaml
     - pbs.yaml
     - pve.yaml
     - prometheus.yaml
     - service-watcher.yaml
+    - router.yaml
     - traefik.yaml
     - transmission.yaml
     - vaultwarden.yaml

@@ -44,8 +44,17 @@
           - {{ hostvars['lxc-gateway']['ansible_host'] }}
   register: homeassistant_config
 
+- name: Configure system log event firing
+  ansible.builtin.blockinfile:
+    path: /data/config/configuration.yaml
+    marker: '# {mark} ANSIBLE MANAGED BLOCK - SYSTEM LOG'
+    block: |
+      system_log:
+        fire_event: true
+  register: homeassistant_system_log_config
+
 - name: Restart Home Assistant to apply config
   community.docker.docker_compose_v2:
     project_src: '{{ docker_compose_dir }}/homeassistant'
     state: restarted
-  when: homeassistant_config.changed or homeassistant_hacs_install.changed
+  when: homeassistant_config.changed or homeassistant_hacs_install.changed or homeassistant_system_log_config.changed

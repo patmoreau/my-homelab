@@ -133,6 +133,38 @@ base64 -i ~/.ssh/id_ed25519_qnap_monitor | tr -d '\n'
 
 The `immich` role also supports a configurable render gid via `immich_render_gid` (default `993`) to match hosts where `render` is not `993`.
 
+## Traefik reverse proxy
+
+The `traefik` role runs on `lxc-gateway` and terminates TLS for all `*.moreaulab.ca`
+services using the `cloudflare` DNS-01 cert resolver. Per-service routers live in
+`roles/traefik/templates/conf.d/`.
+
+### Entrypoints
+
+| Entrypoint  | Port    | Purpose                                                      |
+| ----------- | ------- | ------------------------------------------------------------ |
+| `web`       | `:80`   | HTTP (redirected to HTTPS)                                   |
+| `websecure` | `:443`  | Primary HTTPS for all services                               |
+| `luci`      | `:8443` | Flint 2 router's LuCI interface (`router.moreaulab.ca:8443`) |
+| dashboard   | `:8080` | Traefik API/dashboard                                        |
+
+> Changing entrypoints (`traefik.yaml`) or published ports (`docker-compose.yaml`)
+> requires recreating the container — the file provider only hot-reloads `conf.d/`.
+
+### Router (Flint 2) routing
+
+`router.moreaulab.ca` exposes both GL.iNet UIs via two routers in `conf.d/router.yaml`:
+
+| URL                        | Entrypoint  | Backend                    | UI    |
+| -------------------------- | ----------- | -------------------------- | ----- |
+| `router.moreaulab.ca`      | `websecure` | `http://192.168.8.1`       | Panel |
+| `router.moreaulab.ca:8443` | `luci`      | `https://192.168.8.1:8443` | LuCI  |
+
+LuCI is served over the router's self-signed cert, so the `router-luci` service sets
+`insecureSkipVerify`. The GL.iNet panel builds its "Advanced/LuCI" link as
+`https://<host>:8443`, so LuCI must be served on the matching `:8443` entrypoint for the
+link to resolve through Traefik.
+
 ## Deploy playbook
 
 ### Ping all hosts

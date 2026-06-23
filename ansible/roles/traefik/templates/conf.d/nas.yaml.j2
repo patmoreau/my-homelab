@@ -1,0 +1,16 @@
+http:
+  routers:
+    nas:
+      rule: "Host(`nas.moreaulab.ca`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: nas
+
+  services:
+    nas:
+      loadBalancer:
+        serversTransport: insecure-transport
+        servers:
+          - url: "https://{{ hostvars['nas']['ansible_host'] }}"

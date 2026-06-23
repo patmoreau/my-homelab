@@ -1,0 +1,38 @@
+http:
+  routers:
+    # GL.iNet admin panel (HTTP :80 on the router)
+    router:
+      rule: "Host(`router.moreaulab.ca`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: router
+
+    # LuCI advanced interface (HTTPS :8443 on the router).
+    # The panel links to https://router.moreaulab.ca:8443, so this must be
+    # served on the matching :8443 entrypoint.
+    router-luci:
+      rule: "Host(`router.moreaulab.ca`)"
+      entryPoints:
+        - luci
+      tls:
+        certResolver: cloudflare
+      service: router-luci
+
+  services:
+    router:
+      loadBalancer:
+        servers:
+          - url: "https://{{ hostvars['router']['ansible_host'] }}"
+        serversTransport: router-insecure
+
+    router-luci:
+      loadBalancer:
+        servers:
+          - url: "https://{{ hostvars['router']['ansible_host'] }}:8443"
+        serversTransport: router-insecure
+
+  serversTransports:
+    router-insecure:
+      insecureSkipVerify: true
