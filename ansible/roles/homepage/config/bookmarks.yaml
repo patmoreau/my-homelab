@@ -2,10 +2,13 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/configs/bookmarks
 
-- Media:
-    - Book Orbit:
-        - abbr: BO
-          href: https://books.moreaulab.ca
+- Finance:
+    - Intuit QuickBooks:
+        - abbr: QB
+          href: https://accounts.intuit.com/app/sign-in?app_group=QBO&asset_alias=Intuit.accounting.core.qbowebapp&locale=fr-CA&_gl=1*ot35am*_gcl_au*NTIwNTAyMTQ1LjE3ODIxODYxNDA.*_ga*MTU0NTk3ODU3LjE3NjQ0MjI5ODY.*_ga_RL064H6GZ3*czE3ODIxODYxMzkkbzQkZzEkdDE3ODIxODYxNTQkajQ1JGwwJGgwJGRXdDFFUG1SbUp5Q0NoVVRWUWVEblZhcktUTk01aTNWQWhn
+    - Scotia Bank:
+        - abbr: SB
+          href: https://www.scotiaonline.scotiabank.com/?language=French
 
 - Developer:
     - Github:
@@ -18,6 +21,25 @@
           href: https://reddit.com/
 
 - Entertainment:
+    - Netflix:
+        - abbr: NF
+          href: https://netflix.com/
+          icon: sh-netflix
+    - Disney+:
+        - abbr: DP
+          href: https://www.disneyplus.com/
+          icon: sh-disney-plus
+    - Crave:
+        - abbr: CR
+          href: https://www.crave.ca/
     - YouTube:
         - abbr: YT
           href: https://youtube.com/
+
+- Arg:
+    - Ocean of PDF:
+        - abbr: OOP
+          href: https://oceanofpdf.com/
+    - The Pirate Bay:
+        - abbr: TPB
+          href: https://thepiratebay.org/
