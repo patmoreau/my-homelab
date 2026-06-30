@@ -2,23 +2,64 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/configs/bookmarks
 
+- AI:
+    - Claude:
+        - abbr: CL
+          href: https://claude.ai/
+          icon: sh-claude
+    - Gemini:
+        - abbr: GG
+          href: https://gemini.google.com/app
+          icon: sh-google-gemini
+    - ChatGPT:
+        - abbr: CG
+          href: https://chat.openai.com/
+          icon: sh-chatgpt
+
 - Finance:
     - Intuit QuickBooks:
-        - abbr: QB
-          href: https://accounts.intuit.com/app/sign-in?app_group=QBO&asset_alias=Intuit.accounting.core.qbowebapp&locale=fr-CA&_gl=1*ot35am*_gcl_au*NTIwNTAyMTQ1LjE3ODIxODYxNDA.*_ga*MTU0NTk3ODU3LjE3NjQ0MjI5ODY.*_ga_RL064H6GZ3*czE3ODIxODYxMzkkbzQkZzEkdDE3ODIxODYxNTQkajQ1JGwwJGgwJGRXdDFFUG1SbUp5Q0NoVVRWUWVEblZhcktUTk01aTNWQWhn
+        - abbr: QBO
+          href: https://qbo.intuit.com/
     - Scotia Bank:
         - abbr: SB
           href: https://www.scotiaonline.scotiabank.com/?language=French
+          icon: https://secure.scotiabank.com/my-accounts/favicon.ico
+    - TD Bank:
+        - abbr: TD
+          href: https://authentication.td.com/uap-ui/?consumer=easyweb&locale=fr_CA#/uap/login
+    - CIBC Bank:
+        - abbr: CIBC
+          href: https://www.cibc.com/fr/personal-banking.html
+    - Desjardins:
+        - abbr: DJ
+          href: https://www.desjardins.com/qc/fr.html
+    - Tangerine:
+        - abbr: TG
+          href: https://www.tangerine.ca/app/#/login/login-id?locale=fr_CA
+    - Deneault & Robillard:
+        - abbr: DR
+          href: https://deneaultrobillard.cchifirm.ca/3/clientportal/#/login
+    - Holefeeder:
+        - abbr: HF
+          href: https://holefeeder.drifterapps.app/
+
+- Productivity:
+    - Fastmail:
+        - abbr: FM
+          href: https://www.fastmail.com/
+          icon: sh-fastmail
 
 - Developer:
     - Github:
         - abbr: GH
           href: https://github.com/
+          icon: sh-github
 
 - Social:
     - Reddit:
         - abbr: RE
           href: https://reddit.com/
+          icon: sh-reddit
 
 - Entertainment:
     - Netflix:
@@ -35,6 +76,7 @@
     - YouTube:
         - abbr: YT
           href: https://youtube.com/
+          icon: sh-youtube
 
 - Arg:
     - Ocean of PDF:
@@ -43,3 +85,6 @@
     - The Pirate Bay:
         - abbr: TPB
           href: https://thepiratebay.org/
+    - Anna's Archive:
+        - abbr: AA
+          href: https://annas-archive.gl/
