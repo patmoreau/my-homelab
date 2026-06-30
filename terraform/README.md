@@ -101,6 +101,7 @@ Both modules need a `terraform.tfvars`. Key values to set:
 | lxc-immich        | 116   | 192.168.8.46 | Immich photo management                              |
 | lxc-homeassistant | 117   | 192.168.8.47 | Home automation                                      |
 | lxc-pbs           | 118   | 192.168.8.48 | Proxmox Backup Server + NAS mount (/mnt/nas-backups) |
+| lxc-holefeeder    | 119   | 192.168.8.49 | Holefeeder (API, Angular, Postgres, PowerSync)       |
 
 ## Workflow
 

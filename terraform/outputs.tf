@@ -9,6 +9,7 @@ output "lxc_ips" {
     immich        = module.immich.ip
     homeassistant = module.homeassistant.ip
     pbs           = module.pbs.ip
+    holefeeder    = module.holefeeder.ip
   }
 }
 
@@ -23,5 +24,6 @@ output "lxc_ids" {
     immich        = module.immich.vm_id
     homeassistant = module.homeassistant.vm_id
     pbs           = module.pbs.vm_id
+    holefeeder    = module.holefeeder.vm_id
   }
 }

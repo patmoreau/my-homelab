@@ -79,6 +79,7 @@ variable "lxc_vm_ids" {
     immich        = 116
     homeassistant = 117
     pbs           = 118
+    holefeeder    = 119
   }
 }
 
@@ -95,6 +96,7 @@ variable "lxc_ips" {
     immich        = 46
     homeassistant = 47
     pbs           = 48
+    holefeeder    = 49
   }
 }
 
@@ -111,5 +113,6 @@ variable "lxc_ips_eth1" {
     immich        = 16
     homeassistant = 17
     pbs           = 18
+    holefeeder    = 19
   }
 }

@@ -39,5 +39,6 @@ variable "storage_volumes" {
     "lxc-vault"         = { vmid = 115, size = "2G", storage_name = "local-lvm", disk_name = "vault-data" },
     "lxc-immich"        = { vmid = 116, size = "25G", storage_name = "local-lvm", disk_name = "immich-data" },
     "lxc-homeassistant" = { vmid = 117, size = "10G", storage_name = "local-lvm", disk_name = "homeassistant-data" },
+    "lxc-holefeeder"    = { vmid = 119, size = "20G", storage_name = "local-lvm", disk_name = "holefeeder-data" },
   }
 }
