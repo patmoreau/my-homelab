@@ -4,7 +4,11 @@ http:
       insecureSkipVerify: true
 
   middlewares:
-    # This middleware fixes mixed-content and trust issues for all services
+    # Proxy/trust headers only. We intentionally do NOT set response security
+    # headers here (frameDeny, STS, nosniff, XSS): the backend apps
+    # (Vaultwarden, Immich, Grafana, Jellyfin) set their own, and forcing
+    # frameDeny: DENY here clobbered Vaultwarden's X-Frame-Options: SAMEORIGIN
+    # and broke its same-origin-iframe web vault.
     global-headers:
       headers:
         customRequestHeaders:
@@ -13,10 +17,3 @@ http:
           X-Forwarded-Port: "443"
         sslProxyHeaders:
           X-Forwarded-Proto: "https"
-        stsSeconds: 31536000
-        stsIncludeSubdomains: true
-        stsPreload: true
-        forceSTSHeader: true
-        browserXssFilter: true
-        contentTypeNosniff: true
-        frameDeny: true
