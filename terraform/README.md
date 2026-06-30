@@ -125,3 +125,44 @@ cd terraform/persistent-storage
 terraform init
 terraform apply
 ```
+
+## State backups
+
+State is stored locally (default backend) for both root modules and is **not**
+committed (gitignored). [`backup-state.sh`](backup-state.sh) encrypts each state
+file with [`age`](https://github.com/FiloSottile/age) and pushes the ciphertext
+to the NAS via the Proxmox NFS mount (`/mnt/pve/nas-backups/terraform-state`).
+
+Because state holds secrets, it is encrypted **before** leaving your machine — the
+NAS and any downstream NAS backup only ever see `.age` ciphertext. Transport goes
+through Proxmox (`terraform-admin@192.168.8.10`) with the existing
+`~/.ssh/terraform_homelab` key, so it needs no NAS sk-key touch and can run
+unattended.
+
+One-time setup (no root needed — `terraform-admin` creates the NAS dir itself):
+
+```bash
+mkdir -p ~/.config/tf-state-backup && chmod 700 ~/.config/tf-state-backup
+brew install age
+age-keygen -o ~/.config/tf-state-backup/key.txt   # store key.txt in your password manager
+# put the printed "Public key: age1..." into RECIPIENT in backup-state.sh
+```
+
+> **Key safety:** the `age` private key (`key.txt`) must live **outside** the NAS
+> backup chain it protects — keep it in your password manager (primary) so a NAS
+> restore that loses this machine can still decrypt. The `RECIPIENT` public key is
+> safe to commit.
+
+Run manually (keeps the newest 30 versions per state file):
+
+```bash
+cd terraform
+./backup-state.sh
+```
+
+It backs up **both** root modules' state regardless of which directory you run it
+from. A `terraform` wrapper function in `~/.zshrc` runs it **automatically after a
+successful `apply` or `destroy`**, but only when the working directory is inside
+this repo — other Terraform projects are untouched.
+
+Restore: `age -d -i ~/.config/tf-state-backup/key.txt <file>.tfstate.age > terraform.tfstate`
