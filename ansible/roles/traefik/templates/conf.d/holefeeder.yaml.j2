@@ -1,0 +1,50 @@
+http:
+  routers:
+    # API — /gateway paths on the public + admin hosts (prefix stripped before forwarding)
+    holefeeder-api:
+      rule: "(Host(`holefeeder.drifterapps.app`) || Host(`holefeeder-admin.drifterapps.app`)) && PathPrefix(`/gateway`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: holefeeder-api
+      middlewares:
+        - holefeeder-strip-gateway
+
+    # Web (Angular SPA) — everything else on the public host, plus the admin health-check UI
+    holefeeder-web:
+      rule: "(Host(`holefeeder.drifterapps.app`) && !PathPrefix(`/gateway`)) || (Host(`holefeeder-admin.drifterapps.app`) && PathPrefix(`/hc-ui`))"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: holefeeder-web
+
+    # PowerSync sync service (websocket)
+    holefeeder-powersync:
+      rule: "Host(`powersync.drifterapps.app`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: holefeeder-powersync
+
+  services:
+    holefeeder-api:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-holefeeder']['ansible_host'] }}:5001"
+    holefeeder-web:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-holefeeder']['ansible_host'] }}:5000"
+    holefeeder-powersync:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-holefeeder']['ansible_host'] }}:8080"
+
+  middlewares:
+    holefeeder-strip-gateway:
+      stripPrefix:
+        prefixes:
+          - "/gateway"

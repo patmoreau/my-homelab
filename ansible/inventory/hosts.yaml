@@ -33,3 +33,5 @@ all:
           ansible_host: 192.168.8.47
         lxc-pbs:
           ansible_host: 192.168.8.48
+        lxc-holefeeder:
+          ansible_host: 192.168.8.49

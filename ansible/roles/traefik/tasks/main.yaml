@@ -44,6 +44,7 @@
     - essere.yaml
     - filebrowser.yaml
     - grafana.yaml
+    - holefeeder.yaml
     - homeassistant.yaml
     - homepage.yaml
     - immich.yaml

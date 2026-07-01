@@ -59,6 +59,12 @@
     - immich
     - proxmox-backup-client
 
+- name: Deploy Holefeeder
+  hosts: lxc-holefeeder
+  roles:
+    - github-runner
+    - proxmox-backup-client
+
 - name: Deploy Promtail
   hosts: lxc:!lxc-monitoring:!lxc-pbs
   roles:

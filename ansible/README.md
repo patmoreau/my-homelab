@@ -83,6 +83,7 @@ These must be populated to deploy all services:
 | `vault_pbs_client_password`             | proxmox-backup-client                | Password for `backup-client@pbs` — set once in vault, reused by all LXC containers                        |
 | `vault_proxmox_token_id`                | traefik (certs-dumper), pve_exporter | Proxmox API Token ID (`user@realm!tokenname`)                                                             |
 | `vault_proxmox_token_secret`            | traefik (certs-dumper), pve_exporter | Proxmox API Token Secret                                                                                  |
+| `vault_github_runner_pat`               | github-runner                        | GitHub PAT (repo scope) used to fetch a self-hosted runner registration token for `patmoreau/holefeeder` |
 
 ## Monitoring roles
 
@@ -136,8 +137,8 @@ The `immich` role also supports a configurable render gid via `immich_render_gid
 ## Traefik reverse proxy
 
 The `traefik` role runs on `lxc-gateway` and terminates TLS for all `*.moreaulab.ca`
-services using the `cloudflare` DNS-01 cert resolver. Per-service routers live in
-`roles/traefik/templates/conf.d/`.
+services (plus the `*.drifterapps.app` Holefeeder hosts) using the `cloudflare` DNS-01
+cert resolver. Per-service routers live in `roles/traefik/templates/conf.d/`.
 
 ### Entrypoints
 
@@ -164,6 +165,29 @@ LuCI is served over the router's self-signed cert, so the `router-luci` service 
 `insecureSkipVerify`. The GL.iNet panel builds its "Advanced/LuCI" link as
 `https://<host>:8443`, so LuCI must be served on the matching `:8443` entrypoint for the
 link to resolve through Traefik.
+
+## Holefeeder (lxc-holefeeder)
+
+Holefeeder is a production app whose container images are built and published by its own
+repo's CI (`ghcr.io/patmoreau/holefeeder`). Responsibilities are split:
+
+- **Ansible provisions the box** — base `docker`/monitoring roles, the `github-runner`
+  role (a self-hosted GitHub Actions runner registered to `patmoreau/holefeeder`, labels
+  `self-hosted,holefeeder,lxc`), and `proxmox-backup-client`.
+- **GitHub Actions deploys the app** — the holefeeder repo's `deploy` job runs on the
+  self-hosted runner and does `docker compose pull && up -d` on the LXC. There is no
+  holefeeder Ansible role.
+- **Ingress** — public traffic enters through the existing `cloudflared` tunnel on
+  `lxc-gateway` → central Traefik (`conf.d/holefeeder.yaml`) → published ports on the LXC
+  (`web` 5000, `api` 5001, `powersync` 8080). The tunnel's public hostnames
+  (`holefeeder`, `holefeeder-admin`, `powersync` on `drifterapps.app`) are configured in
+  the Cloudflare Zero Trust dashboard. Traefik issues edge-origin certs via the
+  `cloudflare` DNS-01 resolver, so `vault_cloudflare_api_key` must have DNS edit rights on
+  the `drifterapps.app` zone.
+- **Logs** — Serilog writes JSON to stdout; the host's `promtail` (docker service
+  discovery) ships container logs to Loki/Grafana. No Seq.
+
+The `github-runner` role needs `vault_github_runner_pat` (see vault table).
 
 ## Deploy playbook
 
