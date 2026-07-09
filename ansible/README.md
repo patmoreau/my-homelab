@@ -26,6 +26,20 @@ cd ansible
 ansible-galaxy collection install -r requirements.yml
 ```
 
+## Docker Compose & Renovate
+
+Container image versions are kept up to date by **Renovate**, which scans plain
+`docker-compose.yaml` files. Each role's compose file therefore lives as a plain
+`roles/<name>/templates/docker-compose.yaml` (no `.j2` extension, no Jinja2) so Renovate's
+docker-compose manager can find and bump the `image:` tags automatically.
+
+When a service needs a Jinja2-templated value (host lookups, per-host group IDs, etc.),
+that value goes in a separate `roles/<name>/templates/docker-compose.override.yaml.j2`,
+rendered alongside the base file to `docker-compose.override.yaml`. Docker Compose
+auto-merges the override at `up` time. `immich` and `traefik` follow this split; all other
+roles use a single plain base file. See
+`.github/instructions/ansible.instructions.md` for the full convention.
+
 ## Vault workflow
 
 ```bash

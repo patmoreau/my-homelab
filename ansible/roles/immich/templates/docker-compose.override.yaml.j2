@@ -1,0 +1,8 @@
+services:
+  immich-server:
+    group_add:
+      - "{{ immich_render_gid }}" # render group
+
+  immich-machine-learning:
+    group_add:
+      - "{{ immich_render_gid }}" # render group

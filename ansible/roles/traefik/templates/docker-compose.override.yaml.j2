@@ -1,31 +1,5 @@
 services:
-  traefik:
-    image: traefik:v3.6.11
-    container_name: traefik
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - 80:80
-      - 443:443
-      - 8443:8443
-      - 8080:8080
-    networks:
-      - gateway
-    environment:
-      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
-    volumes:
-      - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
-      - ./conf.d:/etc/traefik/conf.d:ro
-      - ./acme.json:/etc/traefik/acme.json
-      - certs:/etc/traefik/certs
-
   certs-dumper:
-    image: ldez/traefik-certs-dumper:v2.8.3
-    container_name: traefik-certs-dumper
-    restart: unless-stopped
-    environment:
-      - PVE_API_TOKEN=${PVE_API_TOKEN}
     entrypoint: |
       sh -c '
         apk add --no-cache inotify-tools openssh-client curl &&
@@ -88,14 +62,3 @@ services:
           inotifywait -e modify /etc/traefik/acme.json
         done
       '
-    volumes:
-      - ./acme.json:/etc/traefik/acme.json:ro
-      - certs:/etc/traefik/certs
-      - ./certs-dumper-key:/root/.ssh/deploy_key:ro
-
-volumes:
-  certs:
-
-networks:
-  gateway:
-    external: true

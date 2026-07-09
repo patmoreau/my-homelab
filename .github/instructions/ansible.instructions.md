@@ -27,8 +27,17 @@ ansible/roles/<name>/
   tasks/
     main.yaml
   templates/            # only if role uses Docker Compose or config files
-    docker-compose.yaml.j2
+    docker-compose.yaml            # plain YAML (no .j2) — Renovate reads image tags here
+    docker-compose.override.yaml.j2  # OPTIONAL — only when a value needs Jinja2
 ```
+
+> **Important — Renovate compatibility:** the base compose file must be plain
+> `docker-compose.yaml` (no `.j2` extension) and contain no Jinja2, so Renovate's
+> docker-compose manager can find and bump the `image:` tags. Put any Jinja2-templated
+> values (host lookups, per-host vars, `{{ ... }}`) in a separate
+> `docker-compose.override.yaml.j2`, which Docker Compose auto-merges at `up` time.
+> Prefer plain docker `${ENV}` interpolation (via a templated `.env`) over Jinja2 where
+> possible — that keeps everything in the base file.
 
 ### Step 2 — Write `tasks/main.yaml`
 
@@ -43,8 +52,15 @@ Follow the standard Docker Compose pattern used by all existing roles:
 
 - name: Copy docker-compose.yaml
   ansible.builtin.template:
-    src: docker-compose.yaml.j2
+    src: docker-compose.yaml
     dest: "{{ docker_compose_dir }}/<name>/docker-compose.yaml"
+    mode: "0644"
+
+# OPTIONAL — only if the role needs a Jinja2 override (see Step 3)
+- name: Copy docker-compose.override.yaml
+  ansible.builtin.template:
+    src: docker-compose.override.yaml.j2
+    dest: "{{ docker_compose_dir }}/<name>/docker-compose.override.yaml"
     mode: "0644"
 
 - name: Start
@@ -55,9 +71,10 @@ Follow the standard Docker Compose pattern used by all existing roles:
 
 Add tasks for additional config files or directories **before** the `Start` task.
 
-### Step 3 — Write `templates/docker-compose.yaml.j2` (if applicable)
+### Step 3 — Write `templates/docker-compose.yaml` (plain, Renovate-managed)
 
-Use Jinja2 for any values that differ per host or come from variables/vault:
+Keep it plain YAML — **no Jinja2** — so Renovate can bump the `image:` tags. Use docker
+`${ENV}` interpolation (fed by a templated `.env`) for secrets/per-host values:
 
 ```yaml
 services:
@@ -66,9 +83,9 @@ services:
     container_name: <name>
     restart: unless-stopped
     environment:
-      - PUID={{ nas_puid }}
-      - PGID={{ nas_pgid }}
-      - TZ={{ timezone }}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
       - /opt/docker/<name>/config:/config
     labels:
@@ -76,7 +93,22 @@ services:
       - "traefik.http.routers.<name>.rule=Host(`<name>.homelab.lan`)"
 ```
 
-Reference vault secrets as `{{ vault_<variable_name> }}`.
+**Only if a value genuinely needs Jinja2** (host lookups like
+`{{ hostvars[...] }}`, per-host group IDs, etc.), add
+`templates/docker-compose.override.yaml.j2` containing *only* the templated keys, and wire
+up the optional override task from Step 2. Keep every `image:` line in the plain base file
+so Renovate still sees it. Compose auto-merges the override; because the base omits the
+templated key entirely, the merge yields exactly the override's value. Example
+(`immich` / `traefik` follow this pattern):
+
+```yaml
+services:
+  <service>:
+    group_add:
+      - "{{ some_gid }}"
+```
+
+Reference vault secrets in the `.env` template as `${VAR}` fed from `{{ vault_<name> }}`.
 
 ### Step 4 — Add the role to `ansible/site.yaml`
 
