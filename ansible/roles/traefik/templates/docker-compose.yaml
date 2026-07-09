@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v3.6.11
+    image: traefik:v3.7.7
     container_name: traefik
     restart: unless-stopped
     security_opt:
@@ -21,7 +21,7 @@ services:
       - certs:/etc/traefik/certs
 
   certs-dumper:
-    image: ldez/traefik-certs-dumper:v2.8.3
+    image: ldez/traefik-certs-dumper:v2.11.4
     container_name: traefik-certs-dumper
     restart: unless-stopped
     environment:

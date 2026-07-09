@@ -1,6 +1,6 @@
 services:
   blackbox_exporter:
-    image: prom/blackbox-exporter:v0.25.0
+    image: prom/blackbox-exporter:v0.28.0
     container_name: blackbox_exporter
     restart: unless-stopped
     ports:
