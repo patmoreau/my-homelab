@@ -1,4 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["local>patmoreau/renovate-config", "config:recommended"]
+  "extends": ["local>patmoreau/renovate-config", "config:recommended"],
+  "packageRules": [
+    {
+      "description": "essere and holefeeder are deployed by their own CI — Renovate must not manage their images",
+      "matchFileNames": [
+        "ansible/roles/essere/**",
+        "ansible/roles/holefeeder/**"
+      ],
+      "enabled": false
+    }
+  ]
 }
