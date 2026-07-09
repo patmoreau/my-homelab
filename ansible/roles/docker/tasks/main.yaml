@@ -36,6 +36,13 @@
     state: present
     update_cache: true
 
+- name: Configure Docker daemon log rotation
+  ansible.builtin.template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+    mode: "0644"
+  notify: Restart docker
+
 - name: Start and enable Docker
   ansible.builtin.systemd:
     name: docker

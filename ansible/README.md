@@ -98,6 +98,18 @@ These must be populated to deploy all services:
 | `cadvisor` | all LXC (except pbs) | Container metrics (port 9338) |
 | `promtail` | all LXC (except monitoring, pbs) | Ships Docker logs to Loki |
 
+### Data retention
+
+To keep the `lxc-monitoring` boot disk from filling up, retention is capped in three places:
+
+| What | Where | Policy |
+|------|-------|--------|
+| Prometheus TSDB | `roles/prometheus` compose flags | 15 days **or** 6 GB, whichever comes first |
+| Loki log data | `roles/loki/config/loki-config.yaml` (`compactor` + `limits_config`) | 30 days (720 h), compactor deletes expired chunks |
+| Docker container stdout logs | `roles/docker` `/etc/docker/daemon.json` | `json-file`, `max-size 10m`, `max-file 3` (per container, applied on every LXC) |
+
+> Docker log rotation only applies to containers **created after** `daemon.json` is written. Existing containers keep their old (unbounded) log until recreated (`docker compose up --force-recreate`, or a redeploy).
+
 The `blackbox_exporter` role probes the following HTTP endpoints every 15 s and reports `probe_success` (0/1) and `probe_duration_seconds` to Prometheus:
 
 | Service | Internal endpoint |
