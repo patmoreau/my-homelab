@@ -23,7 +23,6 @@
     - Scotia Bank:
         - abbr: SB
           href: https://www.scotiaonline.scotiabank.com/?language=French
-          icon: https://secure.scotiabank.com/my-accounts/favicon.ico
     - TD Bank:
         - abbr: TD
           href: https://authentication.td.com/uap-ui/?consumer=easyweb&locale=fr_CA#/uap/login
@@ -44,10 +43,18 @@
           href: https://holefeeder.drifterapps.app/
 
 - Productivity:
+    - iCloud:
+        - abbr: IC
+          href: https://www.icloud.com/
+          icon: sh-icloud
     - Fastmail:
         - abbr: FM
           href: https://www.fastmail.com/
           icon: sh-fastmail
+    - Google Mail:
+        - abbr: GM
+          href: https://mail.google.com/
+          icon: sh-gmail
 
 - Developer:
     - Github:
