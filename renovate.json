@@ -11,10 +11,13 @@
       "enabled": false
     },
     {
-      "description": "Immich Postgres major bumps require a manual pg_upgrade — allow patch/vectorchord bumps only",
+      "description": "Immich Postgres major bumps need a manual dump/restore — surface on the Dependency Dashboard for approval instead of auto-opening a PR",
       "matchPackageNames": ["ghcr.io/immich-app/postgres"],
       "matchUpdateTypes": ["major"],
-      "enabled": false
+      "dependencyDashboardApproval": true,
+      "prBodyNotes": [
+        ":warning: **Major PostgreSQL upgrade — do NOT just merge.** The pg18+ images refuse to start on older on-disk data. Migrate via dump/restore: dump the running cluster, wipe the data dir, let the new image init fresh, then restore (with the immich `search_path` sed fix)."
+      ]
     }
   ]
 }
