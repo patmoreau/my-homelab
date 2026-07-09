@@ -9,6 +9,12 @@
         "ansible/roles/holefeeder/**"
       ],
       "enabled": false
+    },
+    {
+      "description": "Immich Postgres major bumps require a manual pg_upgrade — allow patch/vectorchord bumps only",
+      "matchPackageNames": ["ghcr.io/immich-app/postgres"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
     }
   ]
 }
