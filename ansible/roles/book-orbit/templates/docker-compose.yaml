@@ -60,7 +60,7 @@ services:
 
   postgres:
     container_name: bookorbit-db
-    image: pgvector/pgvector:pg16@sha256:7d400e340efb42f4d8c9c12c6427adb253f726881a9985d2a471bf0eed824dff
+    image: pgvector/pgvector:pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER?required}
