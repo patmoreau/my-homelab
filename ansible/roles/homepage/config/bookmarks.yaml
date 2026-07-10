@@ -85,6 +85,19 @@
           href: https://youtube.com/
           icon: sh-youtube
 
+- Books:
+    - Kobo:
+        - abbr: KO
+          href: https://www.kobo.com/
+          icon: si-rakutenkobo
+    - KOreader:
+        - abbr: KOR
+          href: https://github.com/koreader/koreader
+          icon: si-koreader
+    - Nikel Menu:
+        - abbr: NM
+          href: https://github.com/pgaskin/NickelMenu
+
 - Arg:
     - Ocean of PDF:
         - abbr: OOP
