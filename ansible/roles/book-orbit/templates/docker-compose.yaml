@@ -2,7 +2,7 @@ name: bookorbit
 
 services:
   bookorbit:
-    image: ghcr.io/bookorbit/bookorbit:2.1.0
+    image: ghcr.io/bookorbit/bookorbit:2.2.0
     container_name: bookorbit-app
     restart: unless-stopped
     depends_on:
