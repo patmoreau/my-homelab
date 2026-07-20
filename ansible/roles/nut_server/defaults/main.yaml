@@ -18,3 +18,9 @@ nut_listen_port: 3493
 
 # Command upsmon runs when the battery is critically low (host graceful shutdown)
 nut_shutdown_cmd: "/sbin/shutdown -h +0"
+
+# QNAP as a network UPS slave. QTS's IP-only "Network UPS slave" mode is hardcoded
+# to monitor a UPS named "qnapups" as user "admin"/"123456" — none of which can be
+# changed in the GUI. So we expose a dummy-ups repeater of the real UPS under that
+# name, plus a matching read-only user. Set false if there is no QNAP on the UPS.
+nut_qnap_slave: true

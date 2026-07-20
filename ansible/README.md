@@ -274,3 +274,17 @@ Home Assistant NUT integration settings:
 | UPS name | `cyberpower`   |
 
 > If the Proxmox firewall is enabled, allow inbound TCP `3493` from the LAN.
+
+The **QNAP NAS** is a network UPS slave (secondary) on the same UPS. QTS's IP-only
+"Network UPS slave" mode is hardcoded to monitor a UPS named **`qnapups`** as user
+**`admin`** / password **`123456`** — none editable in the GUI. The `nut_server` role
+(when `nut_qnap_slave: true`, the default) accommodates this with:
+
+- a **`dummy-ups` repeater** in `ups.conf` that mirrors the real UPS (`cyberpower`)
+  under the name `qnapups`, leaving the real UPS untouched for Home Assistant;
+- a read-only **`admin`/`123456`** user in `upsd.users` (secondary; can't control the
+  UPS — `123456` is QNAP's public default, not a secret).
+
+QTS config (Control Panel → System → External Device → UPS → **Network UPS slave**):
+just enter the master IP `192.168.8.10`; everything else is hardcoded by QNAP. Then set
+the QNAP's own shutdown timer (e.g. power off after N minutes on battery).

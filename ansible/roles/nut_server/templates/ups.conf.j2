@@ -5,3 +5,11 @@ maxretry = 3
     driver = {{ nut_ups_driver }}
     port = {{ nut_ups_port }}
     desc = "{{ nut_ups_desc }}"
+{% if nut_qnap_slave %}
+
+# Repeater mirroring the real UPS under the name QNAP's IP-only slave mode requires.
+[qnapups]
+    driver = dummy-ups
+    port = {{ nut_ups_name }}@localhost
+    desc = "Repeater of {{ nut_ups_name }} for the QNAP UPS slave"
+{% endif %}

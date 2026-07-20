@@ -8,3 +8,13 @@
 [homeassistant]
     password = {{ vault_nut_monitor_password }}
     upsmon secondary
+
+{% if nut_qnap_slave %}
+# QNAP network UPS slave (IP-only QTS mode). QNAP hardcodes this user/password and
+# the UPS name "qnapups" (see the dummy-ups repeater in ups.conf) — none are editable
+# in QTS. Read-only (secondary); cannot control the UPS. "123456" is QNAP's public
+# default, not a secret, so it is intentionally not vaulted.
+[admin]
+    password = 123456
+    upsmon secondary
+{% endif %}
