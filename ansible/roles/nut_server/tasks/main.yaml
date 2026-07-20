@@ -1,0 +1,85 @@
+---
+- name: Install NUT (server + client)
+  ansible.builtin.apt:
+    name:
+      - nut-server
+      - nut-client
+    state: present
+    update_cache: true
+
+- name: Configure NUT mode (netserver)
+  ansible.builtin.template:
+    src: nut.conf.j2
+    dest: /etc/nut/nut.conf
+    owner: root
+    group: nut
+    mode: "0640"
+  notify:
+    - restart nut-driver-enumerator
+    - restart nut-server
+    - restart nut-monitor
+
+- name: Configure UPS driver (ups.conf)
+  ansible.builtin.template:
+    src: ups.conf.j2
+    dest: /etc/nut/ups.conf
+    owner: root
+    group: nut
+    mode: "0640"
+  notify:
+    - restart nut-driver-enumerator
+    - restart nut-server
+    - restart nut-monitor
+
+- name: Configure upsd listen addresses (upsd.conf)
+  ansible.builtin.template:
+    src: upsd.conf.j2
+    dest: /etc/nut/upsd.conf
+    owner: root
+    group: nut
+    mode: "0640"
+  notify:
+    - restart nut-server
+
+- name: Configure upsd users (upsd.users)
+  ansible.builtin.template:
+    src: upsd.users.j2
+    dest: /etc/nut/upsd.users
+    owner: root
+    group: nut
+    mode: "0640"
+  notify:
+    - restart nut-server
+    - restart nut-monitor
+
+- name: Configure upsmon (upsmon.conf)
+  ansible.builtin.template:
+    src: upsmon.conf.j2
+    dest: /etc/nut/upsmon.conf
+    owner: root
+    group: nut
+    mode: "0640"
+  notify:
+    - restart nut-monitor
+
+# Apply config changes before the ensure-started tasks below.
+- name: Apply NUT config changes
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure NUT driver instance is enabled and running
+  ansible.builtin.systemd:
+    name: nut-driver-enumerator.service
+    state: started
+    enabled: true
+
+- name: Ensure upsd (network server) is enabled and running
+  ansible.builtin.systemd:
+    name: nut-server.service
+    state: started
+    enabled: true
+
+- name: Ensure upsmon (monitor / shutdown) is enabled and running
+  ansible.builtin.systemd:
+    name: nut-monitor.service
+    state: started
+    enabled: true

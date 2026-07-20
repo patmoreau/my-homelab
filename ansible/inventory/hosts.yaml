@@ -6,6 +6,7 @@ all:
           ansible_host: 192.168.8.109
         pve-homelab:
           ansible_host: 192.168.8.10
+          ansible_user: terraform-admin
         router:
           ansible_host: 192.168.8.1
     backup_servers:

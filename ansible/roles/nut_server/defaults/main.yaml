@@ -1,0 +1,20 @@
+---
+# NUT (Network UPS Tools) server — CyberPower CP1500 attached via USB to the
+# Proxmox host. Runs upsd (network server) so Home Assistant can read the UPS,
+# and upsmon in primary mode so the host shuts itself down on low battery.
+
+# Logical UPS name (used by clients as <name>@<host>, e.g. cyberpower@192.168.8.10)
+nut_ups_name: cyberpower
+nut_ups_desc: "CyberPower CP1500"
+
+# Driver for CyberPower USB HID units (CP1500 series)
+nut_ups_driver: usbhid-ups
+nut_ups_port: auto
+
+# Extra address upsd listens on (loopback is always added). Defaults to the
+# host's primary LAN IP from the inventory so LAN clients (Home Assistant) can reach it.
+nut_listen_address: "{{ ansible_host }}"
+nut_listen_port: 3493
+
+# Command upsmon runs when the battery is critically low (host graceful shutdown)
+nut_shutdown_cmd: "/sbin/shutdown -h +0"

@@ -1,0 +1,4 @@
+# {{ ansible_managed }}
+# Loopback for the local upsmon; LAN IP for network clients (Home Assistant).
+LISTEN 127.0.0.1 {{ nut_listen_port }}
+LISTEN {{ nut_listen_address }} {{ nut_listen_port }}

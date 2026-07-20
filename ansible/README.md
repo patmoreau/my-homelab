@@ -98,6 +98,8 @@ These must be populated to deploy all services:
 | `vault_proxmox_token_id`                | traefik (certs-dumper), pve_exporter | Proxmox API Token ID (`user@realm!tokenname`)                                                             |
 | `vault_proxmox_token_secret`            | traefik (certs-dumper), pve_exporter | Proxmox API Token Secret                                                                                  |
 | `vault_github_runner_pat`               | github-runner                        | GitHub PAT (repo scope) used to fetch a self-hosted runner registration token for `patmoreau/holefeeder` |
+| `vault_nut_admin_password`              | nut_server                           | NUT `upsmon` primary password — local monitor that shuts the Proxmox host down on low battery            |
+| `vault_nut_monitor_password`            | nut_server                           | NUT `homeassistant` read-only password — used by the Home Assistant NUT integration                      |
 
 ## Monitoring roles
 
@@ -236,3 +238,39 @@ ansible-playbook -i inventory/hosts.yaml site.yaml
 cd ansible
 ansible-playbook -i inventory/hosts.yaml site.yaml --limit lxc-media
 ```
+
+## Hypervisor playbook (`proxmox.yaml`)
+
+`site.yaml` configures the **LXC containers**; `proxmox.yaml` configures the
+**physical Proxmox host** (`pve-homelab`) itself — kept separate so a routine LXC
+deploy can never touch the hypervisor. The host is still bootstrapped manually
+(Proxmox ISO); this playbook manages its ongoing host-level config.
+
+Unlike the LXCs (which connect as `root`), `pve-homelab` connects as
+`terraform-admin` (passwordless sudo) with `become: true` — set via `ansible_user`
+in the inventory.
+
+```bash
+cd ansible
+ansible-playbook -i inventory/hosts.yaml proxmox.yaml
+```
+
+### `nut_server` role — UPS monitoring
+
+Runs [NUT (Network UPS Tools)](https://networkupstools.org/) on the Proxmox host
+for the **CyberPower CP1500** attached via USB:
+
+- `upsd` network server (port `3493`) so **Home Assistant** can read the UPS via
+  its built-in NUT integration.
+- `upsmon` in **primary** mode so the host gracefully shuts itself down on low battery.
+
+Home Assistant NUT integration settings:
+
+| Field    | Value          |
+| -------- | -------------- |
+| Host     | `192.168.8.10` |
+| Port     | `3493`         |
+| Username | `homeassistant` (`vault_nut_monitor_password`) |
+| UPS name | `cyberpower`   |
+
+> If the Proxmox firewall is enabled, allow inbound TCP `3493` from the LAN.

@@ -1,0 +1,8 @@
+# Host-level configuration for the Proxmox hypervisor.
+# Separate from site.yaml (LXC config) — this manages the physical host itself.
+# Run with: ansible-playbook proxmox.yaml
+- name: Configure Proxmox hypervisor
+  hosts: pve-homelab
+  become: true
+  roles:
+    - nut_server

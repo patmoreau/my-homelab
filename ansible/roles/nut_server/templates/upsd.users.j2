@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+# Local upsmon on this host — drives the graceful shutdown (primary).
+[upsmon]
+    password = {{ vault_nut_admin_password }}
+    upsmon primary
+
+# Read-only monitor used by Home Assistant's NUT integration.
+[homeassistant]
+    password = {{ vault_nut_monitor_password }}
+    upsmon secondary
