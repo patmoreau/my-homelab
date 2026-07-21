@@ -1,0 +1,38 @@
+---
+# PVE API identities used by automation + monitoring. Reproduced from the live host
+# (see docs/proxmox-host-setup.md §3). All create/modify-if-missing — this role never
+# removes users, tokens, or ACLs. Personal accounts (pmoreau@pam, root@pam) are out of
+# scope. Roles referenced are all built-in PVE roles.
+
+# Groups to ensure exist.
+pve_api_groups:
+  - api-ro-users
+
+# PVE user entries to ensure exist. pve-realm users need no system account; pam-realm
+# entries (api@pam) exist only to host a token (no Linux user required).
+pve_api_users:
+  - terraform-user@pve   # Terraform provider identity
+  - api@pam              # token-only identity for monitoring/homepage
+
+# API tokens. privsep=0 → token inherits the user's privileges; privsep=1 → token uses
+# its own ACLs only. Created only if absent (PVE reveals the secret ONLY at creation —
+# a newly created token's secret must be copied into the vault, see note in tasks).
+pve_api_tokens:
+  - { userid: "terraform-user@pve", tokenid: "token-id", privsep: 0 }
+  - { userid: "api@pam", tokenid: "homepage", privsep: 1 }
+
+# ACL grants (path, role, grantee type, grantee id). type ∈ user|token|group.
+pve_api_acls:
+  - { path: "/", role: "Administrator", type: "user", id: "terraform-user@pve" }
+  - { path: "/", role: "PVEAdmin", type: "token", id: "terraform-user@pve!token-id" }
+  - { path: "/nodes/{{ proxmox_node }}", role: "PVEAdmin", type: "token", id: "terraform-user@pve!token-id" }
+  - { path: "/storage/local", role: "PVEAdmin", type: "token", id: "terraform-user@pve!token-id" }
+  - { path: "/storage/local-lvm", role: "PVEAdmin", type: "token", id: "terraform-user@pve!token-id" }
+  # /mapping/pci/gpu is a PCI resource mapping created manually (Datacenter → Resource
+  # Mappings). The ACL is harmless if the mapping is absent; the mapping itself is not
+  # codified here — see docs/gpu-passthrough-lxc.md.
+  - { path: "/mapping/pci/gpu", role: "PVEMappingUser", type: "token", id: "terraform-user@pve!token-id" }
+  - { path: "/", role: "PVEAuditor", type: "token", id: "api@pam!homepage" }
+  - { path: "/", role: "PVEAuditor", type: "group", id: "api-ro-users" }
+  - { path: "/nodes/{{ proxmox_node }}", role: "Administrator", type: "user", id: "terraform-admin@pam" }
+  - { path: "/storage/local", role: "Administrator", type: "user", id: "terraform-admin@pam" }

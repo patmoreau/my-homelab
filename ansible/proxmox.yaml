@@ -10,4 +10,5 @@
     - pve_storage
     - pve_nas_idmap
     - pve_tuning
+    - pve_api_access
     - nut_server

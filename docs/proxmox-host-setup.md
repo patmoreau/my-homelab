@@ -27,13 +27,13 @@ The host is reached as **`terraform-admin`** (passwordless sudo) with the
 
 ## Codification roadmap
 
-Status: **6 of 7 roles built & applied** (2026-07-20). Only `pve_api_access` remains.
+Status: **all 7 roles built & applied** (2026-07-20). Host config fully codified.
 
 | # | Area | Role | Status |
 | - | ---- | ---- | ------ |
 | 1 | APT no-subscription repo | `pve_repos` | ✅ built + applied |
 | 2 | `terraform-admin` user + sudoers + keys | `pve_admin` | ✅ built + applied (sudoers consolidated) |
-| 3 | PVE API users/roles/tokens | `pve_api_access` | ⏳ **pending** — ACL captured below |
+| 3 | PVE API users/roles/tokens | `pve_api_access` | ✅ built + applied (idempotent no-op) |
 | 4 | NFS storage (pvesm) | `pve_storage` | ✅ built + applied (idempotent) |
 | 5 | subuid / subgid (NAS + GPU idmap) | `pve_nas_idmap` | ✅ built + applied |
 | 6 | ZFS ARC limit | `pve_tuning` | ✅ built + applied |
@@ -202,7 +202,7 @@ nothing; harmless, but candidates for cleanup (requires `update-initramfs` + reb
 1. ✅ **Sudoers conflict** (#2) — DONE: `pve_admin` now owns one `NOPASSWD:ALL` file; legacy `/etc/sudoers.d/terraform` removed.
 2. ✅ **subuid/subgid doc drift** (#5) — DONE: `pve_nas_idmap` codifies 3000/3001 + 993; `docs/lxc_nfs_uid_mapping.md` reconciled.
 3. ⏳ **VFIO leftovers** (#9) — `/etc/modules` loads unused vfio modules (still open; cleanup needs reboot).
-4. ⏳ **API token rotation** (#3) — for `pve_api_access`: create-if-missing only; document rotation → vault flow.
+4. ✅ **API access** (#3) — DONE: `pve_api_access` reproduces users/tokens/ACLs, create-if-missing (token secrets shown only at creation → copy into vault if a fresh host recreates them).
 5. ✅ **Capture `terraform-user@pve` ACL** (#3) — DONE: captured in section 3 above.
 
 ## Related docs

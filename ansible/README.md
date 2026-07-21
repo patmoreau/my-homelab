@@ -267,11 +267,11 @@ inventory and roadmap):
 | `pve_storage` | NFS storage stores (`nas-books/media/photos/backups`) via `pvesm` (idempotent) |
 | `pve_nas_idmap` | `/etc/subuid` + `/etc/subgid` entries for unprivileged-LXC UID/GID mapping |
 | `pve_tuning` | ZFS ARC cap (`zfs_arc_max`) + timezone |
+| `pve_api_access` | PVE `pveum` groups/users/tokens/ACLs (create-if-missing) |
 | `nut_server` | UPS monitoring (below) |
 
 Network (`/etc/network/interfaces`) and GRUB/IOMMU are **not** codified (lockout risk) —
 they stay documented in `docs/iot-vlan-network.md` and `docs/gpu-passthrough-lxc.md`.
-Still pending: `pve_api_access` (PVE API users/tokens).
 
 ### `nut_server` role — UPS monitoring
 
