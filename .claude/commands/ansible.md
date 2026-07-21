@@ -1,22 +1,18 @@
+---
+description: Checklist for creating, modifying, or removing an Ansible role / playbook
+argument-hint: "[task, e.g. 'add role for foo']"
+---
+
+Follow this checklist for the requested Ansible role / playbook change: $ARGUMENTS
+
 # Ansible — Role and Playbook Instructions
 
-## README Update Rule
+## README & Lint Rules
 
-> See the canonical [README Update Rule](../../AGENTS.md#readme-update-rule-always-apply).
-> For Ansible: update `ansible/README.md` when adding a role, a host, or a vault secret.
-
-## Linting (Always Apply)
-
-> **Before committing any change under `ansible/`, run the linter and ensure it passes:**
->
-> ```bash
-> cd ansible && ansible-lint
-> ```
->
-> It must report **0 failures** (`Passed`). Fix the findings before committing. Rule
-> configuration lives in `ansible/.ansible-lint` — only add a rule to its `skip_list` /
-> `exclude_paths` for genuinely opinionated rules or non-Ansible files, not to silence a
-> real issue. `ansible-lint` is installed locally (Red Hat Ansible VS Code extension / pip).
+> See the canonical [README Update Rule](../../CLAUDE.md#readme-update-rule-always-apply)
+> and [Ansible Linting rule](../../CLAUDE.md#ansible-linting-always-apply) in `CLAUDE.md`.
+> For Ansible: update `ansible/README.md` when adding a role, host, or vault secret, and
+> run `cd ansible && ansible-lint` (0 failures) before committing.
 
 ## Key Variables
 

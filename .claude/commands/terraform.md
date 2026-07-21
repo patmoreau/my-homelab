@@ -1,8 +1,15 @@
+---
+description: Checklist for creating, modifying, or removing an LXC container (Terraform)
+argument-hint: "[task, e.g. 'create lxc-foo']"
+---
+
+Follow this checklist for the requested Terraform / LXC container change: $ARGUMENTS
+
 # Terraform — LXC Container Instructions
 
 ## README Update Rule
 
-> See the canonical [README Update Rule](../../AGENTS.md#readme-update-rule-always-apply).
+> See the canonical [README Update Rule](../../CLAUDE.md#readme-update-rule-always-apply).
 > For Terraform: update `terraform/README.md` when adding or removing a container, or
 > changing a Terraform variable or module.
 

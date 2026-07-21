@@ -37,8 +37,8 @@ When a service needs a Jinja2-templated value (host lookups, per-host group IDs,
 that value goes in a separate `roles/<name>/templates/docker-compose.override.yaml.j2`,
 rendered alongside the base file to `docker-compose.override.yaml`. Docker Compose
 auto-merges the override at `up` time. `immich` and `traefik` follow this split; all other
-roles use a single plain base file. See
-`.github/instructions/ansible.instructions.md` for the full convention.
+roles use a single plain base file. Run the `/ansible` slash command (see
+`.claude/commands/ansible.md`) for the full convention.
 
 ## Vault workflow
 
