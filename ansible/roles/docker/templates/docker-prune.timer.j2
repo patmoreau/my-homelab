@@ -1,0 +1,12 @@
+[Unit]
+Description=Weekly Docker image and build-cache cleanup
+
+[Timer]
+# Run weekly on Sunday at 03:30, randomize by up to 30 mins so hosts don't
+# all prune at once. Persistent=true catches up if the host was off.
+OnCalendar=Sun *-*-* 03:30:00
+RandomizedDelaySec=30m
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -123,6 +123,7 @@ To keep the `lxc-monitoring` boot disk from filling up, retention is capped in t
 | Prometheus TSDB | `roles/prometheus` compose flags | 15 days **or** 6 GB, whichever comes first |
 | Loki log data | `roles/loki/config/loki-config.yaml` (`compactor` + `limits_config`) | 30 days (720 h), compactor deletes expired chunks |
 | Docker container stdout logs | `roles/docker` `/etc/docker/daemon.json` | `json-file`, `max-size 10m`, `max-file 3` (per container, applied on every LXC) |
+| Unused Docker images & build cache | `roles/docker` `docker-prune.timer` | Weekly `docker image prune -a` + `docker builder prune` (Sun 03:30, every LXC) — stops upgraded-away image versions from filling the disk |
 
 > Docker log rotation only applies to containers **created after** `daemon.json` is written. Existing containers keep their old (unbounded) log until recreated (`docker compose up --force-recreate`, or a redeploy).
 

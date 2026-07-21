@@ -1,0 +1,12 @@
+[Unit]
+Description=Prune unused Docker images and build cache
+Documentation=man:docker-image-prune(1)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# Remove all images not referenced by a running/existing container, then
+# stale build cache. Keeps upgraded-away image versions from filling the disk.
+ExecStart=/usr/bin/docker image prune -a -f
+ExecStart=/usr/bin/docker builder prune -f
