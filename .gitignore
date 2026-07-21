@@ -10,7 +10,7 @@ homepage/config/logs/homepage.log
 *.tfstate.backup
 *.tfstate.lock.info
 .terraform/
-.terraform.lock.hcl
+# .terraform.lock.hcl is intentionally committed to pin provider versions/hashes
 terraform.tfvars
 *.tfvars.json
 crash.log
