@@ -1,8 +1,8 @@
 # Homelab Agent Instructions
 
-Canonical guidance for all AI agents (Claude, Gemini, Copilot, …) working in this
-repository. The tool-specific entry files and per-directory `AGENTS.md` files just point
-here — **keep shared facts in this file only, so nothing drifts out of sync.**
+Canonical guidance for Claude (and any AI agent) working in this repository. `CLAUDE.md`
+and the per-directory `AGENTS.md` files just point here — **keep shared facts in this file
+only, so nothing drifts out of sync.**
 
 ## Project Overview
 
@@ -54,11 +54,9 @@ checklists:
 This file is the single source of truth for shared context. The rest are thin pointers —
 **do not copy content into them:**
 
-| File                                       | Role                                                    |
-| ------------------------------------------ | ------------------------------------------------------- |
-| `AGENTS.md`                                | Canonical shared instructions (this file)               |
-| `CLAUDE.md`                                | Claude entry — imports this file + the two guides       |
-| `GEMINI.md`                                | Gemini entry — imports this file                        |
-| `.github/copilot-instructions.md`          | Copilot entry — points here                             |
-| `ansible/AGENTS.md`, `terraform/AGENTS.md` | Directory pointers to each detailed guide               |
-| `.github/instructions/*.instructions.md`   | Detailed per-area checklists (Copilot auto-applies by path via `applyTo`) |
+| File                                       | Role                                              |
+| ------------------------------------------ | ------------------------------------------------- |
+| `AGENTS.md`                                | Canonical shared instructions (this file)         |
+| `CLAUDE.md`                                | Claude entry — imports this file + the two guides |
+| `ansible/AGENTS.md`, `terraform/AGENTS.md` | Directory pointers to each detailed guide         |
+| `.github/instructions/*.instructions.md`   | Detailed per-area checklists, imported by `CLAUDE.md` |

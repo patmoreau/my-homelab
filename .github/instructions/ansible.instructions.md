@@ -1,8 +1,3 @@
----
-description: "Use when creating a new Ansible role, adding a service to an existing LXC container, modifying playbooks or inventory, working with vault secrets, writing Docker Compose templates, or configuring host variables. Includes the full role creation checklist and README update requirement."
-applyTo: "ansible/**"
----
-
 # Ansible — Role and Playbook Instructions
 
 ## README Update Rule

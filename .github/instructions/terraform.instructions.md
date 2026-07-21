@@ -1,8 +1,3 @@
----
-description: "Use when creating a new LXC container, removing a container, adding NFS mounts or GPU passthrough, modifying Terraform variables, changing IP addresses or VM IDs, or working with Proxmox infrastructure. Includes the full checklist for new containers and the README update requirement."
-applyTo: "terraform/**"
----
-
 # Terraform — LXC Container Instructions
 
 ## README Update Rule
