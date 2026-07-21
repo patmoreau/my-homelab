@@ -27,15 +27,17 @@ The host is reached as **`terraform-admin`** (passwordless sudo) with the
 
 ## Codification roadmap
 
-| # | Area | Codify? | Proposed role |
-| - | ---- | ------- | ------------- |
-| 1 | APT no-subscription repo | ✅ | `pve_repos` |
-| 2 | `terraform-admin` user + sudoers + keys | ✅ | `pve_admin` |
-| 3 | PVE API users/roles/tokens | ✅ (careful) | `pve_api_access` |
-| 4 | NFS storage (pvesm) | ✅ | `pve_storage` |
-| 5 | subuid / subgid (NAS + GPU idmap) | ✅ | `pve_nas_idmap` |
-| 6 | ZFS ARC limit | ✅ | `pve_tuning` |
-| 7 | Timezone / NTP | ✅ (low value) | `pve_tuning` |
+Status: **6 of 7 roles built & applied** (2026-07-20). Only `pve_api_access` remains.
+
+| # | Area | Role | Status |
+| - | ---- | ---- | ------ |
+| 1 | APT no-subscription repo | `pve_repos` | ✅ built + applied |
+| 2 | `terraform-admin` user + sudoers + keys | `pve_admin` | ✅ built + applied (sudoers consolidated) |
+| 3 | PVE API users/roles/tokens | `pve_api_access` | ⏳ **pending** — ACL captured below |
+| 4 | NFS storage (pvesm) | `pve_storage` | ✅ built + applied (idempotent) |
+| 5 | subuid / subgid (NAS + GPU idmap) | `pve_nas_idmap` | ✅ built + applied |
+| 6 | ZFS ARC limit | `pve_tuning` | ✅ built + applied |
+| 7 | Timezone / NTP | `pve_tuning` | ✅ built + applied |
 | 8 | Network (`/etc/network/interfaces`) | ❌ leave manual | — (`docs/iot-vlan-network.md`) |
 | 9 | GRUB / IOMMU / VFIO modules | ❌ leave manual | — (`docs/gpu-passthrough-lxc.md`) |
 
@@ -100,8 +102,26 @@ Token: **`api@pam!homepage`** (privsep=1) — used by homepage widget / `pve_exp
 > absent**, but cannot reconcile an existing secret. Rotating a token means updating the
 > vault. Build this role create-if-missing.
 
-TODO tomorrow: capture the exact **roles/ACL paths** granted to `terraform-user@pve`
-(`pveum acl list`) so the role can reproduce least-privilege permissions.
+### Captured ACL (2026-07-20) — to reproduce in `pve_api_access`
+
+`pveum acl list`:
+
+| Path | Role | Grantee |
+| ---- | ---- | ------- |
+| `/` | `Administrator` | user `terraform-user@pve` |
+| `/` | `PVEAdmin` | token `terraform-user@pve!token-id` |
+| `/nodes/homelab` | `PVEAdmin` | token `!token-id` |
+| `/storage/local` | `PVEAdmin` | token `!token-id` |
+| `/storage/local-lvm` | `PVEAdmin` | token `!token-id` |
+| `/mapping/pci/gpu` | `PVEMappingUser` | token `!token-id` (GPU passthrough mapping) |
+| `/` | `PVEAuditor` | token `api@pam!homepage` + group `api-ro-users` |
+| `/nodes/homelab`, `/storage/local` | `Administrator` | user `terraform-admin@pam` |
+
+Token `terraform-user@pve!token-id` is **privsep=0** — so it inherits the user's full
+`Administrator` at `/`, making the per-path token ACLs effectively redundant. Reproduce
+as-is for fidelity; a future tightening pass could switch to `privsep=1` with the scoped
+roles above. Also present: group `api-ro-users` (PVEAuditor). Roles used are all
+**built-in** PVE roles (no custom roles) — nothing extra to define.
 
 ## 4. NFS storage
 
@@ -179,11 +199,11 @@ nothing; harmless, but candidates for cleanup (requires `update-initramfs` + reb
 
 ## Known issues to fix during codification
 
-1. **Sudoers conflict** (#2) — consolidate to one file, drop the dead narrow one.
-2. **subuid/subgid doc drift** (#5) — doc says 2000, host uses 3000/3001 + 993.
-3. **VFIO leftovers** (#9) — `/etc/modules` loads unused vfio modules.
-4. **API token rotation** (#3) — create-if-missing only; document rotation → vault flow.
-5. **Capture `terraform-user@pve` ACL** (#3) — run `pveum acl list` before writing the role.
+1. ✅ **Sudoers conflict** (#2) — DONE: `pve_admin` now owns one `NOPASSWD:ALL` file; legacy `/etc/sudoers.d/terraform` removed.
+2. ✅ **subuid/subgid doc drift** (#5) — DONE: `pve_nas_idmap` codifies 3000/3001 + 993; `docs/lxc_nfs_uid_mapping.md` reconciled.
+3. ⏳ **VFIO leftovers** (#9) — `/etc/modules` loads unused vfio modules (still open; cleanup needs reboot).
+4. ⏳ **API token rotation** (#3) — for `pve_api_access`: create-if-missing only; document rotation → vault flow.
+5. ✅ **Capture `terraform-user@pve` ACL** (#3) — DONE: captured in section 3 above.
 
 ## Related docs
 

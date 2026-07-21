@@ -1,0 +1,32 @@
+---
+- name: Ensure automation user exists
+  ansible.builtin.user:
+    name: "{{ pve_admin_user }}"
+    shell: /bin/sh
+    create_home: true
+    state: present
+
+- name: Authorize automation SSH key(s)
+  ansible.posix.authorized_key:
+    user: "{{ pve_admin_user }}"
+    key: "{{ item }}"
+    state: present
+    exclusive: false
+  loop: "{{ pve_admin_authorized_keys }}"
+
+# Consolidate sudo into a single canonical file. This runs BEFORE removing the
+# legacy file, and both grant NOPASSWD:ALL, so passwordless sudo never lapses
+# mid-play (Ansible's own become depends on it). visudo validates before install.
+- name: Grant passwordless sudo (canonical file)
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/terraform-admin
+    content: "{{ pve_admin_user }} ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: /usr/sbin/visudo -cf %s
+
+- name: Remove legacy/duplicate sudoers file
+  ansible.builtin.file:
+    path: /etc/sudoers.d/terraform
+    state: absent

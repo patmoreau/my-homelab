@@ -1,0 +1,8 @@
+---
+# Automation account used by both Terraform (pct via SSH) and Ansible (this lane).
+pve_admin_user: terraform-admin
+
+# SSH public keys authorized for the automation account. Added non-exclusively
+# (existing keys are left untouched) to avoid any chance of lockout.
+pve_admin_authorized_keys:
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOBTPKdIlz1r+ShjyFXmvn7K/gLHYQ7lXxjz0gJjyqUc terraform-homelab"

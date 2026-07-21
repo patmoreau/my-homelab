@@ -1,0 +1,14 @@
+---
+- name: Ensure subuid entries for LXC UID mapping
+  ansible.builtin.lineinfile:
+    path: /etc/subuid
+    line: "{{ item }}"
+    state: present
+  loop: "{{ pve_subuid_entries }}"
+
+- name: Ensure subgid entries for LXC GID mapping
+  ansible.builtin.lineinfile:
+    path: /etc/subgid
+    line: "{{ item }}"
+    state: present
+  loop: "{{ pve_subgid_entries }}"

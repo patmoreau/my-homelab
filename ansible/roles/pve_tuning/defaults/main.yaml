@@ -1,0 +1,4 @@
+---
+# Cap the ZFS ARC so it doesn't compete with VM/LXC memory (~6 GiB).
+zfs_arc_max_bytes: 6508511232
+# timezone is inherited from group_vars/all/main.yaml (America/Montreal).

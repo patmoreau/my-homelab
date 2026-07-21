@@ -1,0 +1,9 @@
+---
+# NFS shares from the NAS, reached over the vmbr1 direct link (192.168.50.x).
+pve_nfs_server: 192.168.50.1
+pve_nfs_content: rootdir
+pve_nfs_stores:
+  - { name: nas-books, export: /books }
+  - { name: nas-media, export: /media }
+  - { name: nas-photos, export: /photos }
+  - { name: nas-backups, export: /backups }

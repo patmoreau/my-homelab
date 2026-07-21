@@ -1,0 +1,18 @@
+---
+- name: Configure PVE no-subscription repo
+  ansible.builtin.template:
+    src: pve-no-sub.sources.j2
+    dest: /etc/apt/sources.list.d/pve-no-sub.sources
+    owner: root
+    group: root
+    mode: "0644"
+  notify: apt update
+
+- name: Remove PVE enterprise repo (deb822 + legacy)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list.d/pve-enterprise.sources
+    - /etc/apt/sources.list.d/pve-enterprise.list
+  notify: apt update

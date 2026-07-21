@@ -1,0 +1,14 @@
+---
+# UID/GID ranges the host may map into unprivileged LXCs (beyond the adduser
+# auto ranges). See docs/lxc_nfs_uid_mapping.md.
+#   3000 = sensitive service accounts (media Docker PUID)
+#   3001 = PBS backup service account
+#    100 = QNAP "users" group
+#    993 = render group (GPU passthrough into LXC)
+pve_subuid_entries:
+  - "root:3000:1"
+  - "root:3001:1"
+pve_subgid_entries:
+  - "root:100:1"
+  - "root:993:1"
+  - "root:3001:1"

@@ -1,0 +1,19 @@
+---
+- name: Cap ZFS ARC size
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/zfs.conf
+    content: "options zfs zfs_arc_max={{ zfs_arc_max_bytes }}\n"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: update initramfs
+
+- name: Get current timezone
+  ansible.builtin.command: timedatectl show -p Timezone --value
+  register: pve_current_tz
+  changed_when: false
+  check_mode: false
+
+- name: Set timezone
+  ansible.builtin.command: "timedatectl set-timezone {{ timezone }}"
+  when: pve_current_tz.stdout != timezone

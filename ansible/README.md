@@ -255,6 +255,24 @@ cd ansible
 ansible-playbook -i inventory/hosts.yaml proxmox.yaml
 ```
 
+### Host roles
+
+Codify the host's manual configuration (see `docs/proxmox-host-setup.md` for the full
+inventory and roadmap):
+
+| Role | What it manages |
+| ---- | --------------- |
+| `pve_repos` | Proxmox `pve-no-subscription` APT repo; removes the enterprise repo |
+| `pve_admin` | `terraform-admin` automation user + SSH key + single `NOPASSWD:ALL` sudoers file |
+| `pve_storage` | NFS storage stores (`nas-books/media/photos/backups`) via `pvesm` (idempotent) |
+| `pve_nas_idmap` | `/etc/subuid` + `/etc/subgid` entries for unprivileged-LXC UID/GID mapping |
+| `pve_tuning` | ZFS ARC cap (`zfs_arc_max`) + timezone |
+| `nut_server` | UPS monitoring (below) |
+
+Network (`/etc/network/interfaces`) and GRUB/IOMMU are **not** codified (lockout risk) —
+they stay documented in `docs/iot-vlan-network.md` and `docs/gpu-passthrough-lxc.md`.
+Still pending: `pve_api_access` (PVE API users/tokens).
+
 ### `nut_server` role — UPS monitoring
 
 Runs [NUT (Network UPS Tools)](https://networkupstools.org/) on the Proxmox host

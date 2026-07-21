@@ -5,4 +5,9 @@
   hosts: pve-homelab
   become: true
   roles:
+    - pve_repos
+    - pve_admin
+    - pve_storage
+    - pve_nas_idmap
+    - pve_tuning
     - nut_server

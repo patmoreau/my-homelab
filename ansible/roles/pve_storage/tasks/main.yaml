@@ -1,0 +1,19 @@
+---
+- name: Query existing Proxmox storage
+  ansible.builtin.command: pvesm status
+  register: pve_storage_status
+  changed_when: false
+  check_mode: false
+
+- name: Add NFS storage (only when missing)
+  ansible.builtin.command: >-
+    pvesm add nfs {{ item.name }}
+    --server {{ pve_nfs_server }}
+    --export {{ item.export }}
+    --path /mnt/pve/{{ item.name }}
+    --content {{ pve_nfs_content }}
+    --prune-backups keep-all=1
+  loop: "{{ pve_nfs_stores }}"
+  when: item.name not in pve_storage_status.stdout
+  register: pve_storage_add
+  changed_when: pve_storage_add is not skipped
