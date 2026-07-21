@@ -117,11 +117,14 @@ Token: **`api@pam!homepage`** (privsep=1) — used by homepage widget / `pve_exp
 | `/` | `PVEAuditor` | token `api@pam!homepage` + group `api-ro-users` |
 | `/nodes/homelab`, `/storage/local` | `Administrator` | user `terraform-admin@pam` |
 
-Token `terraform-user@pve!token-id` is **privsep=0** — so it inherits the user's full
-`Administrator` at `/`, making the per-path token ACLs effectively redundant. Reproduce
-as-is for fidelity; a future tightening pass could switch to `privsep=1` with the scoped
-roles above. Also present: group `api-ro-users` (PVEAuditor). Roles used are all
-**built-in** PVE roles (no custom roles) — nothing extra to define.
+Token `terraform-user@pve!token-id` was tightened to **privsep=1** on 2026-07-20 (via
+`pve_api_access`, which now reconciles token privsep — `token modify` keeps the secret, so
+no vault change). It therefore runs on its **own** ACLs only: `PVEAdmin` at `/` (+ the
+scoped grants above) and `PVEMappingUser` on `/mapping/pci/gpu`. Verified afterward that
+the token still authenticates and can read nodes/LXCs/storage via the API; `PVEAdmin`
+covers the full LXC write path, so `terraform apply` is unaffected. The user
+`terraform-user@pve` keeps `Administrator` at `/`, but that no longer flows to the token.
+Group `api-ro-users` (PVEAuditor) also present. All roles are **built-in** PVE roles.
 
 ## 4. NFS storage
 

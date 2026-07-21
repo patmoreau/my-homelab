@@ -43,6 +43,22 @@
   when: item.item.tokenid not in (item.stdout | from_json | map(attribute='tokenid') | list)
   register: pve_tokens_created
 
+# Enforce privilege separation on tokens that already exist but drift from the desired
+# value. `token modify` changes privsep WITHOUT regenerating the secret, so the vault is
+# untouched.
+- name: Reconcile token privilege separation (existing tokens)
+  ansible.builtin.command: >-
+    pveum user token modify {{ item.item.userid }} {{ item.item.tokenid }}
+    --privsep {{ item.item.privsep }}
+  loop: "{{ pve_token_checks.results }}"
+  loop_control:
+    label: "{{ item.item.userid }}!{{ item.item.tokenid }}"
+  vars:
+    _existing: "{{ item.stdout | from_json | selectattr('tokenid', 'equalto', item.item.tokenid) | list }}"
+  when:
+    - _existing | length > 0
+    - (_existing[0].privsep | int) != (item.item.privsep | int)
+
 # A token secret is shown ONLY in the creation output. If any token was created here,
 # its secret must be copied into the vault (vault_pve_token_secret / Terraform creds).
 - name: Warn to store any newly created token secret
