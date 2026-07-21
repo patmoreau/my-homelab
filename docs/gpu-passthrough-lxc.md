@@ -55,8 +55,13 @@ ssh -i ~/.ssh/terraform_homelab terraform-admin@192.168.8.10 \
 
 ### 2. Re-enable vfio-pci binding
 
+The `vfio*` module autoloads were removed from `/etc/modules` on 2026-07-20 (see
+`docs/proxmox-host-setup.md` §9), so the revert must **re-add them** as well as set the
+device IDs:
+
 ```bash
 ssh -i ~/.ssh/terraform_homelab terraform-admin@192.168.8.10 "
+  printf 'vfio\nvfio_iommu_type1\nvfio_pci\n' | sudo tee -a /etc/modules
   echo 'options vfio-pci ids=1002:1900 disable_vga=1' \
     | sudo tee /etc/modprobe.d/vfio.conf
   sudo update-initramfs -u -k all

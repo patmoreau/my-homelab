@@ -186,14 +186,16 @@ vmbr1  192.168.50.2/24                    bridge-ports nic1
 
 ```text
 /etc/default/grub   GRUB_CMDLINE_LINUX_DEFAULT="quiet amd_iommu=on iommu=pt"
-/etc/modules        vfio  vfio_iommu_type1  vfio_pci
+/etc/modules        (no autoloads — vfio* removed 2026-07-20)
 /etc/modprobe.d/vfio.conf   (empty — GPU intentionally NOT claimed by vfio)
 ```
 
-**⚠️ Stale cruft:** the `vfio*` modules in `/etc/modules` are leftovers from the earlier
-VFIO-passthrough era. The GPU now runs **amdgpu host-mode** (empty `vfio.conf`, render GID
-993, `/dev/dri` present) — see `docs/gpu-passthrough-lxc.md`. These modules load but bind
-nothing; harmless, but candidates for cleanup (requires `update-initramfs` + reboot).
+The GPU runs **amdgpu host-mode** (empty `vfio.conf`, render GID 993, `/dev/dri` present)
+— see `docs/gpu-passthrough-lxc.md`. The stale `vfio*` autoloads (leftover from the old
+VFIO-passthrough era) were removed from `/etc/modules` and unloaded live on 2026-07-20,
+after confirming nothing was bound to `vfio-pci` and no VM used `hostpci`. IOMMU stays on
+in GRUB (harmless, and needed if VM passthrough is ever restored — see the revert steps in
+the GPU doc, which now also re-add the `/etc/modules` entries).
 
 ---
 
@@ -201,7 +203,7 @@ nothing; harmless, but candidates for cleanup (requires `update-initramfs` + reb
 
 1. ✅ **Sudoers conflict** (#2) — DONE: `pve_admin` now owns one `NOPASSWD:ALL` file; legacy `/etc/sudoers.d/terraform` removed.
 2. ✅ **subuid/subgid doc drift** (#5) — DONE: `pve_nas_idmap` codifies 3000/3001 + 993; `docs/lxc_nfs_uid_mapping.md` reconciled.
-3. ⏳ **VFIO leftovers** (#9) — `/etc/modules` loads unused vfio modules (still open; cleanup needs reboot).
+3. ✅ **VFIO leftovers** (#9) — DONE (2026-07-20): removed the `vfio*` lines from `/etc/modules` and unloaded them live (no reboot needed); GPU/amdgpu/`/dev/dri` verified intact.
 4. ✅ **API access** (#3) — DONE: `pve_api_access` reproduces users/tokens/ACLs, create-if-missing (token secrets shown only at creation → copy into vault if a fresh host recreates them).
 5. ✅ **Capture `terraform-user@pve` ACL** (#3) — DONE: captured in section 3 above.
 
