@@ -1,7 +1,6 @@
-# Ansible Context — Role and Playbook Instructions
+# Ansible Context
 
-Full checklist: [`.github/instructions/ansible.instructions.md`](../.github/instructions/ansible.instructions.md)
+When working here, follow the full checklist in
+[`.github/instructions/ansible.instructions.md`](../.github/instructions/ansible.instructions.md).
 
-## README Update Rule
-
-> **Always update `ansible/README.md` when adding new vault variables, new roles, or new hosts.**
+See the repo-root [`AGENTS.md`](../AGENTS.md) for shared conventions and the README update rule.

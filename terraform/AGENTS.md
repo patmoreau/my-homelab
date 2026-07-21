@@ -1,7 +1,6 @@
-# Terraform Context — LXC Container Instructions
+# Terraform Context
 
-Full checklist: [`.github/instructions/terraform.instructions.md`](../.github/instructions/terraform.instructions.md)
+When working here, follow the full checklist in
+[`.github/instructions/terraform.instructions.md`](../.github/instructions/terraform.instructions.md).
 
-## README Update Rule
-
-> **Always update `terraform/README.md` when adding, removing, or significantly changing an LXC container or Terraform variable.**
+See the repo-root [`AGENTS.md`](../AGENTS.md) for shared conventions and the README update rule.

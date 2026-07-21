@@ -7,7 +7,8 @@ applyTo: "ansible/**"
 
 ## README Update Rule
 
-> **Always update `ansible/README.md` when adding new vault variables, new roles, or new hosts.**
+> See the canonical [README Update Rule](../../AGENTS.md#readme-update-rule-always-apply).
+> For Ansible: update `ansible/README.md` when adding a role, a host, or a vault secret.
 
 ## Linting (Always Apply)
 

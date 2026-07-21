@@ -7,7 +7,9 @@ applyTo: "terraform/**"
 
 ## README Update Rule
 
-> **Always update `terraform/README.md` when adding, removing, or significantly changing an LXC container or Terraform variable.**
+> See the canonical [README Update Rule](../../AGENTS.md#readme-update-rule-always-apply).
+> For Terraform: update `terraform/README.md` when adding or removing a container, or
+> changing a Terraform variable or module.
 
 ## Creating a New LXC Container
 
