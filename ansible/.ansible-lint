@@ -1,0 +1,16 @@
+---
+# ansible-lint configuration.  Run locally with:  cd ansible && ansible-lint
+# Enforced before every commit via the pre-commit hook (.pre-commit-config.yaml).
+
+exclude_paths:
+  # Homepage dashboard config files that happen to be YAML but are not Ansible.
+  - roles/homepage/config/
+  # Decrypted vault (gitignored secrets — long unwrappable hash/token lines).
+  - group_vars/all/vault.yaml
+
+skip_list:
+  # Role directory names use hyphens by repo convention (book-orbit,
+  # service-watcher, …) — renaming them is invasive and not worth it.
+  - role-name
+  # Role variables are not name-prefixed with the role name in this repo.
+  - var-naming[no-role-prefix]

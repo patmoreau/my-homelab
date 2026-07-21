@@ -6,7 +6,7 @@
     owner: root
     group: root
     mode: "0644"
-  notify: update initramfs
+  notify: Update initramfs
 
 - name: Get current timezone
   ansible.builtin.command: timedatectl show -p Timezone --value
@@ -17,3 +17,4 @@
 - name: Set timezone
   ansible.builtin.command: "timedatectl set-timezone {{ timezone }}"
   when: pve_current_tz.stdout != timezone
+  changed_when: true

@@ -9,6 +9,19 @@ applyTo: "ansible/**"
 
 > **Always update `ansible/README.md` when adding new vault variables, new roles, or new hosts.**
 
+## Linting (Always Apply)
+
+> **Before committing any change under `ansible/`, run the linter and ensure it passes:**
+>
+> ```bash
+> cd ansible && ansible-lint
+> ```
+>
+> It must report **0 failures** (`Passed`). Fix the findings before committing. Rule
+> configuration lives in `ansible/.ansible-lint` — only add a rule to its `skip_list` /
+> `exclude_paths` for genuinely opinionated rules or non-Ansible files, not to silence a
+> real issue. `ansible-lint` is installed locally (Red Hat Ansible VS Code extension / pip).
+
 ## Key Variables
 
 | Variable                | Value              | Notes                                            |

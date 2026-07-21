@@ -10,6 +10,7 @@
   ansible.builtin.command: "pveum group add {{ item }}"
   loop: "{{ pve_api_groups }}"
   when: item not in (pve_groups_raw.stdout | from_json | map(attribute='groupid') | list)
+  changed_when: true
 
 # --- Users ------------------------------------------------------------------
 - name: Query PVE users
@@ -22,6 +23,7 @@
   ansible.builtin.command: "pveum user add {{ item }}"
   loop: "{{ pve_api_users }}"
   when: item not in (pve_users_raw.stdout | from_json | map(attribute='userid') | list)
+  changed_when: true
 
 # --- Tokens -----------------------------------------------------------------
 - name: Query existing tokens per user
@@ -41,6 +43,7 @@
   loop_control:
     label: "{{ item.item.userid }}!{{ item.item.tokenid }}"
   when: item.item.tokenid not in (item.stdout | from_json | map(attribute='tokenid') | list)
+  changed_when: true
   register: pve_tokens_created
 
 # Enforce privilege separation on tokens that already exist but drift from the desired
@@ -58,6 +61,7 @@
   when:
     - _existing | length > 0
     - (_existing[0].privsep | int) != (item.item.privsep | int)
+  changed_when: true
 
 # A token secret is shown ONLY in the creation output. If any token was created here,
 # its secret must be copied into the vault (vault_pve_token_secret / Terraform creds).
@@ -91,3 +95,4 @@
        | selectattr('roleid', 'equalto', item.role)
        | selectattr('ugid', 'equalto', item.id)
        | list | length) == 0
+  changed_when: true

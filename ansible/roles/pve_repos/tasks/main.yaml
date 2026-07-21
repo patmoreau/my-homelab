@@ -6,7 +6,7 @@
     owner: root
     group: root
     mode: "0644"
-  notify: apt update
+  notify: Update apt cache
 
 - name: Remove PVE enterprise repo (deb822 + legacy)
   ansible.builtin.file:
@@ -15,4 +15,4 @@
   loop:
     - /etc/apt/sources.list.d/pve-enterprise.sources
     - /etc/apt/sources.list.d/pve-enterprise.list
-  notify: apt update
+  notify: Update apt cache

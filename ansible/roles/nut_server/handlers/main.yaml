@@ -1,17 +1,17 @@
 ---
 # Handlers run in the order defined here (not notification order), so the
 # driver instances are regenerated before upsd/upsmon restart.
-- name: restart nut-driver-enumerator
+- name: Restart nut-driver-enumerator
   ansible.builtin.systemd:
     name: nut-driver-enumerator.service
     state: restarted
 
-- name: restart nut-server
+- name: Restart nut-server
   ansible.builtin.systemd:
     name: nut-server.service
     state: restarted
 
-- name: restart nut-monitor
+- name: Restart nut-monitor
   ansible.builtin.systemd:
     name: nut-monitor.service
     state: restarted

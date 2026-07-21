@@ -15,9 +15,9 @@
     group: nut
     mode: "0640"
   notify:
-    - restart nut-driver-enumerator
-    - restart nut-server
-    - restart nut-monitor
+    - Restart nut-driver-enumerator
+    - Restart nut-server
+    - Restart nut-monitor
 
 - name: Configure UPS driver (ups.conf)
   ansible.builtin.template:
@@ -27,9 +27,9 @@
     group: nut
     mode: "0640"
   notify:
-    - restart nut-driver-enumerator
-    - restart nut-server
-    - restart nut-monitor
+    - Restart nut-driver-enumerator
+    - Restart nut-server
+    - Restart nut-monitor
 
 - name: Configure upsd listen addresses (upsd.conf)
   ansible.builtin.template:
@@ -39,7 +39,7 @@
     group: nut
     mode: "0640"
   notify:
-    - restart nut-server
+    - Restart nut-server
 
 - name: Configure upsd users (upsd.users)
   ansible.builtin.template:
@@ -49,8 +49,8 @@
     group: nut
     mode: "0640"
   notify:
-    - restart nut-server
-    - restart nut-monitor
+    - Restart nut-server
+    - Restart nut-monitor
 
 - name: Configure upsmon (upsmon.conf)
   ansible.builtin.template:
@@ -60,7 +60,7 @@
     group: nut
     mode: "0640"
   notify:
-    - restart nut-monitor
+    - Restart nut-monitor
 
 # Apply config changes before the ensure-started tasks below.
 - name: Apply NUT config changes
