@@ -3,7 +3,7 @@ name: immich
 services:
   immich-server:
     container_name: immich_server
-    image: ghcr.io/immich-app/immich-server:v3.0.2
+    image: ghcr.io/immich-app/immich-server:v3.1.0
     volumes:
       - /photos:/usr/src/app/upload
       - /etc/localtime:/etc/localtime:ro
@@ -26,7 +26,7 @@ services:
 
   immich-machine-learning:
     container_name: immich_machine_learning
-    image: ghcr.io/immich-app/immich-machine-learning:v3.0.2
+    image: ghcr.io/immich-app/immich-machine-learning:v3.1.0
     volumes:
       - /data/immich/model-cache:/cache
     devices:
