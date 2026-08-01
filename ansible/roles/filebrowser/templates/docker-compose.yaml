@@ -1,6 +1,6 @@
 services:
   filebrowser:
-    image: filebrowser/filebrowser:v2.63.18
+    image: filebrowser/filebrowser:v2.63.23
     container_name: filebrowser
     user: ${PUID}:${PGID}
     ports:

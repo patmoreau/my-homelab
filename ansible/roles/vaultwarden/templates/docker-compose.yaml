@@ -1,6 +1,6 @@
 services:
   vaultwarden:
-    image: vaultwarden/server:1.36.0-alpine
+    image: vaultwarden/server:1.37.1-alpine
     container_name: vaultwarden
     user: ${PUID}:${PGID}
     restart: unless-stopped
