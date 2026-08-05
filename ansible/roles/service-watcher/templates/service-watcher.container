@@ -1,0 +1,17 @@
+[Unit]
+Description=Service Watcher
+
+[Container]
+ContainerName=service-watcher
+Image=localhost/service-watcher:latest
+PublishPort=3000:3000
+EnvironmentFile=/opt/docker/service-watcher/service-watcher.env
+Volume=/run/podman/podman.sock:/var/run/docker.sock
+Volume=/opt/docker/service-watcher/.ssh/id_ed25519_qnap_monitor:/root/.ssh/id_ed25519_qnap_monitor:ro
+HealthCmd=wget --spider http://localhost:3000/api/qnap || exit 1
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

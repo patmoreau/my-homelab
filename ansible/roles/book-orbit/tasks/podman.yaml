@@ -1,0 +1,38 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create bookorbit env file
+  ansible.builtin.template:
+    src: bookorbit.env.j2
+    dest: "{{ docker_compose_dir }}/bookorbit/bookorbit.env"
+    mode: "0600"
+  register: bookorbit_env
+
+- name: Deploy bookorbit postgres Quadlet unit
+  ansible.builtin.template:
+    src: bookorbit-db.container
+    dest: /etc/containers/systemd/bookorbit-db.container
+    mode: "0644"
+  register: bookorbit_db_quadlet
+
+- name: Deploy bookorbit app Quadlet unit
+  ansible.builtin.template:
+    src: bookorbit.container
+    dest: /etc/containers/systemd/bookorbit.container
+    mode: "0644"
+  register: bookorbit_quadlet
+
+- name: Start bookorbit postgres
+  ansible.builtin.systemd:
+    name: bookorbit-db.service
+    state: "{{ 'restarted' if (bookorbit_db_quadlet.changed or bookorbit_env.changed) else 'started' }}"
+    daemon_reload: true
+
+- name: Start bookorbit app
+  ansible.builtin.systemd:
+    name: bookorbit.service
+    state: "{{ 'restarted' if (bookorbit_quadlet.changed or bookorbit_env.changed) else 'started' }}"
+    daemon_reload: true

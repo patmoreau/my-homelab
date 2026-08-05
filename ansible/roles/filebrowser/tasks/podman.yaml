@@ -1,0 +1,25 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create filebrowser env file
+  ansible.builtin.template:
+    src: filebrowser.env.j2
+    dest: "{{ docker_compose_dir }}/filebrowser/filebrowser.env"
+    mode: "0600"
+  register: filebrowser_env
+
+- name: Deploy filebrowser Quadlet unit
+  ansible.builtin.template:
+    src: filebrowser.container.j2
+    dest: /etc/containers/systemd/filebrowser.container
+    mode: "0644"
+  register: filebrowser_quadlet
+
+- name: Start filebrowser
+  ansible.builtin.systemd:
+    name: filebrowser.service
+    state: "{{ 'restarted' if (filebrowser_quadlet.changed or filebrowser_env.changed) else 'started' }}"
+    daemon_reload: true

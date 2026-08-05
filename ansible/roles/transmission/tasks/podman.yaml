@@ -1,0 +1,25 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create transmission env file
+  ansible.builtin.template:
+    src: transmission.env.j2
+    dest: "{{ docker_compose_dir }}/transmission/transmission.env"
+    mode: "0600"
+  register: transmission_env
+
+- name: Deploy transmission Quadlet unit
+  ansible.builtin.template:
+    src: transmission.container
+    dest: /etc/containers/systemd/transmission.container
+    mode: "0644"
+  register: transmission_quadlet
+
+- name: Start transmission
+  ansible.builtin.systemd:
+    name: transmission.service
+    state: "{{ 'restarted' if (transmission_quadlet.changed or transmission_env.changed) else 'started' }}"
+    daemon_reload: true

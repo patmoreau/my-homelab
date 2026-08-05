@@ -1,0 +1,25 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create jellyfin env file
+  ansible.builtin.template:
+    src: jellyfin.env.j2
+    dest: "{{ docker_compose_dir }}/jellyfin/jellyfin.env"
+    mode: "0600"
+  register: jellyfin_env
+
+- name: Deploy jellyfin Quadlet unit
+  ansible.builtin.template:
+    src: jellyfin.container
+    dest: /etc/containers/systemd/jellyfin.container
+    mode: "0644"
+  register: jellyfin_quadlet
+
+- name: Start jellyfin
+  ansible.builtin.systemd:
+    name: jellyfin.service
+    state: "{{ 'restarted' if (jellyfin_quadlet.changed or jellyfin_env.changed) else 'started' }}"
+    daemon_reload: true

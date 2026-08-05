@@ -1,0 +1,45 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create service-watcher env file
+  ansible.builtin.template:
+    src: service-watcher.env.j2
+    dest: "{{ docker_compose_dir }}/service-watcher/service-watcher.env"
+    mode: "0600"
+  register: service_watcher_env
+
+# Quadlet has no build support on podman 4.9, so build the image directly and reference it
+# by its local tag from the .container unit. Build unconditionally (podman's layer cache
+# makes it cheap when nothing changed) so the image always exists — guarding on source
+# changes would skip it right after migrating off Docker, where the source files already
+# exist but the image does not in Podman storage.
+# --network=host for the RUN steps: the default build networking uses slirp4netns, which
+# needs /dev/net/tun (absent in the unprivileged LXC) and fails.
+- name: Build service-watcher image
+  ansible.builtin.command:
+    cmd: podman build --network=host -t localhost/service-watcher:latest .
+    chdir: "{{ docker_compose_dir }}/service-watcher"
+  changed_when: false
+
+- name: Deploy service-watcher Quadlet unit
+  ansible.builtin.template:
+    src: service-watcher.container
+    dest: /etc/containers/systemd/service-watcher.container
+    mode: "0644"
+  register: service_watcher_quadlet
+
+- name: Determine whether service-watcher needs a restart
+  ansible.builtin.set_fact:
+    service_watcher_restart: >-
+      {{ service_watcher_quadlet.changed or service_watcher_env.changed
+         or dockerfile_changed.changed or packagejson_changed.changed
+         or src_changed.changed }}
+
+- name: Start service-watcher
+  ansible.builtin.systemd:
+    name: service-watcher.service
+    state: "{{ 'restarted' if service_watcher_restart | bool else 'started' }}"
+    daemon_reload: true

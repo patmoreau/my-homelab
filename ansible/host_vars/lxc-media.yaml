@@ -1,3 +1,8 @@
+# lxc-media runs rootful Podman instead of Docker. Services deploy as Quadlet units;
+# book-orbit runs app+postgres netns-shared, service-watcher builds its image via
+# `podman build` (Quadlet has no build on podman 4.9).
+container_runtime: podman
+
 nas_puid: 3000
 nas_pgid: 100
 

@@ -1,0 +1,20 @@
+[Unit]
+Description=BookOrbit
+After=bookorbit-db.service
+Requires=bookorbit-db.service
+BindsTo=bookorbit-db.service
+
+[Container]
+ContainerName=bookorbit-app
+Image=ghcr.io/bookorbit/bookorbit:2.3.0
+# Share the postgres container's network namespace -> reach it on 127.0.0.1:5432.
+Network=container:bookorbit-db
+EnvironmentFile=/opt/docker/bookorbit/bookorbit.env
+Volume=/media/books:/books
+Volume=/data/bookorbit/data:/data
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
