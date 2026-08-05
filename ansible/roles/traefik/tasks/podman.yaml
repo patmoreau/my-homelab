@@ -1,0 +1,45 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create traefik env file
+  ansible.builtin.template:
+    src: traefik.env.j2
+    dest: "{{ docker_compose_dir }}/traefik/traefik.env"
+    mode: "0600"
+  register: traefik_env
+
+- name: Render certs-dumper entrypoint script
+  ansible.builtin.template:
+    src: certs-dumper-entrypoint.sh.j2
+    dest: "{{ docker_compose_dir }}/traefik/certs-dumper-entrypoint.sh"
+    mode: "0755"
+  register: certs_dumper_entrypoint
+
+- name: Deploy traefik Quadlet unit
+  ansible.builtin.template:
+    src: traefik.container
+    dest: /etc/containers/systemd/traefik.container
+    mode: "0644"
+  register: traefik_quadlet
+
+- name: Deploy certs-dumper Quadlet unit
+  ansible.builtin.template:
+    src: certs-dumper.container
+    dest: /etc/containers/systemd/traefik-certs-dumper.container
+    mode: "0644"
+  register: certs_dumper_quadlet
+
+- name: Start traefik
+  ansible.builtin.systemd:
+    name: traefik.service
+    state: "{{ 'restarted' if (traefik_quadlet.changed or traefik_env.changed) else 'started' }}"
+    daemon_reload: true
+
+- name: Start certs-dumper
+  ansible.builtin.systemd:
+    name: traefik-certs-dumper.service
+    state: "{{ 'restarted' if (certs_dumper_quadlet.changed or certs_dumper_entrypoint.changed or traefik_env.changed) else 'started' }}"
+    daemon_reload: true

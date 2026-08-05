@@ -1,1 +1,6 @@
+# lxc-gateway runs rootful Podman. traefik + certs-dumper share host-bind volumes;
+# cloudflared maps `traefik` to host-gateway to reach the published :80. acme.json is a
+# host bind, so Let's Encrypt certs are preserved across the migration.
+container_runtime: podman
+
 cloudflare_tunnel_token: "{{ vault_cloudflare_tunnel_token }}"

@@ -1,0 +1,20 @@
+[Unit]
+Description=Traefik certs dumper
+After=traefik.service
+
+[Container]
+ContainerName=traefik-certs-dumper
+Image=ldez/traefik-certs-dumper:v2.11.4
+# Entrypoint= is unsupported by Quadlet on podman 4.9; pass it through instead.
+PodmanArgs=--entrypoint=/entrypoint.sh
+EnvironmentFile=/opt/docker/traefik/traefik.env
+Volume=/opt/docker/traefik/acme.json:/etc/traefik/acme.json:ro
+Volume=/opt/docker/traefik/certs:/etc/traefik/certs
+Volume=/opt/docker/traefik/certs-dumper-key:/root/.ssh/deploy_key:ro
+Volume=/opt/docker/traefik/certs-dumper-entrypoint.sh:/entrypoint.sh:ro
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

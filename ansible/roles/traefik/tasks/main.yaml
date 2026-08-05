@@ -1,8 +1,3 @@
-- name: Create gateway network
-  community.docker.docker_network:
-    name: gateway
-    state: present
-
 - name: Create directory
   ansible.builtin.file:
     path: '{{ docker_compose_dir }}/traefik'
@@ -15,29 +10,17 @@
     state: directory
     mode: '0755'
 
+- name: Create certs directory
+  ansible.builtin.file:
+    path: '{{ docker_compose_dir }}/traefik/certs'
+    state: directory
+    mode: '0755'
+
 - name: Copy traefik.yaml
   ansible.builtin.template:
     src: traefik.yaml.j2
     dest: '{{ docker_compose_dir }}/traefik/traefik.yaml'
     mode: '0644'
-
-- name: Copy docker-compose.yaml
-  ansible.builtin.template:
-    src: docker-compose.yaml
-    dest: '{{ docker_compose_dir }}/traefik/docker-compose.yaml'
-    mode: '0644'
-
-- name: Copy docker-compose.override.yaml
-  ansible.builtin.template:
-    src: docker-compose.override.yaml.j2
-    dest: '{{ docker_compose_dir }}/traefik/docker-compose.override.yaml'
-    mode: '0644'
-
-- name: Copy .env file
-  ansible.builtin.template:
-    src: .env.j2
-    dest: '{{ docker_compose_dir }}/traefik/.env'
-    mode: '0600'
 
 - name: Copy conf.d files
   ansible.builtin.template:
@@ -81,7 +64,10 @@
     modification_time: preserve
     access_time: preserve
 
-- name: Start
-  community.docker.docker_compose_v2:
-    project_src: '{{ docker_compose_dir }}/traefik'
-    state: present
+- name: Deploy via Docker Compose
+  ansible.builtin.include_tasks: docker.yaml
+  when: container_runtime == 'docker'
+
+- name: Deploy via Podman Quadlet
+  ansible.builtin.include_tasks: podman.yaml
+  when: container_runtime == 'podman'

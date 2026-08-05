@@ -1,0 +1,25 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create cloudflare env file
+  ansible.builtin.template:
+    src: cloudflare.env.j2
+    dest: "{{ docker_compose_dir }}/cloudflare/cloudflare.env"
+    mode: "0600"
+  register: cloudflare_env
+
+- name: Deploy cloudflared Quadlet unit
+  ansible.builtin.template:
+    src: cloudflared.container
+    dest: /etc/containers/systemd/cloudflared.container
+    mode: "0644"
+  register: cloudflared_quadlet
+
+- name: Start cloudflared
+  ansible.builtin.systemd:
+    name: cloudflared.service
+    state: "{{ 'restarted' if (cloudflared_quadlet.changed or cloudflare_env.changed) else 'started' }}"
+    daemon_reload: true

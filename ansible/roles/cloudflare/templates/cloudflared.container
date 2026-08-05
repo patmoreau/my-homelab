@@ -1,0 +1,19 @@
+[Unit]
+Description=Cloudflared tunnel
+After=traefik.service
+
+[Container]
+ContainerName=cloudflared
+Image=cloudflare/cloudflared:2026.7.3
+# The tunnel's ingress targets http://traefik; map that name to the host, where traefik
+# publishes :80 (host-gateway = the container's host). No shared network/DNS needed.
+# AddHost= via PodmanArgs for podman 4.9 Quadlet compatibility.
+PodmanArgs=--add-host traefik:host-gateway
+EnvironmentFile=/opt/docker/cloudflare/cloudflare.env
+Exec=tunnel --no-autoupdate run
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
