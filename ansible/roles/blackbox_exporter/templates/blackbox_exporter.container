@@ -1,0 +1,15 @@
+[Unit]
+Description=Blackbox exporter
+
+[Container]
+ContainerName=blackbox_exporter
+Image=prom/blackbox-exporter:v0.28.0
+PublishPort=9115:9115
+Volume=/opt/docker/blackbox_exporter/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+Exec=--config.file=/etc/blackbox_exporter/config.yml
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

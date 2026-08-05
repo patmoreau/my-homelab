@@ -1,0 +1,15 @@
+[Unit]
+Description=Prometheus PVE exporter
+
+[Container]
+ContainerName=pve_exporter
+Image=prompve/prometheus-pve-exporter:3.9.0
+PublishPort=9221:9221
+Volume=/opt/docker/pve_exporter/pve.yml:/etc/prometheus/pve.yml:ro
+Exec=--config.file=/etc/prometheus/pve.yml
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

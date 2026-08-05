@@ -4,14 +4,14 @@
     - proxmox-backup-server
 
 - name: Provision all LXC
-  hosts: lxc:!lxc-pbs:!lxc-tools
+  hosts: lxc:!lxc-pbs:!lxc-tools:!lxc-monitoring
   roles:
     - docker
     - node_exporter
     - cadvisor
 
 - name: Provision Podman LXC
-  hosts: lxc-tools
+  hosts: lxc-tools:lxc-monitoring
   roles:
     - podman
     - node_exporter

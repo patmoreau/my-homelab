@@ -26,27 +26,36 @@
     group: root
     mode: "0644"
 
-# The OS ships /etc/apparmor.d/podman as flags=(unconfined) with a `userns` rule but no
-# `network` rule. Under abi 4.0 network mediation inside a nested (LXC) AppArmor
-# namespace, that denies socket() creation -> every image pull fails with EACCES. The
-# profile includes <local/podman>, so grant network there and reload the profile.
+# The OS ships /etc/apparmor.d/{podman,crun} as flags=(unconfined) with a `userns` rule
+# but no `network` rule. Under abi 4.0 network mediation inside a nested (LXC) AppArmor
+# namespace, that denies socket() creation: the `podman` profile breaks image pulls, and
+# the `crun` profile (which labels the container processes) breaks the containers' own
+# listen()/connect() -> EACCES. Both profiles include <local/{name}>, so grant network
+# there and reload. `-T` skips the read cache: the main profile file is unchanged, so a
+# plain reload can serve a stale cached binary that predates the local override.
 - name: Ensure AppArmor local override directory exists
   ansible.builtin.file:
     path: /etc/apparmor.d/local
     state: directory
     mode: "0755"
 
-- name: Grant network access to the Podman AppArmor profile
+- name: Grant network access to the Podman and crun AppArmor profiles
   ansible.builtin.copy:
-    dest: /etc/apparmor.d/local/podman
+    dest: "/etc/apparmor.d/local/{{ item }}"
     content: "  network,\n"
     owner: root
     group: root
     mode: "0644"
+  loop:
+    - podman
+    - crun
 
-- name: Reload the Podman AppArmor profile
-  ansible.builtin.command: apparmor_parser -r /etc/apparmor.d/podman
+- name: Reload the Podman and crun AppArmor profiles
+  ansible.builtin.command: "apparmor_parser -r -T /etc/apparmor.d/{{ item }}"
   changed_when: false
+  loop:
+    - podman
+    - crun
 
 - name: Enable and start the rootful Podman API socket
   ansible.builtin.systemd:

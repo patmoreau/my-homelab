@@ -1,0 +1,18 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Deploy blackbox_exporter Quadlet unit
+  ansible.builtin.template:
+    src: blackbox_exporter.container
+    dest: /etc/containers/systemd/blackbox_exporter.container
+    mode: "0644"
+  register: blackbox_quadlet
+
+- name: Start blackbox_exporter
+  ansible.builtin.systemd:
+    name: blackbox_exporter.service
+    state: "{{ 'restarted' if blackbox_quadlet.changed else 'started' }}"
+    daemon_reload: true

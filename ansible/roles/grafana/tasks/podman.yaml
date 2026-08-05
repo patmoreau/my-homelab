@@ -1,0 +1,25 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create grafana env file
+  ansible.builtin.template:
+    src: grafana.env.j2
+    dest: "{{ docker_compose_dir }}/grafana/grafana.env"
+    mode: "0600"
+  register: grafana_env
+
+- name: Deploy grafana Quadlet unit
+  ansible.builtin.template:
+    src: grafana.container
+    dest: /etc/containers/systemd/grafana.container
+    mode: "0644"
+  register: grafana_quadlet
+
+- name: Start grafana
+  ansible.builtin.systemd:
+    name: grafana.service
+    state: "{{ 'restarted' if (grafana_quadlet.changed or grafana_env.changed) else 'started' }}"
+    daemon_reload: true

@@ -71,7 +71,7 @@ scrape_configs:
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: 'blackbox_exporter:9115'
+        replacement: '{{ hostvars["lxc-monitoring"]["ansible_host"] }}:9115'
 
   - job_name: 'pve'
     static_configs:
@@ -88,4 +88,4 @@ scrape_configs:
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: 'pve_exporter:9221'
+        replacement: '{{ hostvars["lxc-monitoring"]["ansible_host"] }}:9221'

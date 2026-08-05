@@ -1,0 +1,16 @@
+[Unit]
+Description=Loki log store
+
+[Container]
+ContainerName=loki
+Image=grafana/loki:3.7.4
+PublishPort=3100:3100
+Volume=/opt/docker/loki/config/loki-config.yaml:/etc/loki/local-config.yaml:ro
+Volume=/data/loki:/loki
+Exec=-config.file=/etc/loki/local-config.yaml
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
