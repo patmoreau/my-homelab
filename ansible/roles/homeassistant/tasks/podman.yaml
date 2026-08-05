@@ -1,0 +1,25 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create homeassistant env file
+  ansible.builtin.template:
+    src: homeassistant.env.j2
+    dest: "{{ docker_compose_dir }}/homeassistant/homeassistant.env"
+    mode: "0600"
+  register: homeassistant_env
+
+- name: Deploy homeassistant Quadlet unit
+  ansible.builtin.template:
+    src: homeassistant.container
+    dest: /etc/containers/systemd/homeassistant.container
+    mode: "0644"
+  register: homeassistant_quadlet
+
+- name: Start homeassistant
+  ansible.builtin.systemd:
+    name: homeassistant.service
+    state: "{{ 'restarted' if (homeassistant_quadlet.changed or homeassistant_env.changed) else 'started' }}"
+    daemon_reload: true

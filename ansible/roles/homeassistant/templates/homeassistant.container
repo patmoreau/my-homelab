@@ -1,0 +1,18 @@
+[Unit]
+Description=Home Assistant
+
+[Container]
+ContainerName=homeassistant
+Image=lscr.io/linuxserver/homeassistant:2026.6.1-ls219
+# Host networking so device discovery (mDNS) and the IoT VLAN reach Home Assistant,
+# exactly as under Docker.
+Network=host
+EnvironmentFile=/opt/docker/homeassistant/homeassistant.env
+Volume=/data/config:/config
+Volume=/etc/localtime:/etc/localtime:ro
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

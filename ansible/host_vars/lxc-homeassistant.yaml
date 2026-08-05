@@ -1,0 +1,3 @@
+# lxc-homeassistant runs rootful Podman. Home Assistant uses host networking (Network=host)
+# so device discovery and the IoT VLAN keep working as under Docker.
+container_runtime: podman
