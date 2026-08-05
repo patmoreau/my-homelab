@@ -1,0 +1,4 @@
+# lxc-vault runs rootful Podman instead of Docker. vaultwarden + its MariaDB run as a
+# Quadlet pod (roles/vaultwarden) so they share a netns and reach each other on 127.0.0.1
+# (no aardvark DNS needed). Data persists via the /data/vaultwarden host binds.
+container_runtime: podman

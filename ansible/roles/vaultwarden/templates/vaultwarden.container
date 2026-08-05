@@ -1,0 +1,20 @@
+[Unit]
+Description=Vaultwarden
+After=vaultwarden_db.service
+Requires=vaultwarden_db.service
+BindsTo=vaultwarden_db.service
+
+[Container]
+ContainerName=vaultwarden
+Image=vaultwarden/server:1.37.1-alpine
+# Share the MariaDB container's network namespace -> reach it on 127.0.0.1:3306.
+Network=container:vaultwarden_db
+User=0:0
+Volume=/data/vaultwarden/data:/data
+EnvironmentFile=/opt/docker/vaultwarden/vaultwarden.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

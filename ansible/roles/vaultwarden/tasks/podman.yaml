@@ -1,0 +1,38 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create vaultwarden env file
+  ansible.builtin.template:
+    src: vaultwarden.env.j2
+    dest: "{{ docker_compose_dir }}/vaultwarden/vaultwarden.env"
+    mode: "0600"
+  register: vaultwarden_env
+
+- name: Deploy MariaDB Quadlet unit
+  ansible.builtin.template:
+    src: vaultwarden_db.container
+    dest: /etc/containers/systemd/vaultwarden_db.container
+    mode: "0644"
+  register: vaultwarden_db_quadlet
+
+- name: Deploy vaultwarden Quadlet unit
+  ansible.builtin.template:
+    src: vaultwarden.container
+    dest: /etc/containers/systemd/vaultwarden.container
+    mode: "0644"
+  register: vaultwarden_quadlet
+
+- name: Start MariaDB
+  ansible.builtin.systemd:
+    name: vaultwarden_db.service
+    state: "{{ 'restarted' if (vaultwarden_db_quadlet.changed or vaultwarden_env.changed) else 'started' }}"
+    daemon_reload: true
+
+- name: Start vaultwarden
+  ansible.builtin.systemd:
+    name: vaultwarden.service
+    state: "{{ 'restarted' if (vaultwarden_quadlet.changed or vaultwarden_env.changed) else 'started' }}"
+    daemon_reload: true
