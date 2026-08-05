@@ -1,3 +1,7 @@
+# lxc-immich runs rootful Podman. The 4 immich containers share one network namespace
+# (postgres owns it, publishes 2283); server + ml get the GPU via AddDevice/GroupAdd.
+container_runtime: podman
+
 nas_puid: 3000
 nas_pgid: 100
 immich_go_version: "v0.31.0"

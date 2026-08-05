@@ -1,0 +1,16 @@
+[Unit]
+Description=Immich Redis
+After=immich-database.service
+BindsTo=immich-database.service
+
+[Container]
+ContainerName=immich_redis
+Image=docker.io/valkey/valkey:9.1.1-alpine
+Network=container:immich_postgres
+HealthCmd=redis-cli ping || exit 1
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

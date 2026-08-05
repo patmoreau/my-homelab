@@ -1,0 +1,35 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create immich env file
+  ansible.builtin.template:
+    src: immich.env.j2
+    dest: "{{ docker_compose_dir }}/immich/immich.env"
+    mode: "0600"
+  register: immich_env
+
+- name: Deploy immich Quadlet units
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "/etc/containers/systemd/{{ item | regex_replace('\\.j2$', '') }}"
+    mode: "0644"
+  loop:
+    - immich-database.container
+    - immich-redis.container
+    - immich-machine-learning.container.j2
+    - immich-server.container.j2
+  register: immich_quadlet
+
+- name: Start immich services in order
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: "{{ 'restarted' if (immich_quadlet.changed or immich_env.changed) else 'started' }}"
+    daemon_reload: true
+  loop:
+    - immich-database.service
+    - immich-redis.service
+    - immich-machine-learning.service
+    - immich-server.service

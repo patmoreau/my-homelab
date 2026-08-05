@@ -1,0 +1,20 @@
+[Unit]
+Description=Immich Machine Learning
+After=immich-database.service
+BindsTo=immich-database.service
+
+[Container]
+ContainerName=immich_machine_learning
+Image=ghcr.io/immich-app/immich-machine-learning:v3.1.0
+Network=container:immich_postgres
+AddDevice=/dev/dri/renderD128
+# GroupAdd= is unsupported by Quadlet on podman 4.9; pass it through instead.
+PodmanArgs=--group-add {{ immich_render_gid }}
+Volume=/data/immich/model-cache:/cache
+EnvironmentFile=/opt/docker/immich/immich.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

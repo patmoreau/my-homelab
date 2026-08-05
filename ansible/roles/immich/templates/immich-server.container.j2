@@ -1,0 +1,22 @@
+[Unit]
+Description=Immich Server
+After=immich-database.service immich-redis.service
+Requires=immich-database.service
+BindsTo=immich-database.service
+
+[Container]
+ContainerName=immich_server
+Image=ghcr.io/immich-app/immich-server:v3.1.0
+Network=container:immich_postgres
+AddDevice=/dev/dri/renderD128
+# GroupAdd= is unsupported by Quadlet on podman 4.9; pass it through instead.
+PodmanArgs=--group-add {{ immich_render_gid }}
+Volume=/photos:/usr/src/app/upload
+Volume=/etc/localtime:/etc/localtime:ro
+EnvironmentFile=/opt/docker/immich/immich.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
