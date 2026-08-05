@@ -2,6 +2,10 @@ ansible_user: root
 ansible_ssh_private_key_file: ~/.ssh/terraform_homelab
 ansible_python_interpreter: /usr/bin/python3
 
+# Container runtime for a host: 'docker' (default) or 'podman'.
+# Podman hosts deploy services as Quadlet systemd units instead of Compose stacks.
+container_runtime: docker
+
 docker_compose_dir: /opt/docker
 nas_puid: 0
 nas_pgid: 0

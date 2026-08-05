@@ -1,0 +1,18 @@
+[Unit]
+Description=Prometheus node exporter
+
+[Container]
+ContainerName=node-exporter
+Image=prom/node-exporter:v1.12.1
+Network=host
+PodmanArgs=--pid=host
+Volume=/proc:/host/proc:ro
+Volume=/sys:/host/sys:ro
+Volume=/:/rootfs:ro
+Exec=--path.procfs=/host/proc --path.rootfs=/rootfs --path.sysfs=/host/sys --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

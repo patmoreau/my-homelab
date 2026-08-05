@@ -1,0 +1,18 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Deploy node-exporter Quadlet unit
+  ansible.builtin.template:
+    src: node-exporter.container
+    dest: /etc/containers/systemd/node-exporter.container
+    mode: "0644"
+  register: node_exporter_quadlet
+
+- name: Start node-exporter
+  ansible.builtin.systemd:
+    name: node-exporter.service
+    state: "{{ 'restarted' if node_exporter_quadlet.changed else 'started' }}"
+    daemon_reload: true

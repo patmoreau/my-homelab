@@ -1,0 +1,18 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Deploy cadvisor Quadlet unit
+  ansible.builtin.template:
+    src: cadvisor.container
+    dest: /etc/containers/systemd/cadvisor.container
+    mode: "0644"
+  register: cadvisor_quadlet
+
+- name: Start cadvisor
+  ansible.builtin.systemd:
+    name: cadvisor.service
+    state: "{{ 'restarted' if cadvisor_quadlet.changed else 'started' }}"
+    daemon_reload: true

@@ -40,6 +40,31 @@ auto-merges the override at `up` time. `immich` and `traefik` follow this split;
 roles use a single plain base file. Run the `/ansible` slash command (see
 `.claude/commands/ansible.md`) for the full convention.
 
+## Container runtime (Docker vs Podman)
+
+Each host picks a runtime via the `container_runtime` var (default `docker` in
+`group_vars/all/main.yaml`). `lxc-tools` overrides it to `podman` in
+`host_vars/lxc-tools.yaml` — it runs **rootful Podman** (daemonless) instead of Docker.
+
+The `podman` role replaces `docker` on Podman hosts: it installs Podman, enables the
+rootful Docker-compatible API socket (`podman.socket` → `/run/podman/podman.sock`,
+symlinked to `/run/docker.sock` via tmpfiles), and runs a weekly `podman system prune`
+timer. It also drops an `/etc/apparmor.d/local/podman` override granting `network` —
+without it the OS Podman AppArmor profile denies `socket()` inside the nested LXC
+namespace and every image pull fails with `EACCES`.
+
+Service roles that support both runtimes (`homepage`, `node_exporter`, `cadvisor`,
+`promtail`) dispatch from `tasks/main.yaml` to `tasks/docker.yaml` (Compose) or
+`tasks/podman.yaml` (Quadlet) based on `container_runtime`. On the Podman path each
+service ships a `templates/<name>.container.j2` **Quadlet** unit rendered to
+`/etc/containers/systemd/` and started as a systemd service (`<name>.service`).
+
+Renovate's docker-compose manager does not scan Quadlet files, so a `customManager` in
+`renovate.json` bumps the `Image=` tags in `**/templates/*.container[.j2]`. Keep the
+image-bearing `.container` file plain (like the Compose base files): where a unit needs
+secrets or per-host values, render them into a separate `*.env.j2` and reference it with
+`EnvironmentFile=` (homepage follows this split).
+
 ## Vault workflow
 
 ```bash
@@ -123,7 +148,8 @@ To keep the `lxc-monitoring` boot disk from filling up, retention is capped in t
 | Prometheus TSDB | `roles/prometheus` compose flags | 15 days **or** 6 GB, whichever comes first |
 | Loki log data | `roles/loki/config/loki-config.yaml` (`compactor` + `limits_config`) | 30 days (720 h), compactor deletes expired chunks |
 | Docker container stdout logs | `roles/docker` `/etc/docker/daemon.json` | `json-file`, `max-size 10m`, `max-file 3` (per container, applied on every LXC) |
-| Unused Docker images & build cache | `roles/docker` `docker-prune.timer` | Weekly `docker image prune -a` + `docker builder prune` (Sun 03:30, every LXC) — stops upgraded-away image versions from filling the disk |
+| Unused Docker images & build cache | `roles/docker` `docker-prune.timer` | Weekly `docker image prune -a` + `docker builder prune` (Sun 03:30, every Docker LXC) — stops upgraded-away image versions from filling the disk |
+| Unused Podman images & build cache | `roles/podman` `podman-prune.timer` | Weekly `podman system prune -af` (Sun 03:30, Podman hosts — `lxc-tools`) |
 
 > Docker log rotation only applies to containers **created after** `daemon.json` is written. Existing containers keep their old (unbounded) log until recreated (`docker compose up --force-recreate`, or a redeploy).
 

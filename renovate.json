@@ -1,6 +1,15 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["local>patmoreau/renovate-config", "config:recommended"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Bump image tags in Podman Quadlet (.container) unit templates, which Renovate's docker-compose manager does not scan",
+      "managerFilePatterns": ["/ansible/roles/.*/templates/.*\\.container(\\.j2)?$/"],
+      "matchStrings": ["Image=(?<depName>[^:\\s]+):(?<currentValue>\\S+)"],
+      "datasourceTemplate": "docker"
+    }
+  ],
   "packageRules": [
     {
       "description": "essere and holefeeder are deployed by their own CI — Renovate must not manage their images",

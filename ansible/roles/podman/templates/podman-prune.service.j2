@@ -1,0 +1,10 @@
+[Unit]
+Description=Prune unused Podman images and build cache
+After=podman.socket
+
+[Service]
+Type=oneshot
+# Remove images/networks/volumes not used by a container, then stale build cache.
+# Keeps upgraded-away image versions from filling the disk.
+ExecStart=/usr/bin/podman system prune -af
+ExecStart=/usr/bin/podman image prune -af

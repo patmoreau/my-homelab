@@ -1,0 +1,19 @@
+[Unit]
+Description=Homepage dashboard
+
+[Container]
+ContainerName=homepage
+Image=ghcr.io/gethomepage/homepage:v1.13.2
+PublishPort=3000:3000
+Volume=/opt/docker/homepage/config:/app/config
+Volume=/opt/docker/homepage/config/logs:/app/config/logs
+# Docker-compatible Podman API socket for the homepage Docker widget.
+Volume=/run/podman/podman.sock:/var/run/docker.sock:ro
+# Secrets/vars are rendered separately (Renovate keeps this plain file's Image tag bumped).
+EnvironmentFile=/opt/docker/homepage/homepage.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

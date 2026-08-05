@@ -1,0 +1,7 @@
+# lxc-tools runs rootful Podman instead of Docker. Services deploy as Quadlet systemd
+# units; see roles/podman and each role's podman.yaml.
+#
+# Note: the podman role installs an /etc/apparmor.d/local/podman override granting
+# `network` — without it the OS podman AppArmor profile denies socket() in this nested
+# LXC and every image pull fails with EACCES. See project_podman_lxc_socket_blocker.
+container_runtime: podman

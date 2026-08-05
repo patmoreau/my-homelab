@@ -1,0 +1,25 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create homepage env file
+  ansible.builtin.template:
+    src: homepage.env.j2
+    dest: "{{ docker_compose_dir }}/homepage/homepage.env"
+    mode: "0600"
+  register: homepage_env
+
+- name: Deploy homepage Quadlet unit
+  ansible.builtin.template:
+    src: homepage.container
+    dest: /etc/containers/systemd/homepage.container
+    mode: "0644"
+  register: homepage_quadlet
+
+- name: Start Homepage
+  ansible.builtin.systemd:
+    name: homepage.service
+    state: "{{ 'restarted' if (homepage_quadlet.changed or homepage_env.changed) else 'started' }}"
+    daemon_reload: true

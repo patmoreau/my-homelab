@@ -1,0 +1,62 @@
+# One-time teardown when migrating a host from Docker to Podman. Stops Docker and its
+# containers (freeing ports 3000, 9338, …), purges the Docker packages, and restores the
+# iptables FORWARD policy to ACCEPT. That last step matters: Docker sets FORWARD to DROP,
+# but Podman/netavark assumes FORWARD is ACCEPT and only adds RELATED,ESTABLISHED accepts
+# for its subnet — so with Docker's DROP left behind, NEW inbound connections to published
+# container ports (e.g. Traefik -> homepage:3000) are silently dropped -> 502 Bad Gateway.
+# Guarded on the Docker binary, so it no-ops once Docker is gone.
+- name: Check whether Docker is present
+  ansible.builtin.stat:
+    path: /usr/bin/dockerd
+  register: dockerd_bin
+
+- name: Tear down Docker
+  when: dockerd_bin.stat.exists
+  block:
+    - name: Check whether the Docker daemon is running
+      ansible.builtin.systemd:
+        name: docker.service
+      register: docker_service
+
+    - name: Stop all running Docker containers
+      ansible.builtin.shell: |
+        set -o pipefail
+        ids=$(docker ps -q)
+        if [ -n "$ids" ]; then docker stop $ids; fi
+      args:
+        executable: /bin/bash
+      register: docker_stop
+      changed_when: docker_stop.stdout | trim | length > 0
+      when: docker_service.status.ActiveState == 'active'
+
+    - name: Stop and disable Docker services and prune timer
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      loop:
+        - docker.service
+        - docker.socket
+        - docker-prune.timer
+      failed_when: false
+
+    - name: Purge Docker packages
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - docker-ce-rootless-extras
+          - docker-compose-plugin
+          - docker-buildx-plugin
+          - containerd.io
+        state: absent
+        purge: true
+        autoremove: true
+
+# Runs unconditionally (not behind the Docker-present guard): Docker sets FORWARD to DROP
+# and that survives Docker's own removal, so a host migrated earlier can still have the
+# stale DROP that black-holes Podman published ports. The iptables module is idempotent.
+- name: Restore FORWARD policy to ACCEPT (Docker leaves it DROP)
+  ansible.builtin.iptables:
+    chain: FORWARD
+    policy: ACCEPT

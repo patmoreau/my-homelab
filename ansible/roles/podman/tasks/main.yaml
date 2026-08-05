@@ -1,0 +1,99 @@
+- name: Tear down any pre-existing Docker install (one-time migration)
+  ansible.builtin.import_tasks: cleanup-docker.yaml
+
+- name: Install Podman
+  ansible.builtin.apt:
+    name:
+      - podman
+      - podman-docker
+    state: present
+    update_cache: true
+
+# podman-docker ships /etc/containers/nodocker which prints an "emulated by podman"
+# warning to stderr on every `docker` call. Remove it so scripts stay quiet.
+- name: Remove podman-docker nodocker warning
+  ansible.builtin.file:
+    path: /etc/containers/nodocker
+    state: absent
+
+# Unlike Docker, Podman does not assume Docker Hub for short image names. Default the
+# search to docker.io so the same short `image:` names used in the Compose files resolve.
+- name: Default unqualified image search to Docker Hub
+  ansible.builtin.copy:
+    dest: /etc/containers/registries.conf.d/00-unqualified-search.conf
+    content: "unqualified-search-registries = [\"docker.io\"]\n"
+    owner: root
+    group: root
+    mode: "0644"
+
+# The OS ships /etc/apparmor.d/podman as flags=(unconfined) with a `userns` rule but no
+# `network` rule. Under abi 4.0 network mediation inside a nested (LXC) AppArmor
+# namespace, that denies socket() creation -> every image pull fails with EACCES. The
+# profile includes <local/podman>, so grant network there and reload the profile.
+- name: Ensure AppArmor local override directory exists
+  ansible.builtin.file:
+    path: /etc/apparmor.d/local
+    state: directory
+    mode: "0755"
+
+- name: Grant network access to the Podman AppArmor profile
+  ansible.builtin.copy:
+    dest: /etc/apparmor.d/local/podman
+    content: "  network,\n"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Reload the Podman AppArmor profile
+  ansible.builtin.command: apparmor_parser -r /etc/apparmor.d/podman
+  changed_when: false
+
+- name: Enable and start the rootful Podman API socket
+  ansible.builtin.systemd:
+    name: podman.socket
+    enabled: true
+    state: started
+
+# Expose the Podman socket at the Docker path so container integrations that expect
+# /var/run/docker.sock (homepage widget, promtail docker_sd) work unchanged. tmpfiles
+# recreates the symlink on every boot since /run is a tmpfs.
+- name: Provide Docker-compatible socket symlink via tmpfiles
+  ansible.builtin.copy:
+    dest: /etc/tmpfiles.d/podman-docker-sock.conf
+    content: "L+ /run/docker.sock - - - - /run/podman/podman.sock\n"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Apply tmpfiles
+
+- name: Create the Docker-compatible socket symlink now
+  ansible.builtin.file:
+    src: /run/podman/podman.sock
+    dest: /run/docker.sock
+    state: link
+    force: true
+
+- name: Deploy Podman prune systemd service
+  ansible.builtin.template:
+    src: podman-prune.service.j2
+    dest: /etc/systemd/system/podman-prune.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Deploy Podman prune systemd timer
+  ansible.builtin.template:
+    src: podman-prune.timer.j2
+    dest: /etc/systemd/system/podman-prune.timer
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Ensure Podman prune timer is enabled and running
+  ansible.builtin.systemd:
+    name: podman-prune.timer
+    enabled: true
+    state: started
+    daemon_reload: true

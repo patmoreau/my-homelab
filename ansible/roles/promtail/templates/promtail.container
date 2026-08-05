@@ -1,0 +1,16 @@
+[Unit]
+Description=Promtail log shipper
+
+[Container]
+ContainerName=promtail
+Image=grafana/promtail:3.6.11
+Volume=/opt/docker/promtail/config/promtail-config.yaml:/etc/promtail/config.yml:ro
+# Docker-compatible Podman API socket for docker_sd_configs container discovery.
+Volume=/run/podman/podman.sock:/var/run/docker.sock:ro
+Exec=-config.file=/etc/promtail/config.yml
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
