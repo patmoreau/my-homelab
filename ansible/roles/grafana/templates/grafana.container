@@ -3,7 +3,7 @@ Description=Grafana
 
 [Container]
 ContainerName=grafana
-Image=grafana/grafana:13.1.1
+Image=grafana/grafana:13.1.2
 IP=10.88.0.243
 PublishPort=3000:3000
 Volume=/data/grafana:/var/lib/grafana
