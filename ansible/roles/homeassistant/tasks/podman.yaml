@@ -4,6 +4,19 @@
     state: directory
     mode: "0755"
 
+- name: Create custom-cont-init.d directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/homeassistant/custom-cont-init.d"
+    state: directory
+    mode: "0755"
+
+- name: Install cffi-consistency init script
+  ansible.builtin.copy:
+    src: 10-fix-cffi
+    dest: "{{ docker_compose_dir }}/homeassistant/custom-cont-init.d/10-fix-cffi"
+    mode: "0755"
+  register: homeassistant_cont_init
+
 - name: Create homeassistant env file
   ansible.builtin.template:
     src: homeassistant.env.j2
@@ -21,5 +34,5 @@
 - name: Start homeassistant
   ansible.builtin.systemd:
     name: homeassistant.service
-    state: "{{ 'restarted' if (homeassistant_quadlet.changed or homeassistant_env.changed) else 'started' }}"
+    state: "{{ 'restarted' if (homeassistant_quadlet.changed or homeassistant_env.changed or homeassistant_cont_init.changed) else 'started' }}"
     daemon_reload: true

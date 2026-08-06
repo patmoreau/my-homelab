@@ -10,6 +10,9 @@ Network=host
 EnvironmentFile=/opt/docker/homeassistant/homeassistant.env
 Volume=/data/config:/config
 Volume=/etc/localtime:/etc/localtime:ro
+# Runs 10-fix-cffi before Home Assistant starts (fixes the cffi upgrade race on this
+# ephemeral container that breaks the wyzeapi integration).
+Volume=/opt/docker/homeassistant/custom-cont-init.d:/custom-cont-init.d:ro
 
 [Service]
 Restart=always

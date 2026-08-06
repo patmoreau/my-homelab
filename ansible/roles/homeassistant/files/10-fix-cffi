@@ -1,0 +1,8 @@
+#!/bin/sh
+# The container is recreated fresh from the image on every restart (Podman Quadlet uses
+# --rm), so Home Assistant re-runs its component dependency install each start. During
+# that upgrade cffi's python package and its compiled backend briefly disagree, and any
+# integration importing cffi (e.g. wyzeapi via wyzeapy -> pycryptodome/cryptography)
+# fails with "Version mismatch". Upgrade cffi to a single consistent version here, before
+# HA loads integrations, so HA finds it already satisfied and skips the racy upgrade.
+/usr/local/bin/pip install --upgrade --no-cache-dir cffi
