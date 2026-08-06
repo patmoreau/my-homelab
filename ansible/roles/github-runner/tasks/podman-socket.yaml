@@ -1,0 +1,63 @@
+# Rootful Podman exposes a Docker-compatible API socket at /run/podman/podman.sock. Let the
+# non-root runner user reach it so the CI's `podman compose` (with CONTAINER_HOST pointing
+# at this socket) drives the rootful instance rather than the runner's own rootless one.
+- name: Create the podman access group
+  ansible.builtin.group:
+    name: podman
+    system: true
+
+- name: Add the runner user to the podman group
+  ansible.builtin.user:
+    name: "{{ github_runner_user }}"
+    groups: podman
+    append: true
+  notify: Restart github runner
+
+- name: Ensure the podman.socket override directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/podman.socket.d
+    state: directory
+    mode: "0755"
+
+- name: Grant the podman group access to the API socket
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/podman.socket.d/override.conf
+    content: |
+      [Socket]
+      SocketMode=0660
+      SocketGroup=podman
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart podman socket
+
+# `podman compose` is only a wrapper; it needs an external provider. Install real Docker
+# Compose v2 (full compose-spec compatibility) and point Podman at it.
+- name: Ensure the provider directory exists
+  ansible.builtin.file:
+    path: /usr/local/lib/podman
+    state: directory
+    mode: "0755"
+
+- name: Install Docker Compose v2 as the podman compose provider
+  ansible.builtin.get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ github_runner_compose_version }}/docker-compose-linux-x86_64"
+    dest: /usr/local/lib/podman/docker-compose
+    mode: "0755"
+
+- name: Ensure containers.conf.d exists
+  ansible.builtin.file:
+    path: /etc/containers/containers.conf.d
+    state: directory
+    mode: "0755"
+
+- name: Point podman compose at the provider
+  ansible.builtin.copy:
+    dest: /etc/containers/containers.conf.d/50-compose.conf
+    content: |
+      [engine]
+      compose_providers=["/usr/local/lib/podman/docker-compose"]
+      compose_warning_logs=false
+    owner: root
+    group: root
+    mode: "0644"

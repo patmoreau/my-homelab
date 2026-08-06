@@ -6,4 +6,6 @@ github_runner_name: "{{ inventory_hostname }}"
 github_runner_labels: "self-hosted,holefeeder,lxc"
 github_runner_user: "actions-runner"
 github_runner_dir: "/opt/actions-runner"
+# Docker Compose v2 binary used as the `podman compose` provider on Podman hosts.
+github_runner_compose_version: "v2.40.0"
 # vault_github_runner_pat — PAT (repo scope) used to fetch a registration token. Set in vault.
