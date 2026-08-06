@@ -1,0 +1,19 @@
+[Unit]
+Description=Essere PostgreSQL
+
+[Container]
+ContainerName=essere_postgres
+Image=postgres:16-alpine
+# Owns the shared netns for all three essere containers; publishes directus (8055) and the
+# essere app (3000 -> 80). Everything talks over 127.0.0.1 (no aardvark DNS / .pod on 4.9).
+IP=10.88.0.241
+PublishPort=8055:8055
+PublishPort=3000:80
+Volume=/data/postgres:/var/lib/postgresql/data
+EnvironmentFile=/opt/docker/essere/essere.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

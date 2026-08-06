@@ -1,0 +1,18 @@
+[Unit]
+Description=Essere Directus
+After=essere-db.service
+BindsTo=essere-db.service
+
+[Container]
+ContainerName=essere_directus
+Image=directus/directus:11
+# Shares the postgres netns -> reaches the DB on 127.0.0.1:5432 (DB_HOST in the env file).
+Network=container:essere_postgres
+Volume=/data/directus_uploads:/directus/uploads
+EnvironmentFile=/opt/docker/essere/essere.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

@@ -15,22 +15,14 @@
     - /data/postgres
     - /data/directus_uploads
 
-- name: Copy deployment files
-  ansible.builtin.template:
-    src: '{{ item.src }}'
-    dest: '{{ docker_compose_dir }}/essere/{{ item.dest }}'
-    mode: '{{ item.mode }}'
-  loop:
-    - {src: 'docker-compose.yaml', dest: 'docker-compose.yaml', mode: '0644'}
-    - {src: '.env.j2', dest: '.env', mode: '0600'}
-
-- name: Export Docker image to tarball locally
+- name: Export image to tarball locally
   delegate_to: localhost
-  # Become: false ensures it runs as your local user who has Docker socket access
+  # Become: false ensures it runs as your local user who has the container socket access.
+  # container_runtime is the CLI name (docker|podman), matching how the image was built.
   become: false
   ansible.builtin.shell: |
     set -o pipefail
-    docker save {{ image_name }}:{{ image_tag }} -o {{ tmp_archive }}
+    {{ container_runtime }} save {{ image_name }}:{{ image_tag }} -o {{ tmp_archive }}
   args:
     executable: /bin/bash
   # Check if image exists before saving to avoid crashes
@@ -42,10 +34,10 @@
     dest: '{{ tmp_archive }}'
     mode: '0644'
 
-- name: Load image into Docker on the LXC
+- name: Load image on the LXC
   ansible.builtin.shell: |
     set -o pipefail
-    docker load -i {{ tmp_archive }}
+    {{ container_runtime }} load -i {{ tmp_archive }}
   args:
     executable: /bin/bash
   register: essere_docker_load_result
@@ -64,9 +56,10 @@
         path: '{{ tmp_archive }}'
         state: absent
 
-- name: Start containers
-  community.docker.docker_compose_v2:
-    project_src: '{{ docker_compose_dir }}/essere'
-    state: present
-    # Forces recreation if the image was updated
-    pull: never
+- name: Deploy via Docker Compose
+  ansible.builtin.include_tasks: docker.yaml
+  when: container_runtime == 'docker'
+
+- name: Deploy via Podman Quadlet
+  ansible.builtin.include_tasks: podman.yaml
+  when: container_runtime == 'podman'

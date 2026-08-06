@@ -1,3 +1,8 @@
+# lxc-essere runs rootful Podman. The essere-app image is built with podman and shipped
+# via podman save/load; postgres + directus + essere-app share one netns (postgres owns it,
+# publishes 8055 + 3000). Directus reaches the DB over 127.0.0.1.
+container_runtime: podman
+
 admin_email: patrick@drifterapps.com
 admin_password: '{{ vault_essere_admin_password }}'
 directus_secret: '{{ vault_essere_directus_secret }}'
