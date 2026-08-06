@@ -8,6 +8,7 @@ User={{ nas_puid }}:{{ nas_pgid }}
 # Runs as a non-root user but listens on :80; allow the unprivileged bind in its netns
 # (Docker grants NET_BIND_SERVICE implicitly, Podman does not for a dropped User).
 Sysctl=net.ipv4.ip_unprivileged_port_start=80
+IP=10.88.0.243
 PublishPort=8080:80
 EnvironmentFile=/opt/docker/filebrowser/filebrowser.env
 Volume=/data/filebrowser/config:/config

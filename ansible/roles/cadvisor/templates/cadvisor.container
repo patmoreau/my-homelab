@@ -4,6 +4,9 @@ Description=cAdvisor container metrics
 [Container]
 ContainerName=cadvisor
 Image=gcr.io/cadvisor/cadvisor:v0.55.1
+# Static IP (see homepage.container) so a recreate reuses the same address and avoids
+# stale netavark port-DNAT rules.
+IP=10.88.0.240
 PublishPort=9338:8080
 # Reads container metrics from cgroups (works for Podman). The Docker-specific
 # /var/lib/docker mount is dropped (limited image-name labels), and /var/run is NOT

@@ -7,6 +7,7 @@ Image=lscr.io/linuxserver/mariadb:11.4.12-r0-ls220
 # Owns the shared network namespace; vaultwarden joins it, so this publishes vaultwarden's
 # web port (8080 -> 80 inside the shared netns). MariaDB itself listens on 3306, reachable
 # by vaultwarden over 127.0.0.1 with no DNS (podman 4.9 has no Quadlet .pod support).
+IP=10.88.0.241
 PublishPort=8080:80
 Volume=/data/vaultwarden/mariadb:/config
 EnvironmentFile=/opt/docker/vaultwarden/vaultwarden.env

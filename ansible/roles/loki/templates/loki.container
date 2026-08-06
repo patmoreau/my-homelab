@@ -4,6 +4,7 @@ Description=Loki log store
 [Container]
 ContainerName=loki
 Image=grafana/loki:3.7.4
+IP=10.88.0.242
 PublishPort=3100:3100
 Volume=/opt/docker/loki/config/loki-config.yaml:/etc/loki/local-config.yaml:ro
 Volume=/data/loki:/loki

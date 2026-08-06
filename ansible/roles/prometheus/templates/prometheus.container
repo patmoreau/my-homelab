@@ -4,6 +4,7 @@ Description=Prometheus
 [Container]
 ContainerName=prometheus
 Image=prom/prometheus:v3.13.2
+IP=10.88.0.241
 PublishPort=9090:9090
 Volume=/opt/docker/prometheus/config:/etc/prometheus-config:ro
 Volume=/data/prometheus:/prometheus

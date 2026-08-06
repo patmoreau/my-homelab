@@ -4,6 +4,7 @@ Description=Service Watcher
 [Container]
 ContainerName=service-watcher
 Image=localhost/service-watcher:latest
+IP=10.88.0.245
 PublishPort=3000:3000
 EnvironmentFile=/opt/docker/service-watcher/service-watcher.env
 Volume=/run/podman/podman.sock:/var/run/docker.sock

@@ -6,6 +6,7 @@ ContainerName=immich_postgres
 Image=ghcr.io/immich-app/postgres:18-vectorchord0.5.3
 # Owns the shared netns for all four immich containers; publishes the server's port
 # (2283). Postgres/redis/ml/server reach each other over 127.0.0.1.
+IP=10.88.0.241
 PublishPort=2283:2283
 Volume=/data/immich/postgres:/var/lib/postgresql
 EnvironmentFile=/opt/docker/immich/immich.env

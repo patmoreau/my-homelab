@@ -6,6 +6,7 @@ ContainerName=bookorbit-db
 Image=pgvector/pgvector:pg16
 # Owns the shared netns; publishes the app's web port (3001 -> 3000 inside the netns).
 # Postgres listens on 5432, reached by the app over 127.0.0.1 (no Quadlet .pod on 4.9).
+IP=10.88.0.244
 PublishPort=3001:3000
 Volume=/data/bookorbit/postgres:/var/lib/postgresql/data
 EnvironmentFile=/opt/docker/bookorbit/bookorbit.env

@@ -5,6 +5,7 @@ Description=Traefik
 ContainerName=traefik
 Image=traefik:v3.7.10
 NoNewPrivileges=true
+IP=10.88.0.241
 PublishPort=80:80
 PublishPort=443:443
 PublishPort=8443:8443
