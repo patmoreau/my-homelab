@@ -1,0 +1,4 @@
+# lxc-holefeeder runs rootful Podman. The self-hosted runner drives the rootful podman
+# socket (podman group + SocketGroup override); the holefeeder CI deploy job runs
+# `podman compose` with CONTAINER_HOST=unix:///run/podman/podman.sock.
+container_runtime: podman

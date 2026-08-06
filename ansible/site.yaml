@@ -4,14 +4,14 @@
     - proxmox-backup-server
 
 - name: Provision all LXC
-  hosts: lxc:!lxc-pbs:!lxc-tools:!lxc-monitoring:!lxc-vault:!lxc-media:!lxc-immich:!lxc-homeassistant:!lxc-gateway:!lxc-essere
+  hosts: lxc:!lxc-pbs:!lxc-tools:!lxc-monitoring:!lxc-vault:!lxc-media:!lxc-immich:!lxc-homeassistant:!lxc-gateway:!lxc-essere:!lxc-holefeeder
   roles:
     - docker
     - node_exporter
     - cadvisor
 
 - name: Provision Podman LXC
-  hosts: lxc-tools:lxc-monitoring:lxc-vault:lxc-media:lxc-immich:lxc-homeassistant:lxc-gateway:lxc-essere
+  hosts: lxc-tools:lxc-monitoring:lxc-vault:lxc-media:lxc-immich:lxc-homeassistant:lxc-gateway:lxc-essere:lxc-holefeeder
   roles:
     - podman
     - node_exporter

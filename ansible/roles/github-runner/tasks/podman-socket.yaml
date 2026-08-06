@@ -45,6 +45,27 @@
     dest: /usr/local/lib/podman/docker-compose
     mode: "0755"
 
+- name: Ensure the runner docker-config directory exists
+  ansible.builtin.file:
+    path: "{{ github_runner_dir }}/.docker"
+    state: directory
+    owner: "{{ github_runner_user }}"
+    group: "{{ github_runner_user }}"
+    mode: "0700"
+
+- name: Point the runner's jobs at the rootful podman socket and a shared auth file
+  ansible.builtin.copy:
+    dest: "{{ github_runner_dir }}/.env"
+    content: |
+      CONTAINER_HOST=unix:///run/podman/podman.sock
+      DOCKER_HOST=unix:///run/podman/podman.sock
+      DOCKER_CONFIG={{ github_runner_dir }}/.docker
+      REGISTRY_AUTH_FILE={{ github_runner_dir }}/.docker/config.json
+    owner: "{{ github_runner_user }}"
+    group: "{{ github_runner_user }}"
+    mode: "0644"
+  notify: Restart github runner
+
 - name: Ensure containers.conf.d exists
   ansible.builtin.file:
     path: /etc/containers/containers.conf.d
