@@ -26,44 +26,50 @@ cd ansible
 ansible-galaxy collection install -r requirements.yml
 ```
 
-## Docker Compose & Renovate
+## Container runtime — every LXC runs rootful Podman
 
-Container image versions are kept up to date by **Renovate**, which scans plain
-`docker-compose.yaml` files. Each role's compose file therefore lives as a plain
-`roles/<name>/templates/docker-compose.yaml` (no `.j2` extension, no Jinja2) so Renovate's
-docker-compose manager can find and bump the `image:` tags automatically.
+**All LXCs run rootful Podman + Quadlet.** The `container_runtime` var still defaults to
+`docker` in `group_vars/all/main.yaml`, but every host overrides it to `podman` in its
+`host_vars/lxc-<name>.yaml`. The Docker path (the `docker` role and each service role's
+`tasks/docker.yaml` + `docker-compose.yaml`) is kept as a dormant, reversible fallback but
+is not used anywhere. Only `essere` and `holefeeder` were ever built by their own CI; both
+now build/publish with Podman too.
 
-When a service needs a Jinja2-templated value (host lookups, per-host group IDs, etc.),
-that value goes in a separate `roles/<name>/templates/docker-compose.override.yaml.j2`,
-rendered alongside the base file to `docker-compose.override.yaml`. Docker Compose
-auto-merges the override at `up` time. `immich` and `traefik` follow this split; all other
-roles use a single plain base file. Run the `/ansible` slash command (see
-`.claude/commands/ansible.md`) for the full convention.
+Service roles dispatch from `tasks/main.yaml` to `tasks/docker.yaml` (Compose) or
+`tasks/podman.yaml` (Quadlet) based on `container_runtime`. On the Podman path each service
+renders **Quadlet** units to `/etc/containers/systemd/` and starts them as systemd services
+(`<name>.service`).
 
-## Container runtime (Docker vs Podman)
+### The `podman` role (replaces `docker` on Podman hosts)
+Installs Podman + `podman-docker`; enables the rootful Docker-compatible API socket
+(`podman.socket` → `/run/podman/podman.sock`, symlinked to `/run/docker.sock` via tmpfiles);
+defaults `unqualified-search-registries` to `docker.io`; runs a weekly `podman system prune`
+timer; and, via `cleanup-docker.yaml`, purges any pre-existing Docker and restores the
+iptables `FORWARD` policy to `ACCEPT` (Docker leaves it `DROP`, which black-holes Podman
+published ports). It grants `network` in `/etc/apparmor.d/local/{podman,crun}` and reloads
+with `-T` — without it the OS `podman`/`crun` AppArmor profiles deny `socket()` in the nested
+LXC namespace (pulls fail with `EACCES`; containers can't `listen()`).
 
-Each host picks a runtime via the `container_runtime` var (default `docker` in
-`group_vars/all/main.yaml`). `lxc-tools` overrides it to `podman` in
-`host_vars/lxc-tools.yaml` — it runs **rootful Podman** (daemonless) instead of Docker.
+### Quadlet conventions
+- **Image tags & Renovate.** Keep the image-bearing `.container` file plain; a `customManager`
+  in `renovate.json` bumps `Image=` tags in `**/templates/*.container[.j2]`. Secrets/per-host
+  values go in a separate `*.env.j2` referenced with `EnvironmentFile=` (never inline secrets
+  in the 0644 unit). See `homepage`, `grafana`.
+- **Static IPs.** Published-port containers pin `IP=10.88.0.x` (cadvisor `.240`, others `.241+`
+  per host). netavark can leave a stale port-DNAT rule pointing at a dead IP on recreate → 502;
+  a fixed IP keeps the rule valid.
+- **Multi-container apps → netns-share.** No aardvark DNS and no Quadlet `.pod` on podman 4.9,
+  so a DB/owner container publishes all the ports and the others join it with
+  `Network=container:<owner>` and talk over `127.0.0.1`. See `vaultwarden`, `book-orbit`,
+  `immich`, `essere`, `holefeeder`.
+- **GPU** (`immich`): `AddDevice=/dev/dri/renderD128` + `PodmanArgs=--group-add <gid>` (Quadlet
+  `GroupAdd=` is unsupported on 4.9).
+- **Custom images.** `essere` ships its image via `{{ container_runtime }} save`/`load`;
+  `service-watcher` builds on-host (`podman build --network=host`); `holefeeder` pulls from
+  GHCR on a rolling `:latest` tag with `io.containers.autoupdate=registry` and updates via
+  `sudo podman auto-update` from the self-hosted runner.
 
-The `podman` role replaces `docker` on Podman hosts: it installs Podman, enables the
-rootful Docker-compatible API socket (`podman.socket` → `/run/podman/podman.sock`,
-symlinked to `/run/docker.sock` via tmpfiles), and runs a weekly `podman system prune`
-timer. It also drops an `/etc/apparmor.d/local/podman` override granting `network` —
-without it the OS Podman AppArmor profile denies `socket()` inside the nested LXC
-namespace and every image pull fails with `EACCES`.
-
-Service roles that support both runtimes (`homepage`, `node_exporter`, `cadvisor`,
-`promtail`) dispatch from `tasks/main.yaml` to `tasks/docker.yaml` (Compose) or
-`tasks/podman.yaml` (Quadlet) based on `container_runtime`. On the Podman path each
-service ships a `templates/<name>.container.j2` **Quadlet** unit rendered to
-`/etc/containers/systemd/` and started as a systemd service (`<name>.service`).
-
-Renovate's docker-compose manager does not scan Quadlet files, so a `customManager` in
-`renovate.json` bumps the `Image=` tags in `**/templates/*.container[.j2]`. Keep the
-image-bearing `.container` file plain (like the Compose base files): where a unit needs
-secrets or per-host values, render them into a separate `*.env.j2` and reference it with
-`EnvironmentFile=` (homepage follows this split).
+Run the `/ansible` slash command (see `.claude/commands/ansible.md`) for the full convention.
 
 ## Vault workflow
 
@@ -140,7 +146,7 @@ These must be populated to deploy all services:
 | `blackbox_exporter` | lxc-monitoring | HTTP health probing for all services (port 9115) |
 | `node_exporter` | all LXC | System metrics (port 9100) |
 | `cadvisor` | all LXC (except pbs) | Container metrics (port 9338) |
-| `promtail` | all LXC (except monitoring, pbs) | Ships Docker logs to Loki |
+| `promtail` | all LXC (except monitoring, pbs) | Ships container logs to Loki (Podman socket discovery) |
 
 ### Data retention
 
@@ -150,11 +156,9 @@ To keep the `lxc-monitoring` boot disk from filling up, retention is capped in t
 |------|-------|--------|
 | Prometheus TSDB | `roles/prometheus` compose flags | 15 days **or** 6 GB, whichever comes first |
 | Loki log data | `roles/loki/config/loki-config.yaml` (`compactor` + `limits_config`) | 30 days (720 h), compactor deletes expired chunks |
-| Docker container stdout logs | `roles/docker` `/etc/docker/daemon.json` | `json-file`, `max-size 10m`, `max-file 3` (per container, applied on every LXC) |
-| Unused Docker images & build cache | `roles/docker` `docker-prune.timer` | Weekly `docker image prune -a` + `docker builder prune` (Sun 03:30, every Docker LXC) — stops upgraded-away image versions from filling the disk |
-| Unused Podman images & build cache | `roles/podman` `podman-prune.timer` | Weekly `podman system prune -af` (Sun 03:30, Podman hosts — `lxc-tools`) |
-
-> Docker log rotation only applies to containers **created after** `daemon.json` is written. Existing containers keep their old (unbounded) log until recreated (`docker compose up --force-recreate`, or a redeploy).
+| Container stdout logs | Podman → systemd journal | Quadlet containers log to `journald`; capped by the host journald limits |
+| Unused Podman images & build cache | `roles/podman` `podman-prune.timer` | Weekly `podman system prune -af` (Sun 03:30, every LXC — all hosts run Podman) |
+| Unused Docker images & build cache (dormant) | `roles/docker` `docker-prune.timer` | Weekly `docker image prune -a` + `docker builder prune` — only if a host is ever reverted to the Docker path |
 
 The `blackbox_exporter` role probes the following HTTP endpoints every 15 s and reports `probe_success` (0/1) and `probe_duration_seconds` to Prometheus:
 
@@ -242,8 +246,9 @@ repo's CI (`ghcr.io/patmoreau/holefeeder`). Responsibilities are split:
   the Cloudflare Zero Trust dashboard. Traefik issues edge-origin certs via the
   `cloudflare` DNS-01 resolver, so `vault_cloudflare_api_key` must have DNS edit rights on
   the `drifterapps.app` zone.
-- **Logs** — Serilog writes JSON to stdout; the host's `promtail` (docker service
-  discovery) ships container logs to Loki/Grafana. No Seq.
+- **Logs** — Serilog writes JSON to stdout; the host's `promtail` (container service
+  discovery over the Podman Docker-compatible socket) ships container logs to Loki/Grafana.
+  No Seq.
 
 The `github-runner` role needs `vault_github_runner_pat` (see vault table).
 
