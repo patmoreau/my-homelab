@@ -4,13 +4,8 @@
     state: directory
     mode: '0755'
 
-- name: Deploy via Docker Compose
-  ansible.builtin.include_tasks: docker.yaml
-  when: container_runtime == 'docker'
-
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
-  when: container_runtime == 'podman'
 
 - name: Wait for configuration.yaml to be generated
   ansible.builtin.wait_for:
@@ -19,7 +14,7 @@
     timeout: 60
 
 - name: Install HACS via installation script in the container
-  ansible.builtin.command: "{{ container_runtime }} exec homeassistant bash -c \"wget -O - https://get.hacs.xyz | bash -\""
+  ansible.builtin.command: "podman exec homeassistant bash -c \"wget -O - https://get.hacs.xyz | bash -\""
   args:
     creates: /data/config/custom_components/hacs
   register: homeassistant_hacs_install
@@ -50,14 +45,8 @@
       {{ homeassistant_config.changed or homeassistant_hacs_install.changed
          or homeassistant_system_log_config.changed }}
 
-- name: Restart Home Assistant to apply config (Docker)
-  community.docker.docker_compose_v2:
-    project_src: '{{ docker_compose_dir }}/homeassistant'
-    state: restarted
-  when: container_runtime == 'docker' and homeassistant_restart | bool
-
-- name: Restart Home Assistant to apply config (Podman)
+- name: Restart Home Assistant to apply config
   ansible.builtin.systemd:
     name: homeassistant.service
     state: restarted
-  when: container_runtime == 'podman' and homeassistant_restart | bool
+  when: homeassistant_restart | bool

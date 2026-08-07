@@ -16,16 +16,8 @@
     system: true
     create_home: true
 
-- name: Grant the runner access to the Docker socket
-  ansible.builtin.user:
-    name: "{{ github_runner_user }}"
-    groups: docker
-    append: true
-  when: container_runtime == 'docker'
-
-- name: Grant the runner access to the Podman socket
+- name: Grant the runner access to run podman
   ansible.builtin.include_tasks: podman-socket.yaml
-  when: container_runtime == 'podman'
 
 - name: Download GitHub Actions runner
   ansible.builtin.get_url:

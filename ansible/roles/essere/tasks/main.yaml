@@ -17,12 +17,11 @@
 
 - name: Export image to tarball locally
   delegate_to: localhost
-  # Become: false ensures it runs as your local user who has the container socket access.
-  # container_runtime is the CLI name (docker|podman), matching how the image was built.
+  # Become: false ensures it runs as your local user who has the podman socket access.
   become: false
   ansible.builtin.shell: |
     set -o pipefail
-    {{ container_runtime }} save {{ image_name }}:{{ image_tag }} -o {{ tmp_archive }}
+    podman save {{ image_name }}:{{ image_tag }} -o {{ tmp_archive }}
   args:
     executable: /bin/bash
   # Check if image exists before saving to avoid crashes
@@ -37,7 +36,7 @@
 - name: Load image on the LXC
   ansible.builtin.shell: |
     set -o pipefail
-    {{ container_runtime }} load -i {{ tmp_archive }}
+    podman load -i {{ tmp_archive }}
   args:
     executable: /bin/bash
   register: essere_docker_load_result
@@ -56,10 +55,5 @@
         path: '{{ tmp_archive }}'
         state: absent
 
-- name: Deploy via Docker Compose
-  ansible.builtin.include_tasks: docker.yaml
-  when: container_runtime == 'docker'
-
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
-  when: container_runtime == 'podman'

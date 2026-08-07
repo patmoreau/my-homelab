@@ -1,5 +1,0 @@
-- name: Ensure shared monitoring network exists
-  community.docker.docker_network:
-    name: monitoring_shared
-    driver: bridge
-    state: present

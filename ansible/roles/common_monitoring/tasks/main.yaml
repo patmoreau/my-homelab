@@ -1,7 +1,0 @@
-# The monitoring_shared Docker network is only needed by the Compose (docker) path, where
-# Prometheus resolves the exporters by container name. On the Podman path Prometheus
-# scrapes the exporters via the host's published ports (see prometheus.yml.j2), so no
-# shared network is required.
-- name: Create shared network via Docker
-  ansible.builtin.include_tasks: docker.yaml
-  when: container_runtime == 'docker'

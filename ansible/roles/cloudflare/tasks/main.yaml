@@ -4,10 +4,5 @@
     state: directory
     mode: "0755"
 
-- name: Deploy via Docker Compose
-  ansible.builtin.include_tasks: docker.yaml
-  when: container_runtime == 'docker'
-
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
-  when: container_runtime == 'podman'

@@ -10,10 +10,5 @@
     dest: '{{ docker_compose_dir }}/blackbox_exporter/blackbox.yml'
     mode: '0644'
 
-- name: Deploy via Docker Compose
-  ansible.builtin.include_tasks: docker.yaml
-  when: container_runtime == 'docker'
-
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
-  when: container_runtime == 'podman'

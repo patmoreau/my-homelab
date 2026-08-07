@@ -17,10 +17,5 @@
     - '{{ docker_compose_dir }}/jellyfin/config/log'
     - '{{ docker_compose_dir }}/jellyfin/config/transcodes'
 
-- name: Deploy via Docker Compose
-  ansible.builtin.include_tasks: docker.yaml
-  when: container_runtime == 'docker'
-
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
-  when: container_runtime == 'podman'

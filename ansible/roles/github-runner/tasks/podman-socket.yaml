@@ -11,6 +11,10 @@
     mode: "0440"
     validate: visudo -cf %s
 
+# Removing the SocketGroup override file is enough — the running socket keeps its (harmless)
+# root:podman group until the next reboot, when it comes back up as root:root. Deliberately
+# NOT restarting podman.socket here: that recreates the socket file and breaks the bind-mount
+# in every socket-consuming container (promtail, cadvisor).
 - name: Remove obsolete podman-compose deploy artifacts
   ansible.builtin.file:
     path: "{{ item }}"
@@ -20,11 +24,3 @@
     - /usr/local/lib/podman/docker-compose
     - /etc/containers/containers.conf.d/50-compose.conf
     - /etc/systemd/system/podman.socket.d/override.conf
-  register: runner_compose_cleanup
-
-- name: Restore podman.socket to its default group after removing the override
-  ansible.builtin.systemd:
-    name: podman.socket
-    state: restarted
-    daemon_reload: true
-  when: runner_compose_cleanup is changed

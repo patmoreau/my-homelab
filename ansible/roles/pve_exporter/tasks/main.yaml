@@ -1,4 +1,3 @@
-# The monitoring_shared network is created by the common_monitoring role (a dependency).
 - name: Create directory
   ansible.builtin.file:
     path: '{{ docker_compose_dir }}/pve_exporter'
@@ -11,10 +10,5 @@
     dest: '{{ docker_compose_dir }}/pve_exporter/pve.yml'
     mode: '0644'
 
-- name: Deploy via Docker Compose
-  ansible.builtin.include_tasks: docker.yaml
-  when: container_runtime == 'docker'
-
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
-  when: container_runtime == 'podman'
