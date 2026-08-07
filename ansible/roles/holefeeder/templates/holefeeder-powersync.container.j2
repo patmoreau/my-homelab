@@ -1,0 +1,18 @@
+[Unit]
+Description=Holefeeder PowerSync
+After=holefeeder-postgres.service
+BindsTo=holefeeder-postgres.service
+
+[Container]
+ContainerName=holefeeder_powersync
+Image=journeyapps/powersync-service:1.23.3
+Network=container:holefeeder_postgres
+Volume=/opt/docker/holefeeder/powersync:/config
+EnvironmentFile=/opt/docker/holefeeder/powersync.env
+Exec=start -r unified
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

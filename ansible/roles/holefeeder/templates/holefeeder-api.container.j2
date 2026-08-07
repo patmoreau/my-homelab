@@ -1,0 +1,21 @@
+[Unit]
+Description=Holefeeder API
+After=holefeeder-postgres.service
+BindsTo=holefeeder-postgres.service
+
+[Container]
+ContainerName=holefeeder_api
+Image={{ holefeeder_registry }}/holefeeder-api:{{ holefeeder_image_tag }}
+# Rolling tag; `podman auto-update` pulls new images and restarts this unit.
+Label=io.containers.autoupdate=registry
+# Shares the postgres netns -> DB on 127.0.0.1; listens on :5001 (ASPNETCORE_URLS) so it
+# does not collide with web's :5000 in the shared netns.
+Network=container:holefeeder_postgres
+Volume=/data/dataprotection/api:/root/.aspnet/DataProtection-Keys
+EnvironmentFile=/opt/docker/holefeeder/api.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

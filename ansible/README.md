@@ -122,7 +122,10 @@ These must be populated to deploy all services:
 | `vault_pbs_client_password`             | proxmox-backup-client                | Password for `backup-client@pbs` — set once in vault, reused by all LXC containers                        |
 | `vault_proxmox_token_id`                | traefik (certs-dumper), pve_exporter | Proxmox API Token ID (`user@realm!tokenname`)                                                             |
 | `vault_proxmox_token_secret`            | traefik (certs-dumper), pve_exporter | Proxmox API Token Secret                                                                                  |
-| `vault_github_runner_pat`               | github-runner                        | GitHub PAT (repo scope) used to fetch a self-hosted runner registration token for `patmoreau/holefeeder` |
+| `vault_github_runner_pat`               | github-runner                        | GitHub PAT (repo scope) used to fetch a self-hosted runner registration token for `patmoreau/holefeeder`; also reused for GHCR pulls (needs `read:packages`) |
+| `vault_holefeeder_postgres_password`    | holefeeder                           | PostgreSQL superuser password                                                                            |
+| `vault_holefeeder_postgres_app_password`         | holefeeder                           | Holefeeder app DB user password (also used by the API + PowerSync)                                       |
+| `vault_holefeeder_powersync_admin_token`| holefeeder                           | PowerSync service admin token                                                                            |
 | `vault_nut_admin_password`              | nut_server                           | NUT `upsmon` primary password — local monitor that shuts the Proxmox host down on low battery            |
 | `vault_nut_monitor_password`            | nut_server                           | NUT `homeassistant` read-only password — used by the Home Assistant NUT integration                      |
 

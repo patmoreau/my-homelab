@@ -1,4 +1,18 @@
-# lxc-holefeeder runs rootful Podman. The self-hosted runner drives the rootful podman
-# socket (podman group + SocketGroup override); the holefeeder CI deploy job runs
-# `podman compose` with CONTAINER_HOST=unix:///run/podman/podman.sock.
+# lxc-holefeeder runs rootful Podman. The holefeeder app deploys as Quadlet units
+# (roles/holefeeder): postgres owns the netns and publishes api(5001)/web(5000)/
+# powersync(8080); the others join it and reach the DB on 127.0.0.1. Images for api/web
+# come from ghcr on a rolling tag and update via `podman auto-update`.
 container_runtime: podman
+
+# Read from the existing database (must match the current /data/postgres).
+holefeeder_postgres_db: drifterapps         # POSTGRES_DB   (superuser db)
+holefeeder_postgres_user: drifterapps       # POSTGRES_USER (superuser)
+holefeeder_app_user: holefeeder_user        # POSTGRES_APP_USER
+holefeeder_app_db: holefeeder               # POSTGRES_APP_DB
+
+# Dedicated GHCR pull token (read:packages) for the private api/web images.
+holefeeder_ghcr_pat: "{{ vault_holefeeder_ghcr_pat }}"
+
+# TEMPORARY: pin to the published version until the CI publishes a rolling :latest tag.
+# Once it does, drop this override so the units track :latest with podman auto-update.
+holefeeder_image_tag: "2.0.1145"

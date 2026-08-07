@@ -70,6 +70,7 @@
   hosts: lxc-holefeeder
   roles:
     - github-runner
+    - holefeeder
     - proxmox-backup-client
 
 - name: Deploy Promtail

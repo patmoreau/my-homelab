@@ -1,0 +1,18 @@
+[Unit]
+Description=Holefeeder Web
+After=holefeeder-api.service
+BindsTo=holefeeder-postgres.service
+
+[Container]
+ContainerName=holefeeder_web
+Image={{ holefeeder_registry }}/holefeeder-web:{{ holefeeder_image_tag }}
+Label=io.containers.autoupdate=registry
+Network=container:holefeeder_postgres
+Volume=/data/dataprotection/web:/root/.aspnet/DataProtection-Keys
+EnvironmentFile=/opt/docker/holefeeder/web.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

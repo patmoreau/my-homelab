@@ -1,0 +1,128 @@
+- name: Create directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ docker_compose_dir }}/holefeeder"
+    - "{{ docker_compose_dir }}/holefeeder/powersync"
+    - /data/postgres
+    - /data/dataprotection/api
+    - /data/dataprotection/web
+
+- name: Log in to GHCR so auto-update can pull the private images
+  ansible.builtin.command:
+    cmd: >-
+      podman login ghcr.io -u {{ holefeeder_ghcr_username }}
+      --password-stdin --authfile /root/.config/containers/auth.json
+    stdin: "{{ holefeeder_ghcr_pat }}"
+  changed_when: false
+  no_log: true
+
+- name: Ship the postgres init + migrator scripts
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ docker_compose_dir }}/holefeeder/{{ item }}"
+    mode: "0755"
+  loop:
+    - init-user-db.sh
+    - migrator.sh
+
+- name: Ship the powersync config
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ docker_compose_dir }}/holefeeder/powersync/{{ item }}"
+    mode: "0644"
+  loop:
+    - powersync.yaml
+    - sync-rules.yaml
+
+- name: Create env files
+  ansible.builtin.template:
+    src: "{{ item }}.env.j2"
+    dest: "{{ docker_compose_dir }}/holefeeder/{{ item }}.env"
+    mode: "0600"
+  loop:
+    - postgres
+    - api
+    - web
+    - powersync
+    - db-migrator
+
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+# Bring everything down cleanly before (re)deploying. Stopping the services first frees the
+# shared network namespace (joiners can't hold the postgres netns owner) and stops Quadlet
+# from auto-restarting them; then remove any leftover containers (incl. the CI's old
+# Compose ones). Postgres data is on a host bind, so nothing is lost.
+- name: Stop holefeeder services if present
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  failed_when: false
+  loop:
+    - holefeeder-api.service
+    - holefeeder-web.service
+    - holefeeder-powersync.service
+    - holefeeder-postgres.service
+
+- name: Remove any leftover holefeeder containers (joiners before the netns owner)
+  ansible.builtin.command: podman rm -f -i {{ item }}
+  changed_when: false
+  failed_when: false
+  loop:
+    - holefeeder_api
+    - holefeeder_web
+    - holefeeder_powersync
+    - holefeeder_db-migrator
+    - holefeeder_postgres
+
+- name: Deploy holefeeder Quadlet units
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/containers/systemd/{{ item }}"
+    mode: "0644"
+  loop:
+    - holefeeder-postgres.container
+    - holefeeder-api.container
+    - holefeeder-web.container
+    - holefeeder-powersync.container
+  register: holefeeder_quadlet
+
+- name: Start postgres
+  ansible.builtin.systemd:
+    name: holefeeder-postgres.service
+    state: restarted
+    daemon_reload: true
+
+- name: Wait for postgres to be healthy
+  ansible.builtin.command: podman healthcheck run holefeeder_postgres
+  register: holefeeder_pg_health
+  until: holefeeder_pg_health.rc == 0
+  retries: 30
+  delay: 2
+  changed_when: false
+
+- name: Run the database migrator
+  ansible.builtin.command:
+    cmd: >-
+      podman run --rm --network container:holefeeder_postgres
+      --env-file {{ docker_compose_dir }}/holefeeder/db-migrator.env
+      -v {{ docker_compose_dir }}/holefeeder/migrator.sh:/migrator.sh:ro
+      postgres:18 bash /migrator.sh
+  register: holefeeder_migrator
+  changed_when: "'completed successfully' in holefeeder_migrator.stdout"
+
+- name: Start the application services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: restarted
+    daemon_reload: true
+  loop:
+    - holefeeder-api.service
+    - holefeeder-web.service
+    - holefeeder-powersync.service

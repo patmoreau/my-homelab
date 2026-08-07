@@ -5,6 +5,8 @@
 exclude_paths:
   # Homepage dashboard config files that happen to be YAML but are not Ansible.
   - roles/homepage/config/
+  # PowerSync config shipped to the holefeeder container (uses custom !env YAML tags).
+  - roles/holefeeder/files/
   # Decrypted vault (gitignored secrets — long unwrappable hash/token lines).
   - group_vars/all/vault.yaml
 

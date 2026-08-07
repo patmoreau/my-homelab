@@ -1,0 +1,18 @@
+# Holefeeder — deployed as Quadlet units (postgres owns the netns; api/web/powersync/
+# db-migrator join it and reach the DB on 127.0.0.1). Images for api/web come from ghcr on
+# a rolling tag and update via `podman auto-update`.
+holefeeder_registry: ghcr.io/patmoreau/holefeeder
+holefeeder_image_tag: latest
+holefeeder_domain: drifterapps.app
+holefeeder_env: Production
+
+# GHCR pull auth for the private api/web images (root logs in so `podman auto-update` can
+# pull). Override holefeeder_ghcr_pat if the runner PAT lacks read:packages.
+holefeeder_ghcr_username: patmoreau
+holefeeder_ghcr_pat: "{{ vault_github_runner_pat }}"
+
+# The following MUST match the existing database and are set in host_vars/lxc-holefeeder.yaml:
+#   holefeeder_postgres_db, holefeeder_postgres_user, holefeeder_app_user, holefeeder_app_db
+# Secrets live in the vault:
+#   vault_holefeeder_postgres_password, vault_holefeeder_postgres_app_password,
+#   vault_holefeeder_powersync_admin_token
