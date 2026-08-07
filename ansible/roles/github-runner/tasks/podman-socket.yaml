@@ -66,6 +66,18 @@
     mode: "0644"
   notify: Restart github runner
 
+# The deploy job runs several podman commands as root locally (auto-update — which can't
+# use the remote socket — plus image prune, etc.). Allow the runner to run podman as root
+# without a password. Root's own GHCR login (see the holefeeder role) provides pull creds.
+- name: Allow the runner to run podman as root
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/actions-runner-podman
+    content: "{{ github_runner_user }} ALL=(root) NOPASSWD: /usr/bin/podman\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: visudo -cf %s
+
 - name: Ensure containers.conf.d exists
   ansible.builtin.file:
     path: /etc/containers/containers.conf.d
