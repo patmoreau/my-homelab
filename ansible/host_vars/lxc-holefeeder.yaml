@@ -12,7 +12,3 @@ holefeeder_app_db: holefeeder               # POSTGRES_APP_DB
 
 # Dedicated GHCR pull token (read:packages) for the private api/web images.
 holefeeder_ghcr_pat: "{{ vault_holefeeder_ghcr_pat }}"
-
-# TEMPORARY: pin to the published version until the CI publishes a rolling :latest tag.
-# Once it does, drop this override so the units track :latest with podman auto-update.
-holefeeder_image_tag: "2.0.1145"
