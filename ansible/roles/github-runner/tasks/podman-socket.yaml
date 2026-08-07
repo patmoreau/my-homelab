@@ -1,74 +1,7 @@
-# Rootful Podman exposes a Docker-compatible API socket at /run/podman/podman.sock. Let the
-# non-root runner user reach it so the CI's `podman compose` (with CONTAINER_HOST pointing
-# at this socket) drives the rootful instance rather than the runner's own rootless one.
-- name: Create the podman access group
-  ansible.builtin.group:
-    name: podman
-    system: true
-
-- name: Add the runner user to the podman group
-  ansible.builtin.user:
-    name: "{{ github_runner_user }}"
-    groups: podman
-    append: true
-  notify: Restart github runner
-
-- name: Ensure the podman.socket override directory exists
-  ansible.builtin.file:
-    path: /etc/systemd/system/podman.socket.d
-    state: directory
-    mode: "0755"
-
-- name: Grant the podman group access to the API socket
-  ansible.builtin.copy:
-    dest: /etc/systemd/system/podman.socket.d/override.conf
-    content: |
-      [Socket]
-      SocketMode=0660
-      SocketGroup=podman
-    owner: root
-    group: root
-    mode: "0644"
-  notify: Restart podman socket
-
-# `podman compose` is only a wrapper; it needs an external provider. Install real Docker
-# Compose v2 (full compose-spec compatibility) and point Podman at it.
-- name: Ensure the provider directory exists
-  ansible.builtin.file:
-    path: /usr/local/lib/podman
-    state: directory
-    mode: "0755"
-
-- name: Install Docker Compose v2 as the podman compose provider
-  ansible.builtin.get_url:
-    url: "https://github.com/docker/compose/releases/download/{{ github_runner_compose_version }}/docker-compose-linux-x86_64"
-    dest: /usr/local/lib/podman/docker-compose
-    mode: "0755"
-
-- name: Ensure the runner docker-config directory exists
-  ansible.builtin.file:
-    path: "{{ github_runner_dir }}/.docker"
-    state: directory
-    owner: "{{ github_runner_user }}"
-    group: "{{ github_runner_user }}"
-    mode: "0700"
-
-- name: Point the runner's jobs at the rootful podman socket and a shared auth file
-  ansible.builtin.copy:
-    dest: "{{ github_runner_dir }}/.env"
-    content: |
-      CONTAINER_HOST=unix:///run/podman/podman.sock
-      DOCKER_HOST=unix:///run/podman/podman.sock
-      DOCKER_CONFIG={{ github_runner_dir }}/.docker
-      REGISTRY_AUTH_FILE={{ github_runner_dir }}/.docker/config.json
-    owner: "{{ github_runner_user }}"
-    group: "{{ github_runner_user }}"
-    mode: "0644"
-  notify: Restart github runner
-
-# The deploy job runs several podman commands as root locally (auto-update — which can't
-# use the remote socket — plus image prune, etc.). Allow the runner to run podman as root
-# without a password. Root's own GHCR login (see the holefeeder role) provides pull creds.
+# Podman deploy path for the runner. The holefeeder CI deploys via `sudo podman
+# auto-update` (which can't use the remote socket), so the runner only needs sudo to run
+# podman as root. Everything the earlier `podman compose` approach needed — a socket group,
+# a compose provider, the runner .env, a docker-config — is obsolete and removed below.
 - name: Allow the runner to run podman as root
   ansible.builtin.copy:
     dest: /etc/sudoers.d/actions-runner-podman
@@ -78,19 +11,20 @@
     mode: "0440"
     validate: visudo -cf %s
 
-- name: Ensure containers.conf.d exists
+- name: Remove obsolete podman-compose deploy artifacts
   ansible.builtin.file:
-    path: /etc/containers/containers.conf.d
-    state: directory
-    mode: "0755"
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ github_runner_dir }}/.env"
+    - /usr/local/lib/podman/docker-compose
+    - /etc/containers/containers.conf.d/50-compose.conf
+    - /etc/systemd/system/podman.socket.d/override.conf
+  register: runner_compose_cleanup
 
-- name: Point podman compose at the provider
-  ansible.builtin.copy:
-    dest: /etc/containers/containers.conf.d/50-compose.conf
-    content: |
-      [engine]
-      compose_providers=["/usr/local/lib/podman/docker-compose"]
-      compose_warning_logs=false
-    owner: root
-    group: root
-    mode: "0644"
+- name: Restore podman.socket to its default group after removing the override
+  ansible.builtin.systemd:
+    name: podman.socket
+    state: restarted
+    daemon_reload: true
+  when: runner_compose_cleanup is changed
