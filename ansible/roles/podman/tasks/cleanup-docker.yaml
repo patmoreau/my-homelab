@@ -60,3 +60,12 @@
   ansible.builtin.iptables:
     chain: FORWARD
     policy: ACCEPT
+
+# Also unconditional: purging the Docker packages leaves /var/lib/docker behind (old
+# images, container json-file logs, and named volumes such as the pre-migration Prometheus
+# TSDB). On a migrated host that is dead data — data lives on host bind mounts now — and it
+# can be several GB, so drop it to reclaim the space.
+- name: Remove the stale Docker data directory
+  ansible.builtin.file:
+    path: /var/lib/docker
+    state: absent
