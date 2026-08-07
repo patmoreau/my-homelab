@@ -11,10 +11,11 @@ PublishPort=9338:8080
 # Reads container metrics from cgroups (works for Podman). The Docker-specific
 # /var/lib/docker mount is dropped (limited image-name labels), and /var/run is NOT
 # bind-mounted read-only because Podman needs to write /run/.containerenv. The Podman
-# API socket is mounted for container metadata instead.
+# API socket is mounted for container metadata instead. /dev/disk is NOT mounted: an
+# unprivileged LXC doesn't populate it after a cold boot, and a missing bind source makes
+# podman exit 125 — cadvisor only loses per-device disk-I/O stats without it.
 Volume=/:/rootfs:ro
 Volume=/sys:/sys:ro
-Volume=/dev/disk/:/dev/disk:ro
 Volume=/run/podman/podman.sock:/var/run/docker.sock:ro
 
 [Service]
