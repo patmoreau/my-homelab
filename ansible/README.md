@@ -64,10 +64,10 @@ LXC namespace (pulls fail with `EACCES`; containers can't `listen()`).
   `immich`, `essere`, `holefeeder`.
 - **GPU** (`immich`): `AddDevice=/dev/dri/renderD128` + `PodmanArgs=--group-add <gid>` (Quadlet
   `GroupAdd=` is unsupported on 4.9).
-- **Custom images.** `essere` ships its image via `{{ container_runtime }} save`/`load`;
-  `service-watcher` builds on-host (`podman build --network=host`); `holefeeder` pulls from
-  GHCR on a rolling `:latest` tag with `io.containers.autoupdate=registry` and updates via
-  `sudo podman auto-update` from the self-hosted runner.
+- **Custom images.** `service-watcher` builds on-host (`podman build --network=host`);
+  `essere` and `holefeeder` pull from GHCR on a rolling `:latest` tag with
+  `io.containers.autoupdate=registry` and update via `sudo podman auto-update` from their
+  own self-hosted runner.
 
 Run the `/ansible` slash command (see `.claude/commands/ansible.md`) for the full convention.
 
@@ -128,7 +128,7 @@ These must be populated to deploy all services:
 | `vault_pbs_client_password`             | proxmox-backup-client                | Password for `backup-client@pbs` — set once in vault, reused by all LXC containers                        |
 | `vault_proxmox_token_id`                | traefik (certs-dumper), pve_exporter | Proxmox API Token ID (`user@realm!tokenname`)                                                             |
 | `vault_proxmox_token_secret`            | traefik (certs-dumper), pve_exporter | Proxmox API Token Secret                                                                                  |
-| `vault_github_runner_pat`               | github-runner                        | GitHub PAT (repo scope) used to fetch a self-hosted runner registration token for `patmoreau/holefeeder`; also reused for GHCR pulls (needs `read:packages`) |
+| `vault_github_runner_pat`               | github-runner, essere                | GitHub PAT (repo scope) used to fetch self-hosted runner registration tokens for `patmoreau/holefeeder` and `patmoreau/essere`; also the default for GHCR pulls (needs `read:packages`) |
 | `vault_holefeeder_postgres_password`    | holefeeder                           | PostgreSQL superuser password                                                                            |
 | `vault_holefeeder_postgres_app_password`         | holefeeder                           | Holefeeder app DB user password (also used by the API + PowerSync)                                       |
 | `vault_holefeeder_powersync_admin_token`| holefeeder                           | PowerSync service admin token                                                                            |
@@ -233,12 +233,13 @@ link to resolve through Traefik.
 Holefeeder is a production app whose container images are built and published by its own
 repo's CI (`ghcr.io/patmoreau/holefeeder`). Responsibilities are split:
 
-- **Ansible provisions the box** — base `docker`/monitoring roles, the `github-runner`
+- **Ansible provisions the box** — the `podman`/monitoring roles, the `github-runner`
   role (a self-hosted GitHub Actions runner registered to `patmoreau/holefeeder`, labels
-  `self-hosted,holefeeder,lxc`), and `proxmox-backup-client`.
-- **GitHub Actions deploys the app** — the holefeeder repo's `deploy` job runs on the
-  self-hosted runner and does `docker compose pull && up -d` on the LXC. There is no
-  holefeeder Ansible role.
+  `self-hosted,holefeeder,lxc` — both set in `host_vars/lxc-holefeeder.yaml`), the
+  `holefeeder` role (Quadlet units, env files, DB migrator), and `proxmox-backup-client`.
+- **GitHub Actions rolls the images** — the holefeeder repo's `deploy` job runs on the
+  self-hosted runner and does `sudo podman auto-update`, which pulls the new `:latest`
+  digests and restarts only the units that changed.
 - **Ingress** — public traffic enters through the existing `cloudflared` tunnel on
   `lxc-gateway` → central Traefik (`conf.d/holefeeder.yaml`) → published ports on the LXC
   (`web` 5000, `api` 5001, `powersync` 8080). The tunnel's public hostnames
@@ -251,6 +252,25 @@ repo's CI (`ghcr.io/patmoreau/holefeeder`). Responsibilities are split:
   No Seq.
 
 The `github-runner` role needs `vault_github_runner_pat` (see vault table).
+
+## Essere (lxc-essere)
+
+Essere (`essere.ca`) follows the same split as holefeeder. Its image is built and published
+by the essere repo's CI to `ghcr.io/patmoreau/essere/essere-app` on every push to `main`.
+
+- **Ansible provisions the box** — the `podman`/monitoring roles, the `github-runner` role
+  (runner registered to `patmoreau/essere`, labels `self-hosted,essere,lxc`, set in
+  `host_vars/lxc-essere.yaml`), the `essere` role (Quadlet units for postgres, Directus and
+  the app, plus the GHCR login for root so `podman auto-update` can pull the private image),
+  and `proxmox-backup-client`.
+- **GitHub Actions rolls the image** — the essere repo's `deploy` job runs on the
+  self-hosted runner and does `sudo podman auto-update`; `essere-app.container` carries
+  `Label=io.containers.autoupdate=registry`, so the unit restarts only when the `:latest`
+  digest changed. Ansible no longer ships the image via `podman save`/`load`, and only
+  restarts the services when a unit file or `essere.env` changed.
+- **Registry auth** — `essere_ghcr_pat` defaults to `vault_github_runner_pat`, which must
+  carry `read:packages`. To split them, add `vault_essere_ghcr_pat` to the vault and
+  uncomment the override in `host_vars/lxc-essere.yaml`.
 
 ## Deploy playbook
 

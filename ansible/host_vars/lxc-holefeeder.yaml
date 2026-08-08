@@ -4,6 +4,10 @@
 # come from ghcr on a rolling tag and update via `podman auto-update`.
 container_runtime: podman
 
+# Self-hosted GitHub Actions runner for patmoreau/holefeeder.
+github_runner_repo: holefeeder
+github_runner_labels: "self-hosted,holefeeder,lxc"
+
 # Read from the existing database (must match the current /data/postgres).
 holefeeder_postgres_db: drifterapps         # POSTGRES_DB   (superuser db)
 holefeeder_postgres_user: drifterapps       # POSTGRES_USER (superuser)

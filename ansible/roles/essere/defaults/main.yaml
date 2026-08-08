@@ -1,0 +1,10 @@
+# Essere — deployed as Quadlet units (postgres owns the netns; directus and the app join it
+# and reach the DB on 127.0.0.1). The app image comes from ghcr on a rolling tag and updates
+# via `podman auto-update`, triggered by the essere CI deploy job on the self-hosted runner.
+essere_registry: ghcr.io/patmoreau/essere
+essere_image_tag: latest
+
+# GHCR pull auth for the private app image (root logs in so `podman auto-update` can pull).
+# Override essere_ghcr_pat if the runner PAT lacks read:packages.
+essere_ghcr_username: patmoreau
+essere_ghcr_pat: '{{ vault_github_runner_pat }}'
