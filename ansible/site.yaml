@@ -36,6 +36,7 @@
 - name: Deploy Essere
   hosts: lxc-essere
   roles:
+    - github-runner
     - essere
     - proxmox-backup-client
 

@@ -1,7 +1,17 @@
-# lxc-essere runs rootful Podman. The essere-app image is built with podman and shipped
-# via podman save/load; postgres + directus + essere-app share one netns (postgres owns it,
-# publishes 8055 + 3000). Directus reaches the DB over 127.0.0.1.
+# lxc-essere runs rootful Podman. postgres + directus + essere-app share one netns
+# (postgres owns it, publishes 8055 + 3000); Directus reaches the DB over 127.0.0.1.
+# The essere-app image comes from ghcr on a rolling tag and updates via `podman
+# auto-update`, run by the essere CI deploy job on the self-hosted runner below.
 container_runtime: podman
+
+# Self-hosted GitHub Actions runner for patmoreau/essere.
+github_runner_repo: essere
+github_runner_labels: "self-hosted,essere,lxc"
+
+# GHCR pull auth falls back to vault_github_runner_pat (role default), which must carry
+# read:packages. To use a dedicated token instead, add vault_essere_ghcr_pat to the vault
+# and uncomment:
+# essere_ghcr_pat: "{{ vault_essere_ghcr_pat }}"
 
 admin_email: patrick@drifterapps.com
 admin_password: '{{ vault_essere_admin_password }}'
@@ -10,7 +20,4 @@ mail_api_key: '{{ vault_mail_api_key }}'
 postgres_db: directus
 postgres_user: '{{ vault_essere_postgres_user }}'
 postgres_password: '{{ vault_essere_postgres_password }}'
-image_name: 'essere-app'
-image_tag: 'latest'
-tmp_archive: '/tmp/{{ image_name }}.tar'
 cloudflare_turnstile_secret_key: '{{ vault_cloudflare_turnstile_secret_key }}'

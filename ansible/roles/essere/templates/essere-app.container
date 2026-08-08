@@ -5,11 +5,10 @@ BindsTo=essere-db.service
 
 [Container]
 ContainerName=essere_app
-Image=essere-app:latest
+Image={{ essere_registry }}/essere-app:{{ essere_image_tag }}
+# Rolling tag pulled from ghcr; `podman auto-update` rolls it when the digest changes.
+Label=io.containers.autoupdate=registry
 Network=container:essere_postgres
-# Locally loaded image (shipped via save/load), so never try to pull it. (--add-host is
-# not allowed with --network=container:, and the app reaches directus via its public URL.)
-PodmanArgs=--pull=never
 
 [Service]
 Restart=always

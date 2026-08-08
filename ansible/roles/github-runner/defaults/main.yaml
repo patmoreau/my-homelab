@@ -1,9 +1,11 @@
 # GitHub Actions self-hosted runner
 github_runner_version: "2.328.0"
 github_runner_owner: "patmoreau"
-github_runner_repo: "holefeeder"
 github_runner_name: "{{ inventory_hostname }}"
-github_runner_labels: "self-hosted,holefeeder,lxc"
+# Repo and labels are per-host — set them in host_vars/<host>.yaml. The labels must match
+# the `runs-on:` of the repo's deploy job.
+github_runner_repo: "{{ inventory_hostname | regex_replace('^lxc-', '') }}"
+github_runner_labels: "self-hosted,{{ github_runner_repo }},lxc"
 github_runner_user: "actions-runner"
 github_runner_dir: "/opt/actions-runner"
 # vault_github_runner_pat — PAT (repo scope) used to fetch a registration token. Set in vault.

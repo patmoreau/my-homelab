@@ -25,7 +25,9 @@
 - name: Start essere services in order
   ansible.builtin.systemd:
     name: "{{ item }}"
-    state: "{{ 'restarted' if (essere_quadlet.changed or essere_env.changed or (essere_docker_load_result.changed | default(false))) else 'started' }}"
+    # Image rolls are handled by `podman auto-update` (CI deploy job); ansible only
+    # restarts when a unit file or the env file changed.
+    state: "{{ 'restarted' if (essere_quadlet.changed or essere_env.changed) else 'started' }}"
     daemon_reload: true
   loop:
     - essere-db.service
