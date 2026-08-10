@@ -202,6 +202,13 @@ The `traefik` role runs on `lxc-gateway` and terminates TLS for all `*.moreaulab
 services (plus the `*.drifterapps.app` Holefeeder hosts) using the `cloudflare` DNS-01
 cert resolver. Per-service routers live in `roles/traefik/templates/conf.d/`.
 
+`traefik_conf_files` (in `roles/traefik/defaults/main.yaml`) is the authoritative list of
+what belongs in the gateway's `conf.d/`. The role renders every file in that list and
+**deletes any other `*.yaml` it finds there**, so on-disk config always matches the repo.
+Retiring a service therefore means two edits: delete its template and drop its entry from
+`traefik_conf_files`. Without the delete step, a decommissioned service leaves a stale
+router behind that answers `502` forever.
+
 ### Entrypoints
 
 | Entrypoint  | Port    | Purpose                                                      |

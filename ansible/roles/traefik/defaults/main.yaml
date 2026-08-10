@@ -1,0 +1,24 @@
+# Dynamic-configuration files rendered into Traefik's conf.d directory.
+# This list is authoritative: any *.yaml in conf.d that is not named here is
+# removed on the next run, so retiring a service means deleting its template
+# and its entry below.
+traefik_conf_files:
+  - global.yaml
+  - bookorbit.yaml
+  - essere.yaml
+  - filebrowser.yaml
+  - grafana.yaml
+  - holefeeder.yaml
+  - homeassistant.yaml
+  - homepage.yaml
+  - immich.yaml
+  - jellyfin.yaml
+  - nas.yaml
+  - pbs.yaml
+  - pve.yaml
+  - prometheus.yaml
+  - service-watcher.yaml
+  - router.yaml
+  - traefik.yaml
+  - transmission.yaml
+  - vaultwarden.yaml

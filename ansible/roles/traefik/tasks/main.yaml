@@ -27,26 +27,22 @@
     src: 'conf.d/{{ item }}.j2'
     dest: '{{ docker_compose_dir }}/traefik/conf.d/{{ item }}'
     mode: '0644'
-  loop:
-    - global.yaml
-    - bookorbit.yaml
-    - essere.yaml
-    - filebrowser.yaml
-    - grafana.yaml
-    - holefeeder.yaml
-    - homeassistant.yaml
-    - homepage.yaml
-    - immich.yaml
-    - jellyfin.yaml
-    - nas.yaml
-    - pbs.yaml
-    - pve.yaml
-    - prometheus.yaml
-    - service-watcher.yaml
-    - router.yaml
-    - traefik.yaml
-    - transmission.yaml
-    - vaultwarden.yaml
+  loop: '{{ traefik_conf_files }}'
+
+- name: Find conf.d files present on the host
+  ansible.builtin.find:
+    paths: '{{ docker_compose_dir }}/traefik/conf.d'
+    patterns: '*.yaml'
+  register: traefik_conf_present
+
+- name: Remove conf.d files for retired services
+  ansible.builtin.file:
+    path: '{{ item.path }}'
+    state: absent
+  loop: '{{ traefik_conf_present.files }}'
+  loop_control:
+    label: '{{ item.path | basename }}'
+  when: item.path | basename not in traefik_conf_files
 
 - name: Generate certs-dumper SSH deploy key (if absent)
   community.crypto.openssh_keypair:
