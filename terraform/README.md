@@ -126,6 +126,34 @@ terraform init
 terraform apply
 ```
 
+### Persistent data volumes
+
+`storage_volumes` in [`persistent-storage/variables.tf`](persistent-storage/variables.tf)
+defines one ext4 LVM volume per LXC, mounted on the Proxmox host at
+`/mnt/containers/lxc-<name>` and bind-mounted into the container as `/data`. The
+mounts are created with `backup=0`, so **`/data` is excluded from PBS backups** —
+put only reproducible data there.
+
+| Volume            | Size | Holds                                     |
+| ----------------- | ---- | ----------------------------------------- |
+| media-data        | 10G  | Media service state                       |
+| essere-data       | 10G  | Essere app data                           |
+| monitoring-data   | 8G   | Prometheus TSDB, Loki chunks, Grafana DB  |
+| vault-data        | 2G   | Vaultwarden data                          |
+| immich-data       | 25G  | Immich database and cache                 |
+| homeassistant-data| 10G  | Home Assistant config                     |
+| holefeeder-data   | 20G  | Holefeeder database                       |
+
+Raising a `size` and re-applying grows the volume in place (`lvextend` +
+online `resize2fs`). Lowering it is ignored — shrinking ext4 needs an unmount and
+must be done by hand.
+
+> Any service with its own retention budget must keep that budget **below** its
+> volume size. `monitoring-data` is 8G against Prometheus'
+> `--storage.tsdb.retention.size=5GB`; when the budget exceeded the volume,
+> Prometheus never pruned, the disk filled, and Grafana's SQLite DB on the same
+> volume failed with `database or disk is full (13)`.
+
 ## State backups
 
 State is stored locally (default backend) for both root modules and is **not**

@@ -8,7 +8,12 @@ IP=10.88.0.241
 PublishPort=9090:9090
 Volume=/opt/docker/prometheus/config:/etc/prometheus-config:ro
 Volume=/data/prometheus:/prometheus
-Exec=--config.file=/etc/prometheus-config/prometheus.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=15d --storage.tsdb.retention.size=6GB --web.console.libraries=/etc/prometheus/console_libraries --web.console.templates=/etc/prometheus/consoles --web.enable-lifecycle
+# retention.size must stay below the /data volume size (8G, see
+# terraform/persistent-storage/variables.tf) minus what Loki and Grafana use
+# there. If it exceeds the volume, Prometheus never prunes, the disk fills, head
+# compaction fails, the WAL stops truncating, and Grafana's SQLite DB on the same
+# volume starts returning "database or disk is full (13)".
+Exec=--config.file=/etc/prometheus-config/prometheus.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=15d --storage.tsdb.retention.size=5GB --web.console.libraries=/etc/prometheus/console_libraries --web.console.templates=/etc/prometheus/consoles --web.enable-lifecycle
 
 [Service]
 Restart=always

@@ -51,6 +51,20 @@ resource "null_resource" "persistent_volumes" {
       # Containers mount it as a host bind mount so that pct destroy --purge
       # never sees it as a storage volume reference and never calls vdisk_free.
       DISK_PATH=$(sudo $PVESM path $STORAGE:$DISK_NAME)
+
+      # Apply size increases to volumes that already exist, so bumping `size` in
+      # storage_volumes is enough to grow them. ext4 grows online, so the mount
+      # can stay up. Shrinking is never attempted: it would need an unmount and
+      # risks data loss, so a smaller `size` is ignored here and must be done by
+      # hand.
+      CURRENT_BYTES=$(sudo /usr/sbin/lvs --noheadings --units b --nosuffix -o lv_size $DISK_PATH | tr -d ' ')
+      TARGET_BYTES=$(numfmt --from=iec $SIZE)
+      if [ "$TARGET_BYTES" -gt "$CURRENT_BYTES" ]; then
+          echo "Growing $DISK_NAME to $SIZE..."
+          sudo /usr/sbin/lvextend -L $SIZE $DISK_PATH
+          sudo /usr/sbin/resize2fs $DISK_PATH
+      fi
+
       sudo mkdir -p $HOST_PATH
       if ! grep -qF "$DISK_PATH $HOST_PATH" /etc/fstab; then
           echo "$DISK_PATH $HOST_PATH ext4 defaults,nofail,x-systemd.requires=pve-lxc-data-volumes.service 0 2" | sudo tee -a /etc/fstab

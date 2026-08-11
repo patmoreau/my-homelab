@@ -150,15 +150,24 @@ These must be populated to deploy all services:
 
 ### Data retention
 
-To keep the `lxc-monitoring` boot disk from filling up, retention is capped in three places:
+Prometheus, Loki and Grafana all write to the same `/data` volume on
+`lxc-monitoring` (the `monitoring-data` LVM volume, **8G** — see
+`terraform/persistent-storage/variables.tf`). Retention is capped in three places
+so it cannot fill:
 
 | What | Where | Policy |
 |------|-------|--------|
-| Prometheus TSDB | `roles/prometheus` compose flags | 15 days **or** 6 GB, whichever comes first |
+| Prometheus TSDB | `roles/prometheus` Quadlet `Exec=` flags | 15 days **or** 5 GB, whichever comes first |
 | Loki log data | `roles/loki/config/loki-config.yaml` (`compactor` + `limits_config`) | 30 days (720 h), compactor deletes expired chunks |
 | Container stdout logs | Podman → systemd journal | Quadlet containers log to `journald`; capped by the host journald limits |
 | Unused Podman images & build cache | `roles/podman` `podman-prune.timer` | Weekly `podman system prune -af` (Sun 03:30, every LXC — all hosts run Podman) |
 | Unused Docker images & build cache (dormant) | `roles/docker` `docker-prune.timer` | Weekly `docker image prune -a` + `docker builder prune` — only if a host is ever reverted to the Docker path |
+
+> The Prometheus size cap must stay **below** the `/data` volume size. When it
+> exceeded it (6 GB cap on a 2 G volume), Prometheus never pruned, `/data` filled,
+> head compaction failed so the WAL never truncated, and Grafana's SQLite DB on
+> the same volume failed every write with `database or disk is full (13)`. Grow
+> the volume and the cap together.
 
 The `blackbox_exporter` role probes the following HTTP endpoints every 15 s and reports `probe_success` (0/1) and `probe_duration_seconds` to Prometheus:
 
