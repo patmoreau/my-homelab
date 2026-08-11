@@ -39,11 +39,37 @@
         fire_event: true
   register: homeassistant_system_log_config
 
+# The UI writes to automations.yaml, so Ansible-managed automations live in
+# their own directory under a second `automation` key. Editing automations.yaml
+# here would fight the UI editor.
+- name: Configure Ansible-managed automations directory
+  ansible.builtin.blockinfile:
+    path: /data/config/configuration.yaml
+    marker: '# {mark} ANSIBLE MANAGED BLOCK - AUTOMATIONS'
+    block: |
+      automation ansible: !include_dir_merge_list automations_ansible/
+  register: homeassistant_automations_config
+
+- name: Create Ansible-managed automations directory
+  ansible.builtin.file:
+    path: /data/config/automations_ansible
+    state: directory
+    mode: '0755'
+
+- name: Deploy Grafana alert automation
+  ansible.builtin.template:
+    src: grafana-alerts.yaml.j2
+    dest: /data/config/automations_ansible/grafana-alerts.yaml
+    mode: '0644'
+  register: homeassistant_grafana_alerts
+
 - name: Set whether Home Assistant needs a restart
   ansible.builtin.set_fact:
     homeassistant_restart: >-
       {{ homeassistant_config.changed or homeassistant_hacs_install.changed
-         or homeassistant_system_log_config.changed }}
+         or homeassistant_system_log_config.changed
+         or homeassistant_automations_config.changed
+         or homeassistant_grafana_alerts.changed }}
 
 - name: Restart Home Assistant to apply config
   ansible.builtin.systemd:

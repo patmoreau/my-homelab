@@ -103,6 +103,7 @@ These must be populated to deploy all services:
 | `vault_filebrowser_password`            | filebrowser                          |                                                                                                           |
 | `vault_grafana_admin_user`              | grafana                              |                                                                                                           |
 | `vault_grafana_admin_password`          | grafana                              |                                                                                                           |
+| `vault_grafana_alert_webhook_id`        | grafana, homeassistant               | Shared webhook id: Grafana's contact point posts to it, the HA automation listens on it                     |
 | `vault_jellyfin_api_key`                | homepage                             | Jellyfin API key for widget                                                                               |
 | `vault_proxmox_username`                | homepage                             | Proxmox API token (`user@pam!token`)                                                                      |
 | `vault_proxmox_password`                | homepage                             | Proxmox API token secret                                                                                  |
@@ -162,6 +163,35 @@ so it cannot fill:
 | Container stdout logs | Podman → systemd journal | Quadlet containers log to `journald`; capped by the host journald limits |
 | Unused Podman images & build cache | `roles/podman` `podman-prune.timer` | Weekly `podman system prune -af` (Sun 03:30, every LXC — all hosts run Podman) |
 | Unused Docker images & build cache (dormant) | `roles/docker` `docker-prune.timer` | Weekly `docker image prune -a` + `docker builder prune` — only if a host is ever reverted to the Docker path |
+
+### Alerting
+
+Grafana unified alerting is provisioned from files by the `grafana` role into
+`/etc/grafana/provisioning/alerting/` (Grafana reads these at startup only, so
+the role restarts it on change). There is no Alertmanager.
+
+| File | Contents |
+|------|----------|
+| `alerting-rules.yml.j2` | `/data volume above 80%` — fires when any LXC's `/data` is over 80% full for 15 min. One rule covers every host; `node_exporter` labels the series by instance. |
+| `alerting-contact-points.yml.j2` | Single webhook contact point pointing at Home Assistant |
+| `alerting-policies.yml.j2` | Default route — provisioning a policy tree replaces Grafana's built-in one, so all alerts go to that contact point |
+
+Delivery goes **Grafana webhook → Home Assistant → phone push**. The
+`homeassistant` role provisions the receiving end as
+`/data/config/automations_ansible/grafana-alerts.yaml`, loaded through a second
+`automation ansible: !include_dir_merge_list` key so it never collides with the
+UI-managed `automations.yaml`. It notifies
+`homeassistant_notify_service` (`group_vars/all/main.yaml`) once per alert in the
+batch, for both firing and resolved.
+
+To test the chain without waiting for a real alert, POST a Grafana-shaped body to
+the webhook:
+
+```bash
+curl -X POST "http://192.168.8.47:8123/api/webhook/<vault_grafana_alert_webhook_id>" \
+  -H 'Content-Type: application/json' \
+  -d '{"alerts":[{"status":"firing","labels":{"alertname":"test","instance":"lxc-monitoring"},"annotations":{"description":"chain test"}}]}'
+```
 
 > The Prometheus size cap must stay **below** the `/data` volume size. When it
 > exceeded it (6 GB cap on a 2 G volume), Prometheus never pruned, `/data` filled,

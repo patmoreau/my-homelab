@@ -21,6 +21,7 @@
     - datasources
     - dashboards
     - dashboard_files
+    - alerting
 
 - name: Copy datasources.yml
   ansible.builtin.template:
@@ -33,6 +34,17 @@
     src: dashboards.yml.j2
     dest: "{{ docker_compose_dir }}/grafana/config/dashboards/dashboards.yml"
     mode: "0644"
+
+- name: Copy alerting provisioning files
+  ansible.builtin.template:
+    src: "alerting-{{ item }}.yml.j2"
+    dest: "{{ docker_compose_dir }}/grafana/config/alerting/{{ item }}.yml"
+    mode: "0644"
+  loop:
+    - contact-points
+    - policies
+    - rules
+  notify: Restart grafana
 
 - name: Copy dashboard files
   ansible.builtin.copy:

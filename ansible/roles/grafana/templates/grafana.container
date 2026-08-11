@@ -9,6 +9,7 @@ PublishPort=3000:3000
 Volume=/data/grafana:/var/lib/grafana
 Volume=/opt/docker/grafana/config/datasources:/etc/grafana/provisioning/datasources
 Volume=/opt/docker/grafana/config/dashboards:/etc/grafana/provisioning/dashboards
+Volume=/opt/docker/grafana/config/alerting:/etc/grafana/provisioning/alerting
 Volume=/opt/docker/grafana/config/dashboard_files:/var/lib/grafana/dashboards
 EnvironmentFile=/opt/docker/grafana/grafana.env
 

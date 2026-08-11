@@ -1,0 +1,29 @@
+- id: grafana_alert_webhook
+  alias: Grafana alerts to phone
+  description: >-
+    Receives the Grafana webhook contact point and pushes one notification per
+    alert. Grafana posts both firing and resolved batches, so the title carries
+    the status.
+  mode: queued
+  max: 25
+  triggers:
+    - trigger: webhook
+      webhook_id: {{ grafana_alert_webhook_id }}
+      allowed_methods:
+        - POST
+      local_only: true
+  actions:
+    - repeat:
+        for_each: {% raw %}"{{ trigger.json.alerts | default([]) }}"{% endraw %}
+
+        sequence:
+          - action: {{ homeassistant_notify_service }}
+            data:
+              title: {% raw %}"Grafana {{ repeat.item.status | upper }}: {{ repeat.item.labels.alertname }}"{% endraw %}
+
+              message: {% raw %}"{{ repeat.item.annotations.description | default(repeat.item.annotations.summary, true) | default(repeat.item.labels.instance, true) }}"{% endraw %}
+
+              data:
+                tag: {% raw %}"grafana-{{ repeat.item.labels.alertname }}-{{ repeat.item.labels.instance | default('') }}"{% endraw %}
+
+                url: {% raw %}"{{ repeat.item.generatorURL | default('') }}"{% endraw %}

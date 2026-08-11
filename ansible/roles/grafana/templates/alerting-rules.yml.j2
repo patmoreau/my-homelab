@@ -1,0 +1,47 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: Disk
+    folder: Homelab Alerts
+    interval: 1m
+    rules:
+      # Every LXC with a persistent volume mounts it at /data. Those volumes are
+      # small and sized per service, so they fill long before the boot disk does
+      # — and a full one breaks services quietly (a full monitoring-data made
+      # Grafana's SQLite DB fail every write with "database or disk is full").
+      - uid: data-volume-usage-high
+        title: /data volume above 80%
+        condition: C
+        for: 15m
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: {% raw %}'/data on {{ $labels.instance }} is over 80% full'{% endraw %}
+
+          description: {% raw %}'{{ $labels.instance }} /data is at {{ printf "%.1f" $values.A.Value }}%. Grow the volume in terraform/persistent-storage/variables.tf or lower the service retention budget so it stays under the volume size.'{% endraw %}
+
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              refId: A
+              instant: true
+              editorMode: code
+              expr: '100 - (node_filesystem_avail_bytes{mountpoint="/data", fstype="ext4"} / node_filesystem_size_bytes{mountpoint="/data", fstype="ext4"} * 100)'
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 80

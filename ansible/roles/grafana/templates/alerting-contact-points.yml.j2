@@ -1,0 +1,12 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: Home Assistant
+    receivers:
+      - uid: home-assistant-webhook
+        type: webhook
+        settings:
+          url: 'http://{{ hostvars['lxc-homeassistant']['ansible_host'] }}:8123/api/webhook/{{ grafana_alert_webhook_id }}'
+          httpMethod: POST
+        disableResolveMessage: false

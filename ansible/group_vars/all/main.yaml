@@ -15,6 +15,12 @@ pbs_domain: 'pbs.moreaulab.ca'
 proxmox_domain: 'pve.moreaulab.ca'
 proxmox_node: 'homelab'
 
+# Grafana alerts are delivered to Home Assistant through a webhook, which then
+# pushes a notification to the phone. Both the Grafana contact point and the
+# Home Assistant automation need the same webhook id.
+grafana_alert_webhook_id: '{{ vault_grafana_alert_webhook_id }}'
+homeassistant_notify_service: 'notify.mobile_app_patrick_moreaus_iphone'
+
 pbs_prune_schedule: 'daily'
 pbs_gc_schedule: 'daily'
 pbs_prune_keep_last: 7
