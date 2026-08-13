@@ -3,7 +3,7 @@ Description=Prometheus PVE exporter
 
 [Container]
 ContainerName=pve_exporter
-Image=prompve/prometheus-pve-exporter:3.9.0
+Image=prompve/prometheus-pve-exporter:3.10.0
 IP=10.88.0.244
 PublishPort=9221:9221
 Volume=/opt/docker/pve_exporter/pve.yml:/etc/prometheus/pve.yml:ro
