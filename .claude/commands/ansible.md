@@ -95,7 +95,7 @@ services:
       - /opt/docker/<name>/config:/config
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.<name>.rule=Host(`<name>.homelab.lan`)"
+      - "traefik.http.routers.<name>.rule=Host(`<name>.moreaulab.ca`)"
 ```
 
 **Only if a value genuinely needs Jinja2** (host lookups like

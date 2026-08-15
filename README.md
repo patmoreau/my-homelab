@@ -13,17 +13,17 @@ Infrastructure-as-code for a Proxmox-based home server. LXC containers are provi
 
 ## LXC containers
 
-| Container         | Primary IP   | Services                                             |
-| ----------------- | ------------ | ---------------------------------------------------- |
-| lxc-gateway       | 192.168.8.40 | Traefik (reverse proxy), Cloudflare tunnel, Promtail |
-| lxc-media         | 192.168.8.41 | Jellyfin, Transmission, Book orbit, service-watcher  |
-| lxc-essere        | 192.168.8.42 | Directus, React, postgres                            |
-| lxc-monitoring    | 192.168.8.43 | Prometheus, Loki, Grafana                            |
-| lxc-tools         | 192.168.8.44 | Homepage dashboard                                   |
-| lxc-vault         | 192.168.8.45 | Vaultwarden (Bitwarden-compatible)                   |
-| lxc-immich        | 192.168.8.46 | Immich photo management                              |
-| lxc-homeassistant | 192.168.8.47 | Home automation (eth2: IoT network 192.168.10.x via VLAN 10)         |
-| lxc-pbs           | 192.168.8.48 | Proxmox Backup Server (Debian 13)                    |
+| Container         | Primary IP   | Services                                                     |
+| ----------------- | ------------ | ------------------------------------------------------------ |
+| lxc-gateway       | 192.168.8.40 | Traefik (reverse proxy), Cloudflare tunnel, Promtail         |
+| lxc-media         | 192.168.8.41 | Jellyfin, Transmission, Book orbit, service-watcher          |
+| lxc-essere        | 192.168.8.42 | Directus, React, postgres                                    |
+| lxc-monitoring    | 192.168.8.43 | Prometheus, Loki, Grafana                                    |
+| lxc-tools         | 192.168.8.44 | Homepage dashboard                                           |
+| lxc-vault         | 192.168.8.45 | Vaultwarden (Bitwarden-compatible)                           |
+| lxc-immich        | 192.168.8.46 | Immich photo management                                      |
+| lxc-homeassistant | 192.168.8.47 | Home automation (eth2: IoT network 192.168.10.x via VLAN 10) |
+| lxc-pbs           | 192.168.8.48 | Proxmox Backup Server (Debian 13)                            |
 
 ## Quick start
 
@@ -59,6 +59,8 @@ Routing is handled by a Flint 2 router (GL-MT6000)
   - nas port 5
 
 - All services are exposed via Traefik under `*.moreaulab.ca`
+- `*.homelab.lan` is local DNS for direct host access (SSH, Proxmox API on `:8006`) that
+  bypasses Traefik
 
 ### IoT VLAN trunk
 
@@ -78,21 +80,25 @@ vlan_interfaces = [
 
 The following services are configured in this homelab:
 
-| Service             | Local Domain                                                      | Description                                                           |
-| :------------------ | :---------------------------------------------------------------- | :-------------------------------------------------------------------- |
-| **Traefik**         | [gateway.homelab.lan](http://gateway.homelab.lan)                 | Reverse proxy managing access to all services                         |
-| **Homepage**        | [home.homelab.lan](http://home.homelab.lan)                       | Customizable dashboard for all homelab services                       |
-| **Jellyfin**        | [jellyfin.homelab.lan](http://jellyfin.homelab.lan)               | Media server for movies, TV, and other media                          |
-| **Book Orbit**      | [books.homelab.lan](http://books.homelab.lan)                     | Web app for browsing and downloading eBooks                           |
-| **Transmission**    | [transmission.homelab.lan](http://transmission.homelab.lan)       | BitTorrent client                                                     |
-| **Filebrowser**     | [filebrowser.homelab.lan](http://filebrowser.homelab.lan)         | Web-based file manager                                                |
-| **Immich**          | [immich.homelab.lan](http://immich.homelab.lan)                   | Self-hosted photo and video management                                |
-| **Vaultwarden**     | [vault.moreaulab.ca](https://vault.moreaulab.ca)                  | Bitwarden-compatible password manager (exposed via Cloudflare tunnel) |
-| **Grafana**         | [grafana.homelab.lan](http://grafana.homelab.lan)                 | Metrics and log dashboards (Prometheus + Loki)                        |
-| **Ghost**           | [essere.homelab.lan](http://essere.homelab.lan)                   | Blog platform                                                         |
-| **Service Watcher** | [service-watcher.homelab.lan](http://service-watcher.homelab.lan) | Custom Node.js utility monitoring QNAP and other services             |
-| **Home Assistant**  | [ha.moreaulab.ca](https://ha.moreaulab.ca)                        | Home automation platform                                              |
-| **PBS**             | [pbs.moreaulab.ca](https://pbs.moreaulab.ca)                      | Enterprise backup solution for Proxmox                                |
+| Service             | Domain                                                               | Description                                                           |
+| :------------------ | :------------------------------------------------------------------- | :-------------------------------------------------------------------- |
+| **Traefik**         | [gateway.moreaulab.ca](https://gateway.moreaulab.ca)                 | Reverse proxy managing access to all services                         |
+| **Homepage**        | [home.moreaulab.ca](https://home.moreaulab.ca)                       | Customizable dashboard for all homelab services                       |
+| **Jellyfin**        | [jellyfin.moreaulab.ca](https://jellyfin.moreaulab.ca)               | Media server for movies, TV, and other media                          |
+| **Book Orbit**      | [books.moreaulab.ca](https://books.moreaulab.ca)                     | Web app for browsing and downloading eBooks                           |
+| **Transmission**    | [transmission.moreaulab.ca](https://transmission.moreaulab.ca)       | BitTorrent client                                                     |
+| **Filebrowser**     | [filebrowser.moreaulab.ca](https://filebrowser.moreaulab.ca)         | Web-based file manager                                                |
+| **Immich**          | [immich.moreaulab.ca](https://immich.moreaulab.ca)                   | Self-hosted photo and video management                                |
+| **Vaultwarden**     | [vault.moreaulab.ca](https://vault.moreaulab.ca)                     | Bitwarden-compatible password manager (exposed via Cloudflare tunnel) |
+| **Grafana**         | [grafana.moreaulab.ca](https://grafana.moreaulab.ca)                 | Metrics and log dashboards (Prometheus + Loki)                        |
+| **Prometheus**      | [prometheus.moreaulab.ca](https://prometheus.moreaulab.ca)           | Metrics collection and alerting                                       |
+| **Essere**          | [essere.ca](https://essere.ca)                                       | Public site + Directus CMS (`admin.essere.ca`)                        |
+| **Service Watcher** | [service-watcher.moreaulab.ca](https://service-watcher.moreaulab.ca) | Custom Node.js utility monitoring QNAP and other services             |
+| **NAS**             | [nas.moreaulab.ca](https://nas.moreaulab.ca)                         | QNAP NAS web UI                                                       |
+| **Proxmox VE**      | [pve.moreaulab.ca](https://pve.moreaulab.ca)                         | Hypervisor web UI                                                     |
+| **Router**          | [router.moreaulab.ca](https://router.moreaulab.ca)                   | GL.iNet Flint 2 panel (LuCI on `:8443`)                               |
+| **Home Assistant**  | [ha.moreaulab.ca](https://ha.moreaulab.ca)                           | Home automation platform                                              |
+| **PBS**             | [pbs.moreaulab.ca](https://pbs.moreaulab.ca)                         | Enterprise backup solution for Proxmox                                |
 
 ### Volumes & Mounts
 

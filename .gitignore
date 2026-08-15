@@ -28,3 +28,4 @@ ansible/group_vars/vault.yaml.vault.password
 
 # macOS
 .DS_Store
+.idea/

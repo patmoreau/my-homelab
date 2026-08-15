@@ -58,12 +58,12 @@
 
     - Qnap:
         icon: qnap.png
-        href: https://qnap.homelab.lan
-        ping: qnap.homelab.lan
+        href: https://nas.moreaulab.ca
+        ping: nas.moreaulab.ca
         description: NAS Management
         widget:
           type: qnap
-          url: https://qnap.homelab.lan:443
+          url: https://nas.moreaulab.ca:443
           username: {{HOMEPAGE_VAR_QNAP_USERNAME}}
           password: {{HOMEPAGE_VAR_QNAP_PASSWORD}}
           volume: DataVol1
@@ -119,7 +119,8 @@
 
     - Qnap Watcher:
         icon: qnap.png
-        href: https://qnap.homelab.lan
+        href: https://nas.moreaulab.ca
+        ping: nas.moreaulab.ca
         description: QNAP Backup Status
         widget:
           type: customapi
