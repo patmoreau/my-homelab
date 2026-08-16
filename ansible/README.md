@@ -10,6 +10,11 @@ Key config files:
 | --------------------------------- | -------------------------------------------------------- | ---------- |
 | `ansible.cfg`                     | Sets inventory, vault password file, SSH options         | Committed  |
 | `inventory/hosts.yaml`            | LXC and Hypervisors host IPs                             | Committed  |
+
+Inventory groups: `lxc`, `backup_servers`, `hypervisors` and `proxmox_nodes`. The last two
+are not interchangeable — `hypervisors` also contains the NAS and the router, so anything
+that talks the Proxmox API (the Prometheus `pve` job) must use `proxmox_nodes`.
+
 | `group_vars/all/main.yaml`        | Shared variables (user, paths, domains, node name, etc.) | Committed  |
 | `group_vars/all/vault.yaml`       | Plaintext secrets — Ansible reads this                   | Gitignored |
 | `group_vars/all/vault.yaml.vault` | Encrypted copy of vault.yaml                             | Committed  |
@@ -58,6 +63,12 @@ LXC namespace (pulls fail with `EACCES`; containers can't `listen()`).
 - **Static IPs.** Published-port containers pin `IP=10.88.0.x` (cadvisor `.240`, others `.241+`
   per host). netavark can leave a stale port-DNAT rule pointing at a dead IP on recreate → 502;
   a fixed IP keeps the rule valid.
+- **When published ports fail anyway, use `Network=host`.** A pinned IP does not always save
+  it: `pve_exporter` reached a state where the DNAT rule was present and pointed at the right
+  address, container-to-container traffic to that address worked, and yet the host could not
+  reach it — so every Prometheus scrape was refused for days. Each restart appended another
+  stale jump rule rather than rebuilding the set. Host networking sidesteps the DNAT hop and
+  is what `node_exporter` and `pve_exporter` now use.
 - **Multi-container apps → netns-share.** No aardvark DNS and no Quadlet `.pod` on podman 4.9,
   so a DB/owner container publishes all the ports and the others join it with
   `Network=container:<owner>` and talk over `127.0.0.1`. See `vaultwarden`, `book-orbit`,
@@ -144,7 +155,7 @@ These must be populated to deploy all services:
 | `prometheus` | lxc-monitoring | Metrics collection |
 | `loki` | lxc-monitoring | Log aggregation |
 | `grafana` | lxc-monitoring | Dashboards (includes "Homelab Services Health" dashboard) |
-| `pve_exporter` | lxc-monitoring | Proxmox metrics |
+| `pve_exporter` | lxc-monitoring | Proxmox metrics (port 9221, host networking) |
 | `blackbox_exporter` | lxc-monitoring | HTTP health probing for all services (port 9115) |
 | `umami` | lxc-essere | Cookieless web analytics for essere.ca (port 3001) |
 | `node_exporter` | all LXC | System metrics (port 9100), plus systemd unit state scoped to the `pbs-backup` units |

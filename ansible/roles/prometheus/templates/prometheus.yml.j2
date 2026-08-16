@@ -114,7 +114,7 @@ scrape_configs:
   - job_name: 'pve'
     static_configs:
       - targets:
-{% for host in groups['hypervisors'] %}
+{% for host in groups['proxmox_nodes'] %}
           - '{{ hostvars[host]['ansible_host'] }}'
 {% endfor %}
     metrics_path: /pve

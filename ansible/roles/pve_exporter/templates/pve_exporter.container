@@ -4,8 +4,13 @@ Description=Prometheus PVE exporter
 [Container]
 ContainerName=pve_exporter
 Image=prompve/prometheus-pve-exporter:3.10.0
-IP=10.88.0.244
-PublishPort=9221:9221
+# Host networking rather than IP= + PublishPort=. The published-port path for this
+# container stopped working: netavark kept the DNAT rule (correctly pointing at
+# 10.88.0.244) but the host could not reach that address, while container-to-container
+# traffic to it still succeeded, so Prometheus scrapes of 192.168.8.43:9221 were refused
+# for days. Restarting only appended another stale rule instead of rebuilding. Host
+# networking removes the DNAT hop entirely — same approach node_exporter already uses.
+Network=host
 Volume=/opt/docker/pve_exporter/pve.yml:/etc/prometheus/pve.yml:ro
 Exec=--config.file=/etc/prometheus/pve.yml
 

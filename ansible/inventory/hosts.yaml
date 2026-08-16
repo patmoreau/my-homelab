@@ -9,6 +9,13 @@ all:
           ansible_user: terraform-admin
         router:
           ansible_host: 192.168.8.1
+
+    # Actual Proxmox nodes only. `hypervisors` also holds the NAS and the router, which
+    # are not Proxmox and cannot answer the PVE API — the prometheus pve job looped over
+    # that group and so had two permanently-down targets.
+    proxmox_nodes:
+      hosts:
+        pve-homelab:
     backup_servers:
       hosts:
         lxc-pbs:
