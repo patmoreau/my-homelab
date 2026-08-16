@@ -10,17 +10,16 @@ Key config files:
 | --------------------------------- | -------------------------------------------------------- | ---------- |
 | `ansible.cfg`                     | Sets inventory, vault password file, SSH options         | Committed  |
 | `inventory/hosts.yaml`            | LXC and Hypervisors host IPs                             | Committed  |
-
-Inventory groups: `lxc`, `backup_servers`, `hypervisors` and `proxmox_nodes`. The last two
-are not interchangeable — `hypervisors` also contains the NAS and the router, so anything
-that talks the Proxmox API (the Prometheus `pve` job) must use `proxmox_nodes`.
-
 | `group_vars/all/main.yaml`        | Shared variables (user, paths, domains, node name, etc.) | Committed  |
 | `group_vars/all/vault.yaml`       | Plaintext secrets — Ansible reads this                   | Gitignored |
 | `group_vars/all/vault.yaml.vault` | Encrypted copy of vault.yaml                             | Committed  |
 | `.vault_pass`                     | Vault password file (one line, plain text)               | Gitignored |
 | `vault.sh`                        | Helper script to edit/encrypt/decrypt vault              | Committed  |
 | `requirements.yml`                | Ansible Galaxy collection dependencies                   | Committed  |
+
+Inventory groups: `lxc`, `backup_servers`, `hypervisors` and `proxmox_nodes`. The last two
+are not interchangeable — `hypervisors` also contains the NAS and the router, so anything
+that talks the Proxmox API (the Prometheus `pve` job) must use `proxmox_nodes`.
 
 ## First-time setup
 
@@ -185,7 +184,7 @@ the role restarts it on change). There is no Alertmanager.
 
 | File | Contents |
 |------|----------|
-| `alerting-rules.yml.j2` | Three groups. **Disk**: `/data volume above 80%` fires when any LXC's `/data` is over 80% full for 15 min — one rule covers every host, `node_exporter` labels the series by instance. **Availability**: `Public site unreachable` (a `blackbox_public` probe failing for 5 min), `Service not responding` (a `blackbox` probe failing for 5 min) and `TLS certificate expiring within 14 days`. **Backups**: `PBS backup job failed` and `PBS backup has not run in 36 hours`. |
+| `alerting-rules.yml.j2` | Three groups. **Disk**: `/data volume above 80%` fires when any LXC's `/data` is over 80% full for 15 min — one rule covers every host, `node_exporter` labels the series by instance. **Availability**: `Public site unreachable` (a `blackbox_public` probe failing for 5 min), `Service not responding` (a `blackbox` probe failing for 5 min), `TLS certificate expiring within 14 days` and `Prometheus cannot scrape a target` (any `up` series 0 for 10 min — a dead exporter is invisible to a probe). **Backups**: `PBS backup job failed` and `PBS backup has not run in 36 hours`. |
 | `alerting-contact-points.yml.j2` | Single webhook contact point pointing at Home Assistant |
 | `alerting-policies.yml.j2` | Default route — provisioning a policy tree replaces Grafana's built-in one, so all alerts go to that contact point |
 

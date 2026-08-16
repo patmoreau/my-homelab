@@ -51,6 +51,50 @@ groups:
     folder: Homelab Alerts
     interval: 1m
     rules:
+      # Covers every scrape job at once, which is a different signal from the probe rules
+      # below: those watch services answering HTTP, this watches Prometheus being able to
+      # collect at all. The pve exporter was unreachable for days without tripping
+      # anything, because a dead *exporter* is invisible to a blackbox *probe*.
+      #
+      # A host going down trips this for its node_exporter and cadvisor together; the
+      # notification policy groups by alertname and instance, so that arrives as one
+      # batch rather than a storm.
+      - uid: scrape-target-down
+        title: Prometheus cannot scrape a target
+        condition: C
+        for: 10m
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: {% raw %}'Prometheus cannot scrape {{ $labels.job }} on {{ $labels.instance }}'{% endraw %}
+
+          description: {% raw %}'The {{ $labels.job }} target {{ $labels.instance }} has been unscrapeable for 10 minutes. The exporter is down, its port is unreachable, or the host is gone. Check Status > Targets in Prometheus for the connection error.'{% endraw %}
+
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              refId: A
+              instant: true
+              editorMode: code
+              expr: 'up'
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+
       # The blackbox_public job probes the real public URLs, so this fires on anything
       # that breaks the chain for actual visitors — app crash, tunnel down, Traefik
       # misroute, expired cert. The internal 'blackbox' job can stay green through all
