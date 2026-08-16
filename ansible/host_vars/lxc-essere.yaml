@@ -21,3 +21,10 @@ postgres_db: directus
 postgres_user: '{{ vault_essere_postgres_user }}'
 postgres_password: '{{ vault_essere_postgres_password }}'
 cloudflare_turnstile_secret_key: '{{ vault_cloudflare_turnstile_secret_key }}'
+
+# Umami analytics reuses the essere Postgres above (its own `umami` database, same
+# superuser) and gets its own netns, so it needs the DB reachable by IP.
+umami_app_secret: '{{ vault_umami_app_secret }}'
+# Also set here (not just in the role defaults) so the traefik role on lxc-gateway can
+# read it out of hostvars when building the analytics.moreaulab.ca backend URL.
+umami_port: 3001

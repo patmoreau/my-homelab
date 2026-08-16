@@ -5,6 +5,15 @@ api:
   dashboard: true
   insecure: false
 
+# Per-router request counts, status codes and latency, scraped by Prometheus. Served on
+# its own entrypoint so the metrics endpoint is never exposed on :80/:443.
+metrics:
+  prometheus:
+    entryPoint: metrics
+    addEntryPointsLabels: true
+    addRoutersLabels: true
+    addServicesLabels: true
+
 providers:
   file:
     directory: /etc/traefik/conf.d
@@ -25,6 +34,8 @@ entryPoints:
     http:
       middlewares:
         - global-headers@file
+  metrics:
+    address: ':8082'
   luci:
     address: ':8443'
     forwardedHeaders:

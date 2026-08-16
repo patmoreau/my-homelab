@@ -1,0 +1,25 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create umami env file
+  ansible.builtin.template:
+    src: umami.env.j2
+    dest: "{{ docker_compose_dir }}/umami/umami.env"
+    mode: "0600"
+  register: umami_env
+
+- name: Deploy umami Quadlet unit
+  ansible.builtin.template:
+    src: umami.container
+    dest: /etc/containers/systemd/umami.container
+    mode: "0644"
+  register: umami_quadlet
+
+- name: Start umami
+  ansible.builtin.systemd:
+    name: umami.service
+    state: "{{ 'restarted' if (umami_quadlet.changed or umami_env.changed) else 'started' }}"
+    daemon_reload: true

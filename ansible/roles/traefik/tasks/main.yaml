@@ -21,6 +21,9 @@
     src: traefik.yaml.j2
     dest: '{{ docker_compose_dir }}/traefik/traefik.yaml'
     mode: '0644'
+  # Only conf.d/ hot-reloads. The static config (entrypoints, metrics, resolvers) is read
+  # once at startup, so a change here has to restart traefik or it silently does nothing.
+  register: traefik_static_config
 
 - name: Copy conf.d files
   ansible.builtin.template:

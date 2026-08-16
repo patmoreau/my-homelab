@@ -1,0 +1,9 @@
+# Umami — cookieless web analytics for essere.ca.
+#
+# Umami runs in its own netns (unlike the three essere containers, which share
+# postgres's) and reaches the existing essere Postgres over the podman bridge at
+# essere_postgres's static IP. Nothing is published for 5432, but container-to-container
+# traffic on 10.88.0.0/16 does not need a published port.
+umami_db_host: 10.88.0.241
+umami_db_name: umami
+umami_port: 3001

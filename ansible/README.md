@@ -135,6 +135,7 @@ These must be populated to deploy all services:
 | `vault_holefeeder_powersync_admin_token`| holefeeder                           | PowerSync service admin token                                                                            |
 | `vault_nut_admin_password`              | nut_server                           | NUT `upsmon` primary password — local monitor that shuts the Proxmox host down on low battery            |
 | `vault_nut_monitor_password`            | nut_server                           | NUT `homeassistant` read-only password — used by the Home Assistant NUT integration                      |
+| `vault_umami_app_secret`                | umami                                | Umami session/JWT signing secret (`openssl rand -hex 32`); rotating it logs every Umami user out          |
 
 ## Monitoring roles
 
@@ -145,6 +146,7 @@ These must be populated to deploy all services:
 | `grafana` | lxc-monitoring | Dashboards (includes "Homelab Services Health" dashboard) |
 | `pve_exporter` | lxc-monitoring | Proxmox metrics |
 | `blackbox_exporter` | lxc-monitoring | HTTP health probing for all services (port 9115) |
+| `umami` | lxc-essere | Cookieless web analytics for essere.ca (port 3001) |
 | `node_exporter` | all LXC | System metrics (port 9100) |
 | `cadvisor` | all LXC (except pbs) | Container metrics (port 9338) |
 | `promtail` | all LXC (except monitoring, pbs) | Ships container logs to Loki (Podman socket discovery) |
@@ -172,7 +174,7 @@ the role restarts it on change). There is no Alertmanager.
 
 | File | Contents |
 |------|----------|
-| `alerting-rules.yml.j2` | `/data volume above 80%` — fires when any LXC's `/data` is over 80% full for 15 min. One rule covers every host; `node_exporter` labels the series by instance. |
+| `alerting-rules.yml.j2` | Two groups. **Disk**: `/data volume above 80%` fires when any LXC's `/data` is over 80% full for 15 min — one rule covers every host, `node_exporter` labels the series by instance. **Availability**: `Public site unreachable` (any `blackbox_public` probe failing for 5 min) and `TLS certificate expiring within 14 days`. |
 | `alerting-contact-points.yml.j2` | Single webhook contact point pointing at Home Assistant |
 | `alerting-policies.yml.j2` | Default route — provisioning a policy tree replaces Grafana's built-in one, so all alerts go to that contact point |
 
@@ -211,6 +213,79 @@ The `blackbox_exporter` role probes the following HTTP endpoints every 15 s and 
 | Immich | `http://192.168.8.46:2283/api/server/ping` |
 | Home Assistant | `http://192.168.8.47:8123` |
 | Homepage | `http://192.168.8.44:3000` |
+| Umami | `http://192.168.8.42:3001` |
+
+A second job, `blackbox_public`, probes the **public** URLs instead of container IPs:
+
+| Service | Public endpoint |
+|---------|-----------------|
+| Essere site | `https://essere.ca` |
+| Essere admin | `https://admin.essere.ca` |
+
+The split matters. The internal job only proves a container is listening; it stays green
+when the Cloudflare tunnel, a Traefik router, or the TLS cert is what actually broke. Only
+`blackbox_public` exercises the full path a visitor takes, so the `Public site unreachable`
+alert is scoped to that job.
+
+## Site analytics (Umami)
+
+The `umami` role on `lxc-essere` serves cookieless analytics at
+`https://analytics.moreaulab.ca` — visitors, countries, referrers, and top pages for
+essere.ca. No consent banner is required because it sets no cookies and stores no
+personal data.
+
+It reuses the existing essere Postgres rather than running a second database: the role
+creates a `umami` database in the `essere_postgres` container with the same superuser, and
+Umami builds its own schema on first start. Unlike the three essere containers (which share
+postgres's network namespace) Umami runs in its own, pinned to `10.88.0.242`, and reaches
+the DB over the podman bridge at `10.88.0.241:5432`. That address is not published to the
+host — container-to-container traffic on `10.88.0.0/16` does not need it to be.
+
+`CLIENT_IP_HEADER=CF-Connecting-IP` is set because traffic arrives via the Cloudflare
+tunnel and then Traefik. Without it every hit records the proxy's address and all
+visitors geolocate to one place.
+
+Two steps are **not** automated by this role:
+
+1. **DNS.** Add `analytics.moreaulab.ca` wherever the other `*.moreaulab.ca` names are
+   resolved, pointing at `lxc-gateway` (`192.168.8.40`).
+2. **Tracking script.** Umami only sees traffic once the site loads its script. In the
+   `patmoreau/essere` repo add this to `index.html`, using the website ID that Umami
+   shows after you create the site in its UI:
+
+   ```html
+   <script
+     defer
+     src="https://analytics.moreaulab.ca/script.js"
+     data-website-id="<id-from-umami-ui>"
+   ></script>
+   ```
+
+   Vite serves `index.html` as-is, so no build config change is needed.
+
+On first login Umami uses `admin` / `umami`. Change it immediately — the instance is
+reachable from the internet through Traefik.
+
+## External uptime monitoring
+
+Everything above runs **inside the house**: Prometheus probes from `lxc-monitoring` and
+alerts are delivered through Home Assistant on the same LAN. If the ISP link, the router,
+or the power goes down, the site is unreachable to the world and nothing alerts, because
+the thing that would alert is also down.
+
+Closing that gap needs a checker outside the network. This is deliberately not in Ansible
+— it must not depend on anything here:
+
+1. Create a free account at [UptimeRobot](https://uptimerobot.com) (50 monitors, 5-minute
+   interval) or [Better Stack](https://betterstack.com) (10 monitors, 3-minute).
+2. Add an HTTPS monitor for `https://essere.ca`, keyword-matching some text that only
+   appears when the site renders correctly — a plain 200 check passes against a
+   Cloudflare error page.
+3. Enable the mobile app push notification. Email alone arrives too late to be useful.
+
+Internal alerting still earns its keep: it fires faster, knows which container broke, and
+covers cert expiry. The external monitor answers the one question it cannot — "is my house
+still on the internet".
 
 ## PBS prune and cleanup policy
 
@@ -254,6 +329,7 @@ router behind that answers `502` forever.
 | ----------- | ------- | ------------------------------------------------------------ |
 | `web`       | `:80`   | HTTP (redirected to HTTPS)                                   |
 | `websecure` | `:443`  | Primary HTTPS for all services                               |
+| `metrics`   | `:8082` | Prometheus metrics (`traefik` scrape job) — LAN only, no router |
 | `luci`      | `:8443` | Flint 2 router's LuCI interface (`router.moreaulab.ca:8443`) |
 | dashboard   | `:8080` | Traefik API/dashboard                                        |
 

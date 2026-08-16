@@ -38,6 +38,7 @@
   roles:
     - github-runner
     - essere
+    - umami
     - proxmox-backup-client
 
 - name: Deploy Monitoring

@@ -117,6 +117,12 @@
           url: https://prometheus.moreaulab.ca
           fields: ['targets_up', 'targets_down', 'alerts_total']
 
+    - Umami:
+        icon: umami.png
+        href: https://analytics.moreaulab.ca
+        ping: analytics.moreaulab.ca
+        description: essere.ca Analytics
+
     - Qnap Watcher:
         icon: qnap.png
         href: https://nas.moreaulab.ca

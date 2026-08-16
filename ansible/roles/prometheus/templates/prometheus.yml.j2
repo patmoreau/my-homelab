@@ -65,6 +65,9 @@ scrape_configs:
       - targets: ['http://{{ hostvars["lxc-tools"]["ansible_host"] }}:3000']
         labels:
           service: 'homepage'
+      - targets: ['http://{{ hostvars["lxc-essere"]["ansible_host"] }}:{{ hostvars["lxc-essere"].get("umami_port", 3001) }}']
+        labels:
+          service: 'umami'
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -72,6 +75,35 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: '{{ hostvars["lxc-monitoring"]["ansible_host"] }}:9115'
+
+  # The 'blackbox' job above hits containers on their LAN IP, so it only proves the app
+  # is alive. These probe the real public URLs, which exercises the whole chain —
+  # Cloudflare, the tunnel, Traefik routing and the TLS cert. A green internal probe with
+  # a red public one means the site is down for visitors even though the app is fine.
+  - job_name: 'blackbox_public'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets: ['https://essere.ca']
+        labels:
+          service: 'essere-public'
+      - targets: ['https://admin.essere.ca']
+        labels:
+          service: 'essere-admin-public'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: '{{ hostvars["lxc-monitoring"]["ansible_host"] }}:9115'
+
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['{{ hostvars["lxc-gateway"]["ansible_host"] }}:8082']
+        labels:
+          instance: 'lxc-gateway'
 
   - job_name: 'pve'
     static_configs:

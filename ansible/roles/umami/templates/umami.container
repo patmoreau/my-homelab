@@ -1,0 +1,19 @@
+[Unit]
+Description=Umami Analytics
+After=essere-db.service
+BindsTo=essere-db.service
+
+[Container]
+ContainerName=umami
+Image=ghcr.io/umami-software/umami:postgresql-v2.19.0
+# Own netns (the essere trio share postgres's), so it needs its own pinned IP —
+# netavark can leave a stale port-DNAT rule pointing at a dead IP on recreate.
+IP=10.88.0.242
+PublishPort={{ umami_port }}:3000
+EnvironmentFile={{ docker_compose_dir }}/umami/umami.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

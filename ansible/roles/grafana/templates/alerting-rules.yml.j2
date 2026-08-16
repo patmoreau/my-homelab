@@ -45,3 +45,91 @@ groups:
                     type: gt
                     params:
                       - 80
+
+  - orgId: 1
+    name: Availability
+    folder: Homelab Alerts
+    interval: 1m
+    rules:
+      # The blackbox_public job probes the real public URLs, so this fires on anything
+      # that breaks the chain for actual visitors — app crash, tunnel down, Traefik
+      # misroute, expired cert. The internal 'blackbox' job can stay green through all
+      # of those, which is why the alert is scoped to the public job.
+      #
+      # Blind spot: the prober and the Home Assistant webhook both live on the LAN, so a
+      # house-wide outage produces silence, not an alert. The external uptime monitor
+      # (see ansible/README.md) is what covers that case.
+      - uid: public-site-down
+        title: Public site unreachable
+        condition: C
+        for: 5m
+        noDataState: Alerting
+        execErrState: Alerting
+        labels:
+          severity: critical
+        annotations:
+          summary: {% raw %}'{{ $labels.instance }} is not answering'{% endraw %}
+
+          description: {% raw %}'The blackbox probe of {{ $labels.instance }} has failed for 5 minutes. Check the essere containers on lxc-essere, then cloudflared and traefik on lxc-gateway.'{% endraw %}
+
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              refId: A
+              instant: true
+              editorMode: code
+              expr: 'probe_success{job="blackbox_public"}'
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+
+      # Certs are renewed by Traefik over DNS-01. When that quietly stops working the
+      # only symptom is the expiry creeping down, and by the time it lapses every
+      # visitor gets a browser warning. 14 days leaves room to fix it by hand.
+      - uid: tls-cert-expiring
+        title: TLS certificate expiring within 14 days
+        condition: C
+        for: 1h
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: {% raw %}'TLS cert for {{ $labels.instance }} expires in under 14 days'{% endraw %}
+
+          description: {% raw %}'{{ $labels.instance }} has {{ printf "%.1f" $values.A.Value }} days of certificate left. Traefik renews via the cloudflare DNS-01 resolver — check its logs on lxc-gateway and that the API token is still valid.'{% endraw %}
+
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              refId: A
+              instant: true
+              editorMode: code
+              expr: '(probe_ssl_earliest_cert_expiry{job="blackbox_public"} - time()) / 86400'
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 14

@@ -93,6 +93,7 @@ The following services are configured in this homelab:
 | **Grafana**         | [grafana.moreaulab.ca](https://grafana.moreaulab.ca)                 | Metrics and log dashboards (Prometheus + Loki)                        |
 | **Prometheus**      | [prometheus.moreaulab.ca](https://prometheus.moreaulab.ca)           | Metrics collection and alerting                                       |
 | **Essere**          | [essere.ca](https://essere.ca)                                       | Public site + Directus CMS (`admin.essere.ca`)                        |
+| **Umami**           | [analytics.moreaulab.ca](https://analytics.moreaulab.ca)             | Cookieless web analytics for essere.ca                                |
 | **Service Watcher** | [service-watcher.moreaulab.ca](https://service-watcher.moreaulab.ca) | Custom Node.js utility monitoring QNAP and other services             |
 | **NAS**             | [nas.moreaulab.ca](https://nas.moreaulab.ca)                         | QNAP NAS web UI                                                       |
 | **Proxmox VE**      | [pve.moreaulab.ca](https://pve.moreaulab.ca)                         | Hypervisor web UI                                                     |

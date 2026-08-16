@@ -21,4 +21,5 @@ traefik_conf_files:
   - router.yaml
   - traefik.yaml
   - transmission.yaml
+  - umami.yaml
   - vaultwarden.yaml

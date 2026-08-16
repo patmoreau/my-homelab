@@ -10,6 +10,8 @@ PublishPort=80:80
 PublishPort=443:443
 PublishPort=8443:8443
 PublishPort=8080:8080
+# Prometheus metrics entrypoint (see `metrics:` in traefik.yaml) — LAN only, no router.
+PublishPort=8082:8082
 EnvironmentFile=/opt/docker/traefik/traefik.env
 Volume=/opt/docker/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
 Volume=/opt/docker/traefik/conf.d:/etc/traefik/conf.d:ro

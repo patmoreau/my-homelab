@@ -35,7 +35,7 @@
 - name: Start traefik
   ansible.builtin.systemd:
     name: traefik.service
-    state: "{{ 'restarted' if (traefik_quadlet.changed or traefik_env.changed) else 'started' }}"
+    state: "{{ 'restarted' if (traefik_quadlet.changed or traefik_env.changed or traefik_static_config.changed) else 'started' }}"
     daemon_reload: true
 
 - name: Start certs-dumper
