@@ -147,7 +147,7 @@ These must be populated to deploy all services:
 | `pve_exporter` | lxc-monitoring | Proxmox metrics |
 | `blackbox_exporter` | lxc-monitoring | HTTP health probing for all services (port 9115) |
 | `umami` | lxc-essere | Cookieless web analytics for essere.ca (port 3001) |
-| `node_exporter` | all LXC | System metrics (port 9100) |
+| `node_exporter` | all LXC | System metrics (port 9100), plus systemd unit state scoped to the `pbs-backup` units |
 | `cadvisor` | all LXC (except pbs) | Container metrics (port 9338) |
 | `promtail` | all LXC (except monitoring, pbs) | Ships container logs to Loki (Podman socket discovery) |
 
@@ -174,7 +174,7 @@ the role restarts it on change). There is no Alertmanager.
 
 | File | Contents |
 |------|----------|
-| `alerting-rules.yml.j2` | Two groups. **Disk**: `/data volume above 80%` fires when any LXC's `/data` is over 80% full for 15 min — one rule covers every host, `node_exporter` labels the series by instance. **Availability**: `Public site unreachable` (any `blackbox_public` probe failing for 5 min) and `TLS certificate expiring within 14 days`. |
+| `alerting-rules.yml.j2` | Three groups. **Disk**: `/data volume above 80%` fires when any LXC's `/data` is over 80% full for 15 min — one rule covers every host, `node_exporter` labels the series by instance. **Availability**: `Public site unreachable` (a `blackbox_public` probe failing for 5 min), `Service not responding` (a `blackbox` probe failing for 5 min) and `TLS certificate expiring within 14 days`. **Backups**: `PBS backup job failed` and `PBS backup has not run in 36 hours`. |
 | `alerting-contact-points.yml.j2` | Single webhook contact point pointing at Home Assistant |
 | `alerting-policies.yml.j2` | Default route — provisioning a policy tree replaces Grafana's built-in one, so all alerts go to that contact point |
 
@@ -214,6 +214,11 @@ The `blackbox_exporter` role probes the following HTTP endpoints every 15 s and 
 | Home Assistant | `http://192.168.8.47:8123` |
 | Homepage | `http://192.168.8.44:3000` |
 | Umami | `http://192.168.8.42:3001` |
+| Grafana | `https://grafana.moreaulab.ca` |
+
+Grafana is the one target probed over **https**, so that `probe_ssl_earliest_cert_expiry`
+exists for the `moreaulab.ca` wildcard. Every `*.moreaulab.ca` host is issued by the same
+Traefik cloudflare resolver, so monitoring one covers the renewal for all of them.
 
 A second job, `blackbox_public`, probes the **public** URLs instead of container IPs:
 
@@ -265,6 +270,22 @@ Two steps are **not** automated by this role:
 
 On first login Umami uses `admin` / `umami`. Change it immediately — the instance is
 reachable from the internet through Traefik.
+
+## Backup failure alerting
+
+`node_exporter` runs with `--collector.systemd`, restricted by
+`--collector.systemd.unit-include` to `pbs-backup.service` and `pbs-backup.timer`, and
+bind-mounts the dbus system bus socket to `/var/run/dbus/system_bus_socket` (the path the
+collector looks for; the image has no `/var/run` symlink). That feeds the two
+**Backups** alert rules: one on the service entering the failed state, one on the timer
+not having fired in 36 hours (a daily timer, so one missed run plus slack).
+
+The include filter is deliberate. Collecting every unit adds roughly 150 series per host,
+and this Prometheus has a tight retention budget — `/data` has filled before. Widen the
+regex only alongside a look at the volume size.
+
+Hosts without the `proxmox-backup-client` role simply export no series for those units.
+Both rules use `noDataState: NoData`, so that is silent rather than a false alarm.
 
 ## External uptime monitoring
 

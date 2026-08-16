@@ -9,7 +9,19 @@ PodmanArgs=--pid=host
 Volume=/proc:/host/proc:ro
 Volume=/sys:/host/sys:ro
 Volume=/:/rootfs:ro
-Exec=--path.procfs=/host/proc --path.rootfs=/rootfs --path.sysfs=/host/sys --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+# The systemd collector reads unit state over the dbus system bus. It looks for the socket
+# at /var/run/dbus/system_bus_socket specifically, so mount it at that path rather than
+# /run — this image has no /var/run -> /run symlink.
+Volume=/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
+# The systemd collector is scoped to the PBS backup units on purpose. Collecting every
+# unit would add roughly 150 series per host; Prometheus' retention budget here is tight
+# enough that /data has filled before (see the note in prometheus.container).
+#
+# The unit-include regex uses [.] rather than \. deliberately. systemd treats a backslash
+# as an escape sequence, and on an unknown one Quadlet drops the *entire* Exec= line
+# without an error — the container then starts with no flags at all, silently losing the
+# --path.* options too. Keep this line backslash-free.
+Exec=--path.procfs=/host/proc --path.rootfs=/rootfs --path.sysfs=/host/sys --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/) --collector.systemd --collector.systemd.unit-include=^pbs-backup[.](service|timer)$$
 
 [Service]
 Restart=always

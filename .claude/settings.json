@@ -6,7 +6,8 @@
       "Bash(echo \"source: $\\(md5 -q roles/homepage/config/bookmarks.yaml\\)\")",
       "Bash(ssh -i ~/.ssh/terraform_homelab -o ConnectTimeout=8 root@192.168.8.43 'echo \"=== container log sizes ===\"; du -sh /var/lib/docker/containers/*/*-json.log 2>/dev/null | sort -rh | head; echo \"=== daemon.json ===\"; cat /etc/docker/daemon.json 2>/dev/null || echo \"NO daemon.json\"; echo \"=== prom oldest block ===\"; ls -la --time-style=+%Y-%m-%d /var/lib/docker/volumes/prometheus_prometheus_data/_data/ 2>/dev/null | head')",
       "Bash(ssh -i ~/.ssh/terraform_homelab -o ConnectTimeout=8 root@192.168.8.43 'docker ps --format \"{{.ID}}  {{.Names}}  {{.Image}}\" ; echo \"---map big loggers---\"; for id in ed94fd27cdf6 b9259a698c0b; do echo -n \"$id -> \"; docker inspect --format \"{{.Name}}\" $id 2>/dev/null; done')",
-      "Bash(ansible-lint)"
+      "Bash(ansible-lint)",
+      "Bash(ansible-playbook -i inventory/hosts.yaml site.yaml --syntax-check)"
     ]
   }
 }

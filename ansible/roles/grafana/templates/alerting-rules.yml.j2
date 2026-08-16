@@ -95,9 +95,53 @@ groups:
                     params:
                       - 1
 
+      # Companion to the rule above, for the internal probes. Those hit container LAN IPs,
+      # so this is the "a service died" alert while public-site-down is the "visitors
+      # can't reach it" one. Deliberately one rule over the whole job rather than one per
+      # service: every target in the blackbox job is covered, including ones added later.
+      - uid: service-probe-failing
+        title: Service not responding
+        condition: C
+        for: 5m
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: {% raw %}'{{ $labels.service }} is not responding'{% endraw %}
+
+          description: {% raw %}'The blackbox probe of {{ $labels.service }} ({{ $labels.instance }}) has failed for 5 minutes. Check the container on its LXC host.'{% endraw %}
+
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              refId: A
+              instant: true
+              editorMode: code
+              expr: 'probe_success{job="blackbox"}'
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+
       # Certs are renewed by Traefik over DNS-01. When that quietly stops working the
       # only symptom is the expiry creeping down, and by the time it lapses every
       # visitor gets a browser warning. 14 days leaves room to fix it by hand.
+      #
+      # Not filtered by job: this covers the essere.ca certs from blackbox_public and the
+      # moreaulab.ca wildcard via the one https target in the blackbox job. Any https
+      # target added to either job is picked up with no change here.
       - uid: tls-cert-expiring
         title: TLS certificate expiring within 14 days
         condition: C
@@ -121,7 +165,7 @@ groups:
               refId: A
               instant: true
               editorMode: code
-              expr: '(probe_ssl_earliest_cert_expiry{job="blackbox_public"} - time()) / 86400'
+              expr: '(probe_ssl_earliest_cert_expiry - time()) / 86400'
           - refId: C
             datasourceUid: __expr__
             model:
@@ -133,3 +177,86 @@ groups:
                     type: lt
                     params:
                       - 14
+
+  - orgId: 1
+    name: Backups
+    folder: Homelab Alerts
+    interval: 5m
+    rules:
+      # A failed backup is invisible until the day you need a restore. Both rules below
+      # depend on node_exporter's systemd collector, which is scoped to the pbs-backup
+      # units — see roles/node_exporter/templates/node-exporter.container.
+      - uid: pbs-backup-failed
+        title: PBS backup job failed
+        condition: C
+        for: 10m
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: {% raw %}'PBS backup failed on {{ $labels.instance }}'{% endraw %}
+
+          description: {% raw %}'pbs-backup.service is in the failed state on {{ $labels.instance }}. Run `journalctl -u pbs-backup.service` there; the usual causes are a full datastore or an expired backup-client@pbs password.'{% endraw %}
+
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              refId: A
+              instant: true
+              editorMode: code
+              expr: 'node_systemd_unit_state{name="pbs-backup.service", state="failed"}'
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+
+      # Catches the quieter failure the rule above misses: the job never runs at all —
+      # timer disabled, masked, or the host down at every trigger. The timer is daily, so
+      # 36h is one missed run plus room for a late start.
+      - uid: pbs-backup-stale
+        title: PBS backup has not run in 36 hours
+        condition: C
+        for: 30m
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: {% raw %}'No PBS backup on {{ $labels.instance }} for over 36h'{% endraw %}
+
+          description: {% raw %}'pbs-backup.timer on {{ $labels.instance }} last fired {{ printf "%.1f" $values.A.Value }} hours ago. Check `systemctl list-timers pbs-backup.timer` on that host.'{% endraw %}
+
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              refId: A
+              instant: true
+              editorMode: code
+              expr: '(time() - node_systemd_timer_last_trigger_seconds{name="pbs-backup.timer"}) / 3600'
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 36

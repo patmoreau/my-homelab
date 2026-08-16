@@ -68,6 +68,12 @@ scrape_configs:
       - targets: ['http://{{ hostvars["lxc-essere"]["ansible_host"] }}:{{ hostvars["lxc-essere"].get("umami_port", 3001) }}']
         labels:
           service: 'umami'
+      # Probed over https, unlike everything above, so that probe_ssl_earliest_cert_expiry
+      # exists for the moreaulab.ca wildcard. Every *.moreaulab.ca host is issued by the
+      # same Traefik cloudflare resolver, so one target monitors the renewal for all.
+      - targets: ['https://grafana.moreaulab.ca']
+        labels:
+          service: 'grafana'
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
