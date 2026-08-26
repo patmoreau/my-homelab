@@ -29,10 +29,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.ADMIN_PAT }}
         run: |
+          set -euo pipefail
           REPO="${{ github.repository }}"
 
-          EXISTING_ID=$(gh api "repos/$REPO/rulesets" \
-            --jq ".[] | select(.name == \"$RULESET_NAME\") | .id" 2>/dev/null || true)
+          # Fail loudly on a bad/expired ADMIN_PAT instead of feeding the 401 body
+          # into the ruleset id, which is what the old `|| true` lookup used to do.
+          RULESETS=$(gh api "repos/$REPO/rulesets")
+          EXISTING_ID=$(jq -r --arg n "$RULESET_NAME" \
+            '.[] | select(.name == $n) | .id' <<< "$RULESETS")
 
           PAYLOAD=$(cat <<EOF
           {
