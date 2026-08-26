@@ -24,6 +24,7 @@
       "matchPackageNames": ["ghcr.io/immich-app/postgres"],
       "matchUpdateTypes": ["major"],
       "dependencyDashboardApproval": true,
+      "automerge": false,
       "prBodyNotes": [
         ":warning: **Major PostgreSQL upgrade — do NOT just merge.** The pg18+ images refuse to start on older on-disk data. Migrate via dump/restore: dump the running cluster, wipe the data dir, let the new image init fresh, then restore (with the immich `search_path` sed fix)."
       ]

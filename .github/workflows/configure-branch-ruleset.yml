@@ -7,59 +7,69 @@ on:
     paths:
       - .github/workflows/configure-branch-ruleset.yml
 
+# Source of truth for the "main" branch ruleset.
+#
+# Approvals are required for everyone except the two bypass actors:
+#   - Repository admin role (id 5)  -> the codeowner, who cannot approve their own PRs
+#   - Renovate GitHub App (id 2740) -> "pull_request" mode, so it may merge its own PRs
+#     without a review but still cannot push straight to main. Combined with
+#     `automerge` in renovate.json, dependency PRs merge on their own once checks pass.
+env:
+  RULESET_NAME: main
+  RENOVATE_APP_ID: 2740
+  ADMIN_ROLE_ID: 5
+
 jobs:
   configure:
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - name: Get codeowner user ID
-        id: get-user
-        env:
-          GH_TOKEN: ${{ secrets.ADMIN_PAT }}
-        run: |
-          USER_ID=$(gh api users/patmoreau --jq '.id')
-          echo "user_id=$USER_ID" >> "$GITHUB_OUTPUT"
-
       - name: Apply main branch ruleset
         env:
           GH_TOKEN: ${{ secrets.ADMIN_PAT }}
-          USER_ID: ${{ steps.get-user.outputs.user_id }}
         run: |
           REPO="${{ github.repository }}"
 
-          # Check if ruleset named "Protect main" already exists
-          EXISTING_ID=$(gh api "repos/$REPO/rulesets" --jq '.[] | select(.name == "Protect main") | .id' 2>/dev/null || true)
+          EXISTING_ID=$(gh api "repos/$REPO/rulesets" \
+            --jq ".[] | select(.name == \"$RULESET_NAME\") | .id" 2>/dev/null || true)
 
-          # NOTE: "user" must be lowercase. 
-          # "parameters" should only include active constraints.
           PAYLOAD=$(cat <<EOF
           {
-            "name": "Protect main",
+            "name": "$RULESET_NAME",
             "target": "branch",
             "enforcement": "active",
             "conditions": {
               "ref_name": {
-                "include": ["refs/heads/main"],
+                "include": ["~DEFAULT_BRANCH"],
                 "exclude": []
               }
             },
             "bypass_actors": [
               {
-                "actor_id": $USER_ID,
-                "actor_type": "user",
+                "actor_id": $ADMIN_ROLE_ID,
+                "actor_type": "RepositoryRole",
                 "bypass_mode": "always"
+              },
+              {
+                "actor_id": $RENOVATE_APP_ID,
+                "actor_type": "Integration",
+                "bypass_mode": "pull_request"
               }
             ],
             "rules": [
+              { "type": "deletion" },
+              { "type": "non_fast_forward" },
               {
                 "type": "pull_request",
                 "parameters": {
-                  "required_approving_review_count": 0,
+                  "required_approving_review_count": 1,
                   "dismiss_stale_reviews_on_push": false,
                   "require_code_owner_review": true,
                   "require_last_push_approval": false,
-                  "required_review_thread_resolution": false
+                  "required_review_thread_resolution": false,
+                  "require_extra_approval_for_unattributed_changes": true,
+                  "allowed_merge_methods": ["squash"]
                 }
               }
             ]
