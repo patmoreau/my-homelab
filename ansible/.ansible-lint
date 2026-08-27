@@ -1,6 +1,7 @@
 ---
 # ansible-lint configuration.  Run locally with:  cd ansible && ansible-lint
-# Enforced before every commit via the pre-commit hook (.pre-commit-config.yaml).
+# Enforced in CI by .github/workflows/ansible-lint.yml on every PR and push to
+# main. There is no pre-commit hook — run it yourself before committing.
 
 exclude_paths:
   # Homepage dashboard config files that happen to be YAML but are not Ansible.

@@ -1,0 +1,36 @@
+name: Ansible Lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# No `paths:` filter on purpose. This check is meant to be a required status
+# check, and a filtered workflow never reports on PRs that miss the filter,
+# which leaves those PRs stuck "expected — waiting for status" forever.
+concurrency:
+  group: ansible-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ansible-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # ansible.cfg points at a gitignored `.vault_pass`, and ansible-lint aborts
+      # with an internal-error when that file is missing. Nothing encrypted is
+      # actually read during a lint: group_vars/all/vault.yaml is gitignored and
+      # the committed vault.yaml.vault is not a name Ansible loads. So any
+      # non-empty placeholder satisfies the config without a real secret in CI.
+      - name: Write placeholder vault password
+        working-directory: ansible
+        run: echo "placeholder-not-the-real-vault-password" > .vault_pass
+
+      - uses: ansible/ansible-lint@v26.8.0
+        with:
+          working_directory: ansible
+          requirements_file: requirements.yml

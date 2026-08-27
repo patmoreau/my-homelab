@@ -30,6 +30,19 @@ cd ansible
 ansible-galaxy collection install -r requirements.yml
 ```
 
+## Linting
+
+Run before every commit that touches `ansible/` — it must report **0 failures**:
+
+```bash
+cd ansible
+ansible-lint
+```
+
+CI runs the same check on every pull request and every push to `main` (`.github/workflows/ansible-lint.yml`, job `ansible-lint`). There is no pre-commit hook, so the local run is on you.
+
+CI writes a throwaway `ansible/.vault_pass` because `ansible.cfg` points at that gitignored file and ansible-lint errors out when it is absent. The real vault password is never needed to lint: nothing vault-encrypted is loaded, since `group_vars/all/vault.yaml` is gitignored and `vault.yaml.vault` is not a filename Ansible picks up as vars.
+
 ## Container runtime — every LXC runs rootful Podman
 
 **All LXCs run rootful Podman + Quadlet.** The `container_runtime` var still defaults to
