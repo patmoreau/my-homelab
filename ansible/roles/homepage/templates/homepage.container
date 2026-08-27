@@ -3,7 +3,7 @@ Description=Homepage dashboard
 
 [Container]
 ContainerName=homepage
-Image=ghcr.io/gethomepage/homepage:v1.13.2
+Image=ghcr.io/gethomepage/homepage:v2.1.2
 # Static IP so a recreate reuses the same address: netavark can leave a stale port-DNAT
 # rule pointing at the old container IP, which shadows the new one and causes 502s.
 IP=10.88.0.241
