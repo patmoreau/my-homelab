@@ -3,7 +3,10 @@ Description=cAdvisor container metrics
 
 [Container]
 ContainerName=cadvisor
-Image=gcr.io/cadvisor/cadvisor:v0.55.1
+# Upstream publishes to ghcr.io from v0.53.0 on; gcr.io/cadvisor/cadvisor is the legacy
+# mirror, frozen at v0.55.1, and Renovate cannot look it up any more ("no-result"), so
+# cadvisor silently stopped getting update PRs. Same version, canonical registry.
+Image=ghcr.io/google/cadvisor:0.55.1
 # Static IP (see homepage.container) so a recreate reuses the same address and avoids
 # stale netavark port-DNAT rules.
 IP=10.88.0.240
