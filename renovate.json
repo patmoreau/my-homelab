@@ -1,6 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["local>patmoreau/renovate-config", "config:recommended"],
+  "description": [
+    "platformAutomerge is false here (the shared preset turns it on). GitHub's native auto-merge never fired on PRs needing a review: it evaluates the branch's requirements generically, so a bypass granted to the Renovate app does not count. Renovate merging via the API itself does hit that bypass. Costs latency — the merge lands on Renovate's next run rather than the instant checks go green."
+  ],
+  "platformAutomerge": false,
   "customManagers": [
     {
       "customType": "regex",
