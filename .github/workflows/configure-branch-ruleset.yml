@@ -14,10 +14,17 @@ on:
 #   - Renovate GitHub App (id 2740) -> "pull_request" mode, so it may merge its own PRs
 #     without a review but still cannot push straight to main. Combined with
 #     `automerge` in renovate.json, dependency PRs merge on their own once checks pass.
+#
+# `ansible-lint` is required to pass. Renovate's bypass covers the review
+# requirement, NOT this one: bypassing a pull_request rule does not waive status
+# checks, so a red lint still blocks a Renovate merge. That is the point.
+# `strict_required_status_checks_policy` stays false — forcing every PR to be
+# rebased onto the newest main first would put Renovate in a rebase loop.
 env:
   RULESET_NAME: main
   RENOVATE_APP_ID: 2740
   ADMIN_ROLE_ID: 5
+  ACTIONS_APP_ID: 15368 # github-actions app; pins who may report "ansible-lint"
 
 jobs:
   configure:
@@ -74,6 +81,19 @@ jobs:
                   "required_review_thread_resolution": false,
                   "require_extra_approval_for_unattributed_changes": true,
                   "allowed_merge_methods": ["squash"]
+                }
+              },
+              {
+                "type": "required_status_checks",
+                "parameters": {
+                  "strict_required_status_checks_policy": false,
+                  "do_not_enforce_on_create": false,
+                  "required_status_checks": [
+                    {
+                      "context": "ansible-lint",
+                      "integration_id": $ACTIONS_APP_ID
+                    }
+                  ]
                 }
               }
             ]
