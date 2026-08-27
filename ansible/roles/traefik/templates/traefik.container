@@ -3,7 +3,7 @@ Description=Traefik
 
 [Container]
 ContainerName=traefik
-Image=traefik:v3.7.10
+Image=traefik:v3.7.12
 NoNewPrivileges=true
 IP=10.88.0.241
 PublishPort=80:80

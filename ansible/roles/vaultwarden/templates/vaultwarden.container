@@ -6,7 +6,7 @@ BindsTo=vaultwarden_db.service
 
 [Container]
 ContainerName=vaultwarden
-Image=vaultwarden/server:1.37.1-alpine
+Image=vaultwarden/server:1.37.2-alpine
 # Share the MariaDB container's network namespace -> reach it on 127.0.0.1:3306.
 Network=container:vaultwarden_db
 User=0:0
