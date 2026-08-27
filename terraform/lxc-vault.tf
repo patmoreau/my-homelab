@@ -8,7 +8,7 @@ module "vault" {
   cpu_cores        = 1
   memory_dedicated = 512
   memory_swap      = 256
-  disk_size        = 4
+  disk_size        = 10
 
   proxmox_node    = var.proxmox_node
   dns_server      = var.dns_server
