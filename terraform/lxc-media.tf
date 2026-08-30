@@ -28,12 +28,15 @@ module "media" {
 
   mounts = [
     { host = "/mnt/containers/lxc-media", mp = "/data" },
-    { host = "/mnt/pve/nas-media/downloads", mp = "/media/downloads" },
-    { host = "/mnt/pve/nas-media/holidays", mp = "/media/holidays" },
-    { host = "/mnt/pve/nas-media/kids", mp = "/media/kids" },
-    { host = "/mnt/pve/nas-media/les-mills", mp = "/media/les-mills" },
-    { host = "/mnt/pve/nas-media/movies", mp = "/media/movies" },
-    { host = "/mnt/pve/nas-media/tv", mp = "/media/tv" },
+    # One bind mount of the whole nas-media export, not one per subdirectory. Binding the
+    # subdirectories separately made each of them its own mount inside the container, so
+    # rename(2) between them failed with EXDEV ("Invalid cross-device link") even though
+    # they live on a single QNAP filesystem — breaking every downloads -> movies/tv/kids
+    # move, in Filestash and anywhere else. Subdirectory paths are unchanged, so nothing
+    # that consumes /media/<name> needs to know.
+    { host = "/mnt/pve/nas-media", mp = "/media" },
+    # Separate NFS export, so it stays its own mount; nests under /media to keep the path
+    # stable for book-orbit. The mountpoint directory has to exist on the nas-media share.
     { host = "/mnt/pve/nas-books", mp = "/media/books" },
   ]
 

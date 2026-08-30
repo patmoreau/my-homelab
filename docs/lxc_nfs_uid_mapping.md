@@ -69,6 +69,10 @@ Restart the container after editing.
 
 NFS shares are bind-mounted into the LXC at paths like `/media/movies`. Docker containers reference those paths. Set `PUID` and `PGID` to match the QNAP service account:
 
+> Bind-mount an **export**, not its subdirectories. One `mp` per subdirectory makes each
+> one a separate mount inside the container, and `rename(2)` across separate mounts fails
+> with `EXDEV` even when they sit on the same remote filesystem.
+
 ```yaml
 environment:
   - PUID=3000
@@ -85,8 +89,7 @@ These values are set per-host in Ansible:
 NFS shares are mounted on Proxmox and bind-mounted into LXC containers via Terraform `mounts`. Example from `lxc-media.tf`:
 
 ```text
-{ host = "/mnt/pve/nas-media/movies", mp = "/media/movies", ro = true }
-{ host = "/mnt/pve/nas-media/downloads", mp = "/media/downloads" }
+{ host = "/mnt/pve/nas-media", mp = "/media" }
 { host = "/mnt/pve/nas-books", mp = "/media/books" }
 ```
 
