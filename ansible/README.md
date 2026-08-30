@@ -145,6 +145,8 @@ These must be populated to deploy all services:
 | `vault_qnap_username`                   | service-watcher                      | SSH user on QNAP                                                                                          |
 | `vault_qnap_password`                   | service-watcher                      | QNAP user password                                                                                        |
 | `vault_qnap_ssh_private_key`            | service-watcher                      | Base64-encoded `id_ed25519_qnap_monitor` private key                                                      |
+| `vault_router_username`                 | homepage                             | Read-only `rpcd` account on the Flint 2 for the `openwrt` widget                                          |
+| `vault_router_password`                 | homepage                             | Its passphrase in plaintext — the router stores only the `uhttpd -m` hash                                 |
 | `vault_transmission_user`               | transmission                         |                                                                                                           |
 | `vault_transmission_pass`               | transmission                         |                                                                                                           |
 | `vault_yubiko_client_id`                | vaultwarden                          | YubiKey OTP client ID                                                                                     |
@@ -557,28 +559,50 @@ Conventions:
   read-write access in practice. Homepage regenerates empty stubs for both files at
   startup; that is expected and harmless.
 
-### Router widget (not enabled)
+### Router widget (openwrt)
 
-The `Router` tile is a plain link. Homepage's `openwrt` widget would work on the
-Flint 2, but it needs an `rpcd` login and ACL created on the router, which is not
-Ansible-managed:
+The `Router` tile uses homepage's `openwrt` widget against ubus at
+`https://192.168.8.1:8443/ubus` — the router's own LuCI listener, which already exposes
+ubus with no uhttpd changes needed. Homepage proxies with `rejectUnauthorized: false`, so
+the router's self-signed certificate is not a problem, and going direct rather than via
+`router.moreaulab.ca` keeps an infrastructure widget off the Traefik/DNS path.
+`interfaceName: eth1` is the WAN device, which makes the widget report throughput rather
+than generic system info.
+
+Setup was done by hand on the router — it is not Ansible-managed:
 
 ```bash
-# on the router
-uhttpd -m "<passphrase>"        # prints the password hash
+uhttpd -m '<passphrase>'                      # prints the $1$ hash
 cat > /usr/share/rpcd/acl.d/homepage.json <<'JSON'
-{ "homepage": { "description": "Homepage widget", "read": { "ubus": {
+{ "homepage": { "description": "Homepage widget read-only access", "read": { "ubus": {
   "network.interface.wan": ["status"], "network.interface.lan": ["status"],
   "network.device": ["status"], "system": ["info"] } } } }
 JSON
-# then add to /etc/config/rpcd:
-#   config login
-#     option username 'homepage'
-#     option password '<hash>'
-#     list read homepage
+cat >> /etc/config/rpcd <<'EOF'
+
+config login
+	option username 'homepage'
+	option password '<the $1$ hash>'
+	list read homepage
+EOF
+/etc/init.d/rpcd restart
 ```
 
-Then add `vault_router_username` / `vault_router_password` and the widget block.
+The account is read-only and limited to those four ubus calls. The passphrase — not the
+hash — goes in the vault as `vault_router_password`; the widget authenticates with the
+plaintext.
+
+Verify with a login call; a working account returns `result: [0, {...}]`, a broken one
+`result: [6]`:
+
+```bash
+curl -sk -X POST https://192.168.8.1:8443/ubus -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"call","params":["00000000000000000000000000000000","session","login",{"username":"homepage","password":"<passphrase>"}]}'
+```
+
+> **A GL.iNet firmware upgrade wipes this.** `/usr/share/rpcd/acl.d/homepage.json` lives
+> outside `/etc`, so sysupgrade keeps the `config login` block but drops the ACL file. If
+> the widget goes blank after an upgrade, recreate the ACL file and restart `rpcd`.
 
 ## Deploy playbook
 

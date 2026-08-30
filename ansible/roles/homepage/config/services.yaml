@@ -140,8 +140,12 @@
         href: https://router.moreaulab.ca
         siteMonitor: https://router.moreaulab.ca
         description: GL.iNet Flint 2
-        # The openwrt widget needs an rpcd login and ACL file created on the router
-        # itself — see ansible/README.md for the setup — so this is a link for now.
+        widget:
+          type: openwrt
+          url: https://192.168.8.1:8443
+          username: {{HOMEPAGE_VAR_ROUTER_USERNAME}}
+          password: {{HOMEPAGE_VAR_ROUTER_PASSWORD}}
+          interfaceName: eth1
 
 - Observability:
     - Grafana:
