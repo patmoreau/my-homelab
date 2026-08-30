@@ -1,0 +1,29 @@
+- name: Remove the Filebrowser service it replaces
+  ansible.builtin.include_tasks: cleanup-filebrowser.yaml
+
+- name: Create folder
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/filestash"
+    state: directory
+    mode: "0755"
+
+- name: Create data directories
+  # /data/filestash itself must already exist — see the note in ansible/README.md: /data is
+  # a bind mount of the host's /mnt/containers/lxc-media, whose owner falls outside the
+  # container's nas_idmap range, so container root cannot create top-level entries there.
+  # state/ holds config, db, plugins, search index and certs; cache/ is TMP_PATH and lives
+  # outside state/, so it needs its own writable mount once User= is overridden.
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0777"
+  loop:
+    - /data/filestash
+    - /data/filestash/state
+    - /data/filestash/cache
+    - /data/filestash/data
+
+- name: Deploy via Podman Quadlet
+  ansible.builtin.include_tasks: podman.yaml

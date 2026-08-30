@@ -1,0 +1,29 @@
+[Unit]
+Description=Filestash
+
+[Container]
+ContainerName=filestash
+# machines/filestash only publishes a rolling :latest, so the tag is pinned to a digest
+# and Renovate bumps the digest (see the Quadlet customManager in renovate.json).
+Image=machines/filestash:latest@sha256:30074a28ceaf740592b621dfc5b501b663b64501e59c6938f3d7fa5c48730c06
+# The image runs as its own "filestash" user (1000:1000); override it so files written to
+# the NAS mount keep the same ownership Filebrowser used. /app/filestash is mode 0730
+# filestash:filestash, so the overridden uid can only exec it as a member of gid 1000 —
+# without the supplementary group the container dies instantly with
+# "exec container process `/app/filestash`: Permission denied".
+# PodmanArgs= because Quadlet GroupAdd= is unsupported on podman 4.9 (same as immich).
+User={{ nas_puid }}:{{ nas_pgid }}
+PodmanArgs=--group-add 1000
+IP=10.88.0.243
+PublishPort=8334:8334
+EnvironmentFile=/opt/docker/filestash/filestash.env
+Volume=/data/filestash/state:/app/data/state
+Volume=/data/filestash/cache:/app/data/cache
+Volume=/data/filestash/data:/mnt/local
+Volume=/media:/mnt/nas-media
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,25 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create filestash env file
+  ansible.builtin.template:
+    src: filestash.env.j2
+    dest: "{{ docker_compose_dir }}/filestash/filestash.env"
+    mode: "0600"
+  register: filestash_env
+
+- name: Deploy filestash Quadlet unit
+  ansible.builtin.template:
+    src: filestash.container.j2
+    dest: /etc/containers/systemd/filestash.container
+    mode: "0644"
+  register: filestash_quadlet
+
+- name: Start filestash
+  ansible.builtin.systemd:
+    name: filestash.service
+    state: "{{ 'restarted' if (filestash_quadlet.changed or filestash_env.changed) else 'started' }}"
+    daemon_reload: true

@@ -8,9 +8,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Bump image tags in Podman Quadlet (.container) unit templates, which Renovate's docker-compose manager does not scan",
+      "description": "Bump image tags in Podman Quadlet (.container) unit templates, which Renovate's docker-compose manager does not scan. The optional @sha256 group covers images pinned by digest (filestash only ships a rolling :latest, so the digest is what actually moves)",
       "managerFilePatterns": ["/ansible/roles/.*/templates/.*\\.container(\\.j2)?$/"],
-      "matchStrings": ["Image=(?<depName>[^:\\s]+):(?<currentValue>\\S+)"],
+      "matchStrings": ["Image=(?<depName>[^:\\s@]+):(?<currentValue>[^\\s@]+)(?:@(?<currentDigest>sha256:[a-f0-9]+))?"],
       "datasourceTemplate": "docker"
     }
   ],

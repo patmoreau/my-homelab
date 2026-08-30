@@ -22,16 +22,11 @@
           username: {{HOMEPAGE_VAR_TRANSMISSION_USERNAME}}
           password: {{HOMEPAGE_VAR_TRANSMISSION_PASSWORD}}
 
-    - Filebrowser:
-        icon: filebrowser.png
-        href: https://filebrowser.moreaulab.ca
+    - Filestash:
+        icon: filestash.png
+        href: https://docs.moreaulab.ca
         description: File Browser
-        widget:
-          type: filebrowser
-          url: https://filebrowser.moreaulab.ca
-          username: {{HOMEPAGE_VAR_FILEBROWSER_USERNAME}}
-          password: {{HOMEPAGE_VAR_FILEBROWSER_PASSWORD}}
-          # authHeader: X-My-Header # If using Proxy header authentication
+        # No homepage widget exists for Filestash, so this tile is a plain link.
 
 - Infrastructure:
     - Proxmox:

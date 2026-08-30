@@ -1,0 +1,29 @@
+# One-time teardown of Filebrowser, which Filestash replaces. Ansible does not remove a
+# Quadlet unit it no longer templates, so the old filebrowser.service would keep running
+# and holding port 8080 and IP 10.88.0.243 — the same address Filestash claims. Guarded on
+# the unit file, so it no-ops on every run after the first.
+- name: Check whether the Filebrowser Quadlet unit is still present
+  ansible.builtin.stat:
+    path: /etc/containers/systemd/filebrowser.container
+  register: filebrowser_quadlet_file
+
+- name: Tear down Filebrowser
+  when: filebrowser_quadlet_file.stat.exists
+  block:
+    - name: Stop filebrowser
+      ansible.builtin.systemd:
+        name: filebrowser.service
+        state: stopped
+      failed_when: false
+
+    - name: Remove the Filebrowser Quadlet unit and compose directory
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/containers/systemd/filebrowser.container
+        - "{{ docker_compose_dir }}/filebrowser"
+
+    - name: Reload systemd so the generated filebrowser.service disappears
+      ansible.builtin.systemd:
+        daemon_reload: true

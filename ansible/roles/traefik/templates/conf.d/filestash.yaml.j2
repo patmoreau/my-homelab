@@ -1,0 +1,15 @@
+http:
+  routers:
+    filestash:
+      rule: "Host(`docs.moreaulab.ca`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: filestash
+
+  services:
+    filestash:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-media']['ansible_host'] }}:8334"

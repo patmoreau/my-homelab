@@ -29,7 +29,7 @@
     - book-orbit
     - jellyfin
     - transmission
-    - filebrowser
+    - filestash
     - service-watcher
     - proxmox-backup-client
 

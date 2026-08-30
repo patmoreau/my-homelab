@@ -71,7 +71,9 @@ LXC namespace (pulls fail with `EACCES`; containers can't `listen()`).
 - **Image tags & Renovate.** Keep the image-bearing `.container` file plain; a `customManager`
   in `renovate.json` bumps `Image=` tags in `**/templates/*.container[.j2]`. Secrets/per-host
   values go in a separate `*.env.j2` referenced with `EnvironmentFile=` (never inline secrets
-  in the 0644 unit). See `homepage`, `grafana`.
+  in the 0644 unit). See `homepage`, `grafana`. Upstreams that only publish a rolling
+  `:latest` are pinned as `name:latest@sha256:...` — the same `customManager` captures the
+  digest and bumps that instead. See `filestash`.
 - **Static IPs.** Published-port containers pin `IP=10.88.0.x` (cadvisor `.240`, others `.241+`
   per host). netavark can leave a stale port-DNAT rule pointing at a dead IP on recreate → 502;
   a fixed IP keeps the rule valid.
@@ -85,6 +87,14 @@ LXC namespace (pulls fail with `EACCES`; containers can't `listen()`).
   so a DB/owner container publishes all the ports and the others join it with
   `Network=container:<owner>` and talk over `127.0.0.1`. See `vaultwarden`, `book-orbit`,
   `immich`, `essere`, `holefeeder`.
+- **The netns owner needs `ExecStartPre=-/usr/bin/podman rm -f <dependent>`.** Podman refuses
+  to replace a container while another container's netns still points at it, so the owner's
+  unit crash-loops on `has dependent containers which must be removed before it: <name>`.
+  `After=`/`Requires=`/`BindsTo=` on the dependent do **not** prevent it: after a host reboot
+  both container objects already exist when the owner unit first runs, and the owner is the
+  one that starts first. Tear the dependent down in the owner's `ExecStartPre` (leading `-`
+  so a missing container is not an error); `BindsTo=` then brings it back. `book-orbit` does
+  this; the other netns-share roles above have the same latent failure.
 - **GPU** (`immich`): `AddDevice=/dev/dri/renderD128` + `PodmanArgs=--group-add <gid>` (Quadlet
   `GroupAdd=` is unsupported on 4.9).
 - **Custom images.** `service-watcher` builds on-host (`podman build --network=host`);
@@ -122,8 +132,8 @@ These must be populated to deploy all services:
 | `vault_cloudflare_tunnel_token`         | cloudflare                           | Cloudflare Zero Trust tunnel token                                                                        |
 | `vault_essere_mariadb_root_password`    | essere                               |                                                                                                           |
 | `vault_essere_mariadb_password`         | essere                               |                                                                                                           |
-| `vault_filebrowser_username`            | filebrowser                          |                                                                                                           |
-| `vault_filebrowser_password`            | filebrowser                          |                                                                                                           |
+| `vault_filestash_admin_password`        | filestash                            | Admin password in plaintext — kept for recovery only, nothing reads it                                    |
+| `vault_filestash_admin_password_hash`   | filestash                            | bcrypt hash of the above, fed to `ADMIN_PASSWORD`. Generate with `htpasswd -bnBC 12 "" '<pw>'`, strip the leading `:`, and rewrite the `$2y$` prefix to `$2a$` — Go's bcrypt rejects `$2y$` |
 | `vault_grafana_admin_user`              | grafana                              |                                                                                                           |
 | `vault_grafana_admin_password`          | grafana                              |                                                                                                           |
 | `vault_grafana_alert_webhook_id`        | grafana, homeassistant               | Shared webhook id: Grafana's contact point posts to it, the HA automation listens on it                     |
@@ -437,6 +447,88 @@ by the essere repo's CI to `ghcr.io/patmoreau/essere/essere-app` on every push t
 - **Registry auth** — `essere_ghcr_pat` defaults to `vault_github_runner_pat`, which must
   carry `read:packages`. To split them, add `vault_essere_ghcr_pat` to the vault and
   uncomment the override in `host_vars/lxc-essere.yaml`.
+
+## Filestash (lxc-media)
+
+`filestash` replaced `filebrowser` as the web file manager, served at
+`docs.moreaulab.ca`. Quadlet unit on `lxc-media`, `IP=10.88.0.243`, published on `:8334`.
+
+Filestash is a frontend over storage *backends*, not a chroot browser: the container sees
+the files, but which paths are offered is configured in the admin console and stored in
+`state/config/config.json`. That file is rewritten by Filestash at runtime, so the role
+does **not** template it — it only guarantees the mounts and the persistent state.
+
+| Host path              | In container       | Holds                                              |
+| ---------------------- | ------------------ | -------------------------------------------------- |
+| `/data/filestash/state`| `/app/data/state`  | config, sqlite db, plugins, search index, certs    |
+| `/data/filestash/cache`| `/app/data/cache`  | `TMP_PATH` — lives outside `state/`, needs its own mount |
+| `/data/filestash/data` | `/mnt/local`       | local scratch                                      |
+| `/media`               | `/mnt/nas-media`   | NAS media share                                    |
+
+Two things this role got wrong on the first deploy, both worth knowing before adding any
+new service that stores data under `/data` on `lxc-media`:
+
+- **`/data/<service>` must be created on the Proxmox host, not by Ansible.** `/data` is a
+  bind mount of the host's `/mnt/containers/lxc-media`, which is owned by `103000:100100`.
+  After `nas_idmap` remaps container `3000:100` to host `3000:100`, host `103000` falls
+  outside the container's range, so `/data` shows up as `nobody` and container root cannot
+  create entries in it — `mkdir` fails with `Permission denied`. Every existing
+  `/data/*` directory was made host-side; the role's `file` tasks only ever succeeded
+  because the directory already existed. Create it once, mode `0777` so container root can
+  populate it, then let the role manage the children:
+
+  ```bash
+  # on pve-homelab
+  install -d -o 3000 -g 100 -m 0777 /mnt/containers/lxc-media/<service>
+  ```
+
+- **`PodmanArgs=--group-add 1000` is load-bearing.** The image runs as its own `filestash`
+  user (`1000:1000`) and `/app/filestash` is mode `0730 filestash:filestash`. The unit
+  overrides `User=` to `nas_puid:nas_pgid` so writes to the NAS keep the ownership
+  Filebrowser used — but uid `3000` then matches neither the owner nor the group of the
+  binary and cannot execute it, so the container dies on start with
+  ``exec container process `/app/filestash`: Permission denied``. Joining gid `1000` as a
+  supplementary group restores the group `--x` bit. `PodmanArgs=` rather than Quadlet
+  `GroupAdd=`, which podman 4.9 does not support (same workaround as `immich`).
+
+- **`APPLICATION_URL` is a bare host, not a URL.** It feeds `general.host`, and the
+  frontend's expected origin is built as `scheme + host` (https only when
+  `general.force_ssl` is on). Passing `https://docs.moreaulab.ca` yields the origin
+  `http://https://docs.moreaulab.ca`; the UI then refuses to boot and redirects to that
+  garbage. Set it to `docs.moreaulab.ca`. The client's `verify_origin` falls back to a
+  host-only comparison, so the `http://` scheme is harmless behind Traefik's TLS —
+  flip `general.force_ssl` in the admin console if you also want HSTS.
+
+Both `/app/data` subdirectories are mounted because, as a non-image user, Filestash cannot
+create them itself.
+
+### First-run setup
+
+The admin password comes from the vault via `ADMIN_PASSWORD`, so the first-visit password
+prompt is already answered — log straight into `https://docs.moreaulab.ca/admin` with
+`vault_filestash_admin_password`. Filestash re-applies the env value on **every** start, so
+changing the password in the admin console is reverted on the next restart; change it in
+the vault instead.
+
+Still manual, once:
+
+1. Admin console → **Backend** → enable **local**, then add a connection and set its
+   `path` to `/mnt/` so both `/mnt/local` and `/mnt/nas-media` are reachable. Setting
+   `path` on the connection matters: leave it blank and the login form asks the user for
+   one, and an empty answer lands them in `/app/` (Filestash's own directory).
+2. Nothing carries over from Filebrowser — users and shares start empty.
+
+> **The `local` backend has no credentials of its own — its password *is* `auth.admin`.**
+> `plg_backend_local`'s `Init` does `bcrypt.CompareHashAndPassword(Config.Get("auth.admin"), params["password"])`,
+> so users log into the file browser with `vault_filestash_admin_password`, the same secret
+> that opens `/admin`. A mismatch surfaces in the UI as the unhelpful `Invalid account`.
+> (`LOCAL_BACKEND_SECRET` would set a separate password for it; not used here.)
+
+`filestash`'s `tasks/cleanup-filebrowser.yaml` stops `filebrowser.service`, deletes its
+Quadlet unit and `/opt/docker/filebrowser`, and reloads systemd. It is guarded on the unit
+file, so it no-ops after the first run. `/data/filebrowser/` is deliberately left on disk —
+it holds only Filebrowser's own 44K user database and two empty directories, nothing
+Filestash can use. Delete it by hand once you are happy with the cutover.
 
 ## Deploy playbook
 

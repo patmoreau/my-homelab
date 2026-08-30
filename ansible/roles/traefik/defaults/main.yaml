@@ -6,7 +6,7 @@ traefik_conf_files:
   - global.yaml
   - bookorbit.yaml
   - essere.yaml
-  - filebrowser.yaml
+  - filestash.yaml
   - grafana.yaml
   - holefeeder.yaml
   - homeassistant.yaml
