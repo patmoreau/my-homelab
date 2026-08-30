@@ -11,6 +11,29 @@
           url: https://jellyfin.moreaulab.ca
           key: {{HOMEPAGE_VAR_JELLYFIN_API_KEY}}
 
+    - Immich:
+        icon: immich.png
+        href: https://immich.moreaulab.ca
+        description: Photo & Video Backup
+        proxmoxNode: homelab
+        proxmoxVMID: 116
+        proxmoxType: lxc
+        widget:
+          type: immich
+          url: https://immich.moreaulab.ca
+          key: {{HOMEPAGE_VAR_IMMICH_API_KEY}}
+          fields: ['photos', 'videos', 'storage']
+          version: 2
+
+    - Book Orbit:
+        icon: sh-bookorbit.png
+        href: https://books.moreaulab.ca
+        description: Book Manager
+        ping: books.moreaulab.ca
+        proxmoxNode: homelab
+        proxmoxVMID: 111
+        proxmoxType: lxc
+
     - Transmission:
         icon: transmission.png
         href: https://transmission.moreaulab.ca
@@ -77,30 +100,6 @@
           password: {{HOMEPAGE_VAR_QNAP_PASSWORD}}
           volume: DataVol1
           fields: ['cpuUsage', 'memUsage', 'systemTempC', 'volumeUsage']
-
-- Self-Hosted:
-    - Book Orbit:
-        icon: sh-bookorbit.png
-        href: https://books.moreaulab.ca
-        description: Book Manager
-        ping: books.moreaulab.ca
-        proxmoxNode: homelab
-        proxmoxVMID: 111
-        proxmoxType: lxc
-
-    - Immich:
-        icon: immich.png
-        href: https://immich.moreaulab.ca
-        description: Photo & Video Backup
-        proxmoxNode: homelab
-        proxmoxVMID: 116
-        proxmoxType: lxc
-        widget:
-          type: immich
-          url: https://immich.moreaulab.ca
-          key: {{HOMEPAGE_VAR_IMMICH_API_KEY}}
-          fields: ['photos', 'videos', 'storage']
-          version: 2
 
 - Observability:
     - Grafana:
