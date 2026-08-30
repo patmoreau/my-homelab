@@ -29,7 +29,7 @@
         # No homepage widget exists for Filestash, so this tile is a plain link.
 
 - Infrastructure:
-    - Proxmox:
+    - PVE:
         icon: proxmox.png
         href: https://pve.moreaulab.ca
         description: Virtual Machine Manager
@@ -40,8 +40,8 @@
           password: {{HOMEPAGE_VAR_PROXMOX_PASSWORD}}
           node: homelab
 
-    - Proxmox Backup Server:
-        icon: proxmox.png
+    - PBS:
+        icon: proxmox-backup-server.png
         href: https://pbs.moreaulab.ca
         description: Backup Server
         proxmoxNode: homelab
@@ -65,7 +65,7 @@
           type: traefik
           url: https://gateway.moreaulab.ca
 
-    - Qnap:
+    - NAS:
         icon: qnap.png
         href: https://nas.moreaulab.ca
         ping: nas.moreaulab.ca
