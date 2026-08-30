@@ -19,18 +19,15 @@ layout:
   Media:
     style: row
     columns: 4
-  Self-Hosted:
-    style: row
-    columns: 4
   Infrastructure:
     style: row
     columns: 4
   Observability:
     style: row
-    columns: 2
+    columns: 4
   Security & Network:
     style: row
-    columns: 2
+    columns: 4
   Smart Home:
     style: row
     columns: 2
