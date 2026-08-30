@@ -31,3 +31,6 @@ layout:
   Smart Home:
     style: row
     columns: 2
+  Apps:
+    style: row
+    columns: 2

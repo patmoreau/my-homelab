@@ -2,6 +2,7 @@
     - Jellyfin:
         icon: jellyfin.png
         href: https://jellyfin.moreaulab.ca
+        siteMonitor: https://jellyfin.moreaulab.ca
         description: Movies & TV Shows
         proxmoxNode: homelab
         proxmoxVMID: 111
@@ -14,6 +15,7 @@
     - Immich:
         icon: immich.png
         href: https://immich.moreaulab.ca
+        siteMonitor: https://immich.moreaulab.ca
         description: Photo & Video Backup
         proxmoxNode: homelab
         proxmoxVMID: 116
@@ -28,8 +30,8 @@
     - Book Orbit:
         icon: sh-bookorbit.png
         href: https://books.moreaulab.ca
+        siteMonitor: https://books.moreaulab.ca
         description: Book Manager
-        ping: books.moreaulab.ca
         proxmoxNode: homelab
         proxmoxVMID: 111
         proxmoxType: lxc
@@ -37,7 +39,11 @@
     - Transmission:
         icon: transmission.png
         href: https://transmission.moreaulab.ca
+        siteMonitor: https://transmission.moreaulab.ca
         description: Torrent Client
+        proxmoxNode: homelab
+        proxmoxVMID: 111
+        proxmoxType: lxc
         widget:
           type: transmission
           url: https://transmission.moreaulab.ca
@@ -48,13 +54,18 @@
     - Filestash:
         icon: filestash.png
         href: https://docs.moreaulab.ca
+        siteMonitor: https://docs.moreaulab.ca
         description: File Browser
+        proxmoxNode: homelab
+        proxmoxVMID: 111
+        proxmoxType: lxc
         # No homepage widget exists for Filestash, so this tile is a plain link.
 
 - Infrastructure:
     - PVE:
         icon: proxmox.png
         href: https://pve.moreaulab.ca
+        siteMonitor: https://pve.moreaulab.ca
         description: Virtual Machine Manager
         widget:
           type: proxmox
@@ -66,6 +77,7 @@
     - PBS:
         icon: proxmox-backup-server.png
         href: https://pbs.moreaulab.ca
+        siteMonitor: https://pbs.moreaulab.ca
         description: Backup Server
         proxmoxNode: homelab
         proxmoxVMID: 118
@@ -80,6 +92,7 @@
     - Traefik:
         icon: traefik.png
         href: https://gateway.moreaulab.ca
+        siteMonitor: https://gateway.moreaulab.ca
         description: Reverse Proxy
         proxmoxNode: homelab
         proxmoxVMID: 110
@@ -91,7 +104,7 @@
     - NAS:
         icon: qnap.png
         href: https://nas.moreaulab.ca
-        ping: nas.moreaulab.ca
+        siteMonitor: https://nas.moreaulab.ca
         description: NAS Management
         widget:
           type: qnap
@@ -104,8 +117,11 @@
     - NAS Watcher:
         icon: qnap.png
         href: https://nas.moreaulab.ca
-        ping: nas.moreaulab.ca
+        siteMonitor: https://service-watcher.moreaulab.ca/api/qnap
         description: NAS RAID Status
+        proxmoxNode: homelab
+        proxmoxVMID: 111
+        proxmoxType: lxc
         widget:
           type: customapi
           url: https://service-watcher.moreaulab.ca/api/qnap
@@ -119,10 +135,19 @@
             - field: FinishIn
               label: Finish In
 
+    - Router:
+        icon: openwrt.png
+        href: https://router.moreaulab.ca
+        siteMonitor: https://router.moreaulab.ca
+        description: GL.iNet Flint 2
+        # The openwrt widget needs an rpcd login and ACL file created on the router
+        # itself — see ansible/README.md for the setup — so this is a link for now.
+
 - Observability:
     - Grafana:
         icon: grafana.png
         href: https://grafana.moreaulab.ca
+        siteMonitor: https://grafana.moreaulab.ca
         description: Metrics Dashboard
         proxmoxNode: homelab
         proxmoxVMID: 113
@@ -137,7 +162,11 @@
     - Prometheus:
         icon: prometheus.png
         href: https://prometheus.moreaulab.ca
+        siteMonitor: https://prometheus.moreaulab.ca
         description: Metrics Server
+        proxmoxNode: homelab
+        proxmoxVMID: 113
+        proxmoxType: lxc
         widget:
           type: prometheus
           url: https://prometheus.moreaulab.ca
@@ -146,14 +175,17 @@
     - Umami:
         icon: umami.png
         href: https://analytics.moreaulab.ca
-        ping: analytics.moreaulab.ca
+        siteMonitor: https://analytics.moreaulab.ca
         description: essere.ca Analytics
+        proxmoxNode: homelab
+        proxmoxVMID: 112
+        proxmoxType: lxc
 
 - Security & Network:
     - Vaultwarden:
         icon: vaultwarden.png
         href: https://vault.moreaulab.ca
-        ping: vault.moreaulab.ca
+        siteMonitor: https://vault.moreaulab.ca
         description: Password Manager
         proxmoxNode: homelab
         proxmoxVMID: 115
@@ -184,6 +216,7 @@
     - Home Assistant:
         icon: sh-home-assistant.png
         href: https://ha.moreaulab.ca
+        siteMonitor: https://ha.moreaulab.ca
         proxmoxNode: homelab
         proxmoxVMID: 117
         proxmoxType: lxc
@@ -203,3 +236,22 @@
               value: '{state}°C'
             - template: "{{ states.switch|selectattr('state','equalto','on')|list|length }}"
               label: switches on
+
+- Apps:
+    - Essere:
+        icon: si-directus
+        href: https://essere.ca
+        siteMonitor: https://essere.ca
+        description: Public Site & CMS
+        proxmoxNode: homelab
+        proxmoxVMID: 112
+        proxmoxType: lxc
+
+    - Holefeeder:
+        icon: mdi-wallet
+        href: https://holefeeder.drifterapps.app
+        siteMonitor: https://holefeeder.drifterapps.app
+        description: Personal Finance
+        proxmoxNode: homelab
+        proxmoxVMID: 119
+        proxmoxType: lxc

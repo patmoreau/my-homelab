@@ -532,6 +532,54 @@ file, so it no-ops after the first run. `/data/filebrowser/` is deliberately lef
 it holds only Filebrowser's own 44K user database and two empty directories, nothing
 Filestash can use. Delete it by hand once you are happy with the cutover.
 
+## Homepage (lxc-tools)
+
+Dashboard config lives in `roles/homepage/config/` and is copied verbatim; only
+`homepage.env.j2` is templated, so every secret is referenced as
+`{{HOMEPAGE_VAR_*}}` and fed from the vault.
+
+Conventions:
+
+- **A group with more than two services gets `columns: 4`** in `settings.yaml`;
+  two or fewer keep `columns: 2`. The `layout:` block must list exactly the groups
+  present in `services.yaml` — a stale entry for a deleted group is silently ignored
+  and easy to miss.
+- **Health checks use `siteMonitor`, not `ping`.** `ping` is ICMP to a host and says
+  nothing about the app; `siteMonitor` does an HTTP request to the real URL and shows
+  the status plus response time. Homepage treats anything above 403 as down, so an
+  auth-gated endpoint returning 401 (Transmission) still reads as up.
+- **Anything running in an LXC carries `proxmoxNode`/`proxmoxVMID`/`proxmoxType`** so
+  the tile shows that container's CPU and memory from the Proxmox API.
+- `docker.yaml` and `kubernetes.yaml` are deliberately not managed here. The Podman
+  socket used to be mounted into the container for the Docker integration, but nothing
+  referenced it and it could only ever have seen containers on `lxc-tools` — homepage
+  itself. Note a socket bind-mounted `:ro` still allows the full API, so that mount was
+  read-write access in practice. Homepage regenerates empty stubs for both files at
+  startup; that is expected and harmless.
+
+### Router widget (not enabled)
+
+The `Router` tile is a plain link. Homepage's `openwrt` widget would work on the
+Flint 2, but it needs an `rpcd` login and ACL created on the router, which is not
+Ansible-managed:
+
+```bash
+# on the router
+uhttpd -m "<passphrase>"        # prints the password hash
+cat > /usr/share/rpcd/acl.d/homepage.json <<'JSON'
+{ "homepage": { "description": "Homepage widget", "read": { "ubus": {
+  "network.interface.wan": ["status"], "network.interface.lan": ["status"],
+  "network.device": ["status"], "system": ["info"] } } } }
+JSON
+# then add to /etc/config/rpcd:
+#   config login
+#     option username 'homepage'
+#     option password '<hash>'
+#     list read homepage
+```
+
+Then add `vault_router_username` / `vault_router_password` and the widget block.
+
 ## Deploy playbook
 
 ### Ping all hosts
