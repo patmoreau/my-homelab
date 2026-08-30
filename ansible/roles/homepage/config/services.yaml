@@ -40,17 +40,6 @@
           password: {{HOMEPAGE_VAR_PROXMOX_PASSWORD}}
           node: homelab
 
-    - Traefik:
-        icon: traefik.png
-        href: https://gateway.moreaulab.ca
-        description: Reverse Proxy
-        proxmoxNode: homelab
-        proxmoxVMID: 110
-        proxmoxType: lxc
-        widget:
-          type: traefik
-          url: https://gateway.moreaulab.ca
-
     - Proxmox Backup Server:
         icon: proxmox.png
         href: https://pbs.moreaulab.ca
@@ -64,6 +53,17 @@
           username: {{HOMEPAGE_VAR_PBS_TOKEN_ID}}
           password: {{HOMEPAGE_VAR_PBS_TOKEN_SECRET}}
           fields: ['datastore_usage', 'failed_tasks_24h', 'cpu_usage', 'memory_usage']
+
+    - Traefik:
+        icon: traefik.png
+        href: https://gateway.moreaulab.ca
+        description: Reverse Proxy
+        proxmoxNode: homelab
+        proxmoxVMID: 110
+        proxmoxType: lxc
+        widget:
+          type: traefik
+          url: https://gateway.moreaulab.ca
 
     - Qnap:
         icon: qnap.png
