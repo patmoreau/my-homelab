@@ -101,6 +101,24 @@
           volume: DataVol1
           fields: ['cpuUsage', 'memUsage', 'systemTempC', 'volumeUsage']
 
+    - NAS Watcher:
+        icon: qnap.png
+        href: https://nas.moreaulab.ca
+        ping: nas.moreaulab.ca
+        description: NAS RAID Status
+        widget:
+          type: customapi
+          url: https://service-watcher.moreaulab.ca/api/qnap
+          mappings:
+            - field: Status
+              label: Status
+            - field: LastCheck
+              label: Last Check
+            - field: Progress
+              label: Progress
+            - field: FinishIn
+              label: Finish In
+
 - Observability:
     - Grafana:
         icon: grafana.png
@@ -130,24 +148,6 @@
         href: https://analytics.moreaulab.ca
         ping: analytics.moreaulab.ca
         description: essere.ca Analytics
-
-    - Qnap Watcher:
-        icon: qnap.png
-        href: https://nas.moreaulab.ca
-        ping: nas.moreaulab.ca
-        description: QNAP Backup Status
-        widget:
-          type: customapi
-          url: https://service-watcher.moreaulab.ca/api/qnap
-          mappings:
-            - field: Status
-              label: Status
-            - field: LastCheck
-              label: Last Check
-            - field: Progress
-              label: Progress
-            - field: FinishIn
-              label: Finish In
 
 - Security & Network:
     - Vaultwarden:
