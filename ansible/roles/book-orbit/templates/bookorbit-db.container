@@ -14,6 +14,13 @@ HealthCmd=pg_isready -U bookorbit -d bookorbit
 
 [Service]
 Restart=always
+# bookorbit-app joins this container's netns, so podman refuses to replace this container
+# while the app's container object still exists — the unit then crash-loops on
+# "has dependent containers which must be removed before it: bookorbit-app". systemd's
+# ordering does not help: after a host reboot both container objects are already there when
+# this unit first runs. Remove the dependent up front; BindsTo=/After= on bookorbit.service
+# brings the app back once this is up. Leading '-' so a missing container is not an error.
+ExecStartPre=-/usr/bin/podman rm -f bookorbit-app
 
 [Install]
 WantedBy=default.target
