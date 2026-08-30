@@ -25,7 +25,7 @@ Host-level how-tos (GPU passthrough, VLANs, NFS mapping, the Proxmox host setup)
   (`pve-homelab`) is the exception — it connects as `terraform-admin` with `become`.
 - Docker services live under `/opt/docker/<service>/` on each LXC, started with
   `community.docker.docker_compose_v2`.
-- Secrets live in `ansible/group_vars/all/vault.yaml` (gitignored plaintext), committed
+- Secrets live in alphabetical order in `ansible/group_vars/all/vault.yaml` (gitignored plaintext), committed
   only in encrypted form as `vault.yaml.vault`.
 
 ## README Update Rule (Always Apply)
