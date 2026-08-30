@@ -138,6 +138,8 @@ These must be populated to deploy all services:
 | `vault_grafana_admin_password`          | grafana                              |                                                                                                           |
 | `vault_grafana_alert_webhook_id`        | grafana, homeassistant               | Shared webhook id: Grafana's contact point posts to it, the HA automation listens on it                     |
 | `vault_jellyfin_api_key`                | homepage                             | Jellyfin API key for widget                                                                               |
+| `vault_pbs_token_id`                    | homepage, proxmox-backup-server      | PBS API token id (`pmoreau@pbs!homepage`) for the `proxmoxbackupserver` widget                            |
+| `vault_pbs_token_secret`                | homepage                             | Secret shown once by `proxmox-backup-manager user generate-token`; regenerate the token if lost           |
 | `vault_proxmox_username`                | homepage                             | Proxmox API token (`user@pam!token`)                                                                      |
 | `vault_proxmox_password`                | homepage                             | Proxmox API token secret                                                                                  |
 | `vault_qnap_username`                   | service-watcher                      | SSH user on QNAP                                                                                          |

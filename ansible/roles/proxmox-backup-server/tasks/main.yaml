@@ -122,6 +122,21 @@
   changed_when: acl_result.rc == 0
   # Idempotent: re-applying the same ACL is a no-op on PBS
 
+# A token's effective privileges are the intersection of its own ACL and its user's, so
+# the Audit role has to be granted to the token itself even though the user above is
+# Admin. The token is minted by hand once — `proxmox-backup-manager user generate-token`
+# reveals the secret only at creation, so there is nothing for Ansible to reconcile
+# against; the id and secret live in the vault. Only the ACL is managed here.
+- name: Grant Audit role on / to the homepage API token
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager acl update / Audit
+      --auth-id "{{ vault_pbs_token_id }}"
+      --propagate true
+  register: pbs_token_acl_result
+  changed_when: pbs_token_acl_result.rc == 0
+  # Idempotent: re-applying the same ACL is a no-op on PBS
+
 # ---------------------------------------------------------------------------
 # TLS certificate deployment from Traefik certs-dumper
 # The traefik-certs-dumper sidecar (running on lxc-gateway) SSHes the

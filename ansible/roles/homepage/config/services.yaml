@@ -51,6 +51,20 @@
           type: traefik
           url: https://gateway.moreaulab.ca
 
+    - Proxmox Backup Server:
+        icon: proxmox.png
+        href: https://pbs.moreaulab.ca
+        description: Backup Server
+        proxmoxNode: homelab
+        proxmoxVMID: 118
+        proxmoxType: lxc
+        widget:
+          type: proxmoxbackupserver
+          url: https://pbs.moreaulab.ca
+          username: {{HOMEPAGE_VAR_PBS_TOKEN_ID}}
+          password: {{HOMEPAGE_VAR_PBS_TOKEN_SECRET}}
+          fields: ['datastore_usage', 'failed_tasks_24h', 'cpu_usage', 'memory_usage']
+
     - Qnap:
         icon: qnap.png
         href: https://nas.moreaulab.ca
