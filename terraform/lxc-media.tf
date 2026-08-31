@@ -8,7 +8,7 @@ module "media" {
   cpu_cores        = 4
   memory_dedicated = 2048
   memory_swap      = 1024
-  disk_size        = 16
+  disk_size        = 26
 
   proxmox_node    = var.proxmox_node
   dns_server      = var.dns_server

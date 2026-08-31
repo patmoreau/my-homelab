@@ -103,6 +103,20 @@ Both modules need a `terraform.tfvars`. Key values to set:
 | lxc-pbs           | 118   | 192.168.8.48 | Proxmox Backup Server + NAS mount (/mnt/nas-backups) |
 | lxc-holefeeder    | 119   | 192.168.8.49 | Holefeeder (API, Angular, Postgres, PowerSync)       |
 
+### Rootfs sizing
+
+Every container gets `disk_size = 4` (GiB) unless its `lxc-<name>.tf` says otherwise.
+Raising `disk_size` and re-applying is an **in-place** change (`pct resize` + online
+`resize2fs`) — the plan shows `~ update in-place`, not a replacement, so the container
+keeps running. Lowering it is rejected by Proxmox.
+
+**lxc-media is 26 GiB** (was 16). The rootfs holds the Podman image store *and* Jellyfin's
+`/config/{cache,log,transcodes}` bind mounts, and HLS transcode scratch is unbounded: any
+mkv whose video or audio codec the client cannot direct-play is transcoded, and the
+segments accumulate for the whole session. With only ~2 GiB free the rootfs hit ENOSPC
+about 15 minutes into a movie and Jellyfin returned `FFmpeg exited with code 187`. Keep
+several times the size of a full transcode free here.
+
 ## Workflow
 
 ```bash

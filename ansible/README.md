@@ -43,6 +43,28 @@ CI runs the same check on every pull request and every push to `main` (`.github/
 
 CI writes a throwaway `ansible/.vault_pass` because `ansible.cfg` points at that gitignored file and ansible-lint errors out when it is absent. The real vault password is never needed to lint: nothing vault-encrypted is loaded, since `group_vars/all/vault.yaml` is gitignored and `vault.yaml.vault` is not a filename Ansible picks up as vars.
 
+## Disk hygiene on the LXC rootfs
+
+Two roles keep the (small) container rootfs from filling up. Both run on **every** LXC,
+in the `Provision all LXC` and `Provision Podman LXC` plays.
+
+### The `journald` role
+Drops `/etc/systemd/journald.conf.d/00-size-limit.conf` capping the persistent journal at
+`journald_system_max_use` (200M) / `journald_system_max_file_size` (50M), then vacuums to
+the cap. Ubuntu's default is 10% of the filesystem, so an untouched host quietly hands
+1.6 GB+ of a 16–26 GiB rootfs to logs. `SystemMaxUse` alone only bites at the next
+rotation, which is why the role vacuums explicitly.
+
+### Stale Docker data after the Podman migration
+`podman/tasks/cleanup-docker.yaml` removes both `/var/lib/docker` **and**
+`/var/lib/containerd`. Purging the Docker packages leaves both behind, and on a migrated
+host they are dead data — services run from host bind mounts now. lxc-media kept 6 GB of
+containerd overlayfs snapshots for weeks after its migration; combined with an uncapped
+journal it filled the 16 GiB rootfs, and Jellyfin started failing ~15 minutes into
+playback with `No space left on device` writing HLS transcode segments
+(`FFmpeg exited with code 187`). Both removals run unconditionally, so re-running the
+play on an already-migrated host reclaims the space.
+
 ## Container runtime — every LXC runs rootful Podman
 
 **All LXCs run rootful Podman + Quadlet.** The `container_runtime` var still defaults to

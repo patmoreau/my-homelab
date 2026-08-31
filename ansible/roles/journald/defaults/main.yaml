@@ -1,0 +1,7 @@
+---
+# Hard caps for the persistent journal under /var/log/journal. Ubuntu's default is
+# "10% of the filesystem", which on the 16-32 GiB LXC rootfs means the journal is allowed
+# to grow to 1.6 GB+ — real space that then is not there for container images or, on
+# lxc-media, Jellyfin's HLS transcode segments.
+journald_system_max_use: 200M
+journald_system_max_file_size: 50M

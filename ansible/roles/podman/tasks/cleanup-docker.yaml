@@ -61,11 +61,17 @@
     chain: FORWARD
     policy: ACCEPT
 
-# Also unconditional: purging the Docker packages leaves /var/lib/docker behind (old
-# images, container json-file logs, and named volumes such as the pre-migration Prometheus
-# TSDB). On a migrated host that is dead data — data lives on host bind mounts now — and it
-# can be several GB, so drop it to reclaim the space.
-- name: Remove the stale Docker data directory
+# Also unconditional: purging the Docker packages leaves both /var/lib/docker (old images,
+# container json-file logs, and named volumes such as the pre-migration Prometheus TSDB)
+# and /var/lib/containerd (the overlayfs snapshots and content store backing those images)
+# behind. On a migrated host both are dead data — data lives on host bind mounts now — and
+# together they can be well over 10 GB. lxc-media silently kept 6 GB of containerd
+# snapshots after its migration, which filled the 16 GiB rootfs and made Jellyfin fail
+# mid-playback with "No space left on device" writing HLS transcode segments.
+- name: Remove the stale Docker and containerd data directories
   ansible.builtin.file:
-    path: /var/lib/docker
+    path: "{{ item }}"
     state: absent
+  loop:
+    - /var/lib/docker
+    - /var/lib/containerd

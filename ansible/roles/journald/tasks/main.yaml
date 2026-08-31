@@ -1,0 +1,24 @@
+---
+- name: Ensure the journald drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Cap the persistent journal size
+  ansible.builtin.template:
+    src: 00-size-limit.conf.j2
+    dest: /etc/systemd/journald.conf.d/00-size-limit.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart systemd-journald
+
+# SystemMaxUse only takes effect when journald next rotates, so a host that already blew
+# past the cap keeps its old archives indefinitely. Vacuum explicitly to enforce it now.
+- name: Vacuum the journal down to the cap
+  ansible.builtin.command: "journalctl --vacuum-size={{ journald_system_max_use }}"
+  register: journald_vacuum
+  changed_when: "'freed 0B' not in journald_vacuum.stderr"
