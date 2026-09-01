@@ -65,6 +65,25 @@ playback with `No space left on device` writing HLS transcode segments
 (`FFmpeg exited with code 187`). Both removals run unconditionally, so re-running the
 play on an already-migrated host reclaims the space.
 
+### Jellyfin hardware transcoding
+`jellyfin.container` carries `AddDevice=/dev/dri/renderD128`. Without it the container had
+no GPU node at all, so although `encoding.xml` had `HardwareAccelerationType=vaapi` and the
+LXC had `gpu_passthrough = true`, every transcode silently ran on the CPU. No
+`--group-add` is needed here (unlike `immich`): the unprivileged LXC idmap leaves
+`renderD128` as `65534:65534` mode `0666`.
+
+`jellyfin_hardware_decoding_codecs` (default `h264, hevc, vp9, av1`) replaces the
+`HardwareDecodingCodecs` block. Keep it a subset of what the device advertises:
+
+```bash
+podman exec jellyfin /usr/lib/jellyfin-ffmpeg/vainfo \
+  --display drm --device /dev/dri/renderD128
+```
+
+The Radeon 780M on `pve-homelab` decodes H264, HEVC Main, HEVC Main10, VP9 Profile0/2 and
+AV1 Profile0 — notably **not** VC1, which Jellyfin's stock list includes. A 4K HEVC to
+1080p H264 transcode runs at ~9x realtime on the iGPU.
+
 ### Jellyfin transcode scratch
 The `jellyfin` role patches four keys in `/data/jellyfin/encoding.xml` in place —
 `EnableThrottling`, `ThrottleDelaySeconds`, `EnableSegmentDeletion`, `SegmentKeepSeconds`

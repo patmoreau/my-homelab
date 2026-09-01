@@ -7,6 +7,11 @@ Image=lscr.io/linuxserver/jellyfin:10.11.11ubu2404-ls36
 IP=10.88.0.241
 PublishPort=8096:8096
 EnvironmentFile=/opt/docker/jellyfin/jellyfin.env
+# VAAPI hardware transcoding. encoding.xml has pointed at this node since the LXC got
+# gpu_passthrough, but the device was never handed to the container, so every "hardware"
+# transcode silently ran on the CPU. No --group-add here (unlike immich): the LXC idmap
+# leaves renderD128 as 65534:65534 mode 0666, so the uid the image runs as can open it.
+AddDevice=/dev/dri/renderD128
 Volume=/data/jellyfin:/config
 Volume=/opt/docker/jellyfin/config/cache:/config/cache
 Volume=/opt/docker/jellyfin/config/log:/config/log

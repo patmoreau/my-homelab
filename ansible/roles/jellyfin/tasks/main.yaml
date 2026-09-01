@@ -45,5 +45,19 @@
   when: jellyfin_encoding_xml.stat.exists
   register: jellyfin_encoding
 
+# HardwareDecodingCodecs is a nested list, so it is swapped as a whole block rather than
+# per-tag. Non-greedy and (?s) so the match stops at the first closing tag.
+- name: Pin the hardware decoding codec list in encoding.xml
+  vars:
+    jellyfin_codec_block: "<HardwareDecodingCodecs>\n{{ jellyfin_hardware_decoding_codecs
+      | map('regex_replace', '(.+)', '    <string>\\1</string>')
+      | join('\n') }}\n  </HardwareDecodingCodecs>"
+  ansible.builtin.replace:
+    path: /data/jellyfin/encoding.xml
+    regexp: '(?s)<HardwareDecodingCodecs>.*?</HardwareDecodingCodecs>'
+    replace: "{{ jellyfin_codec_block }}"
+  when: jellyfin_encoding_xml.stat.exists
+  register: jellyfin_encoding_codecs
+
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml

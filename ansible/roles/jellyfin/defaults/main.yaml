@@ -9,3 +9,17 @@ jellyfin_enable_segment_deletion: true
 # How much already-played video stays on disk. Also the window you can seek back into
 # without forcing a re-transcode, so do not set it too low.
 jellyfin_segment_keep_seconds: 720
+
+# Codecs handed to the GPU for decoding. Must be a subset of what the device actually
+# advertises — check with:
+#   podman exec jellyfin /usr/lib/jellyfin-ffmpeg/vainfo --display drm \
+#     --device /dev/dri/renderD128
+# The Radeon 780M on pve-homelab advertises VLD (decode) for H264, HEVC Main, HEVC Main10,
+# VP9 Profile0/2 and AV1 Profile0 — but *not* VC1, which Jellyfin's own default list
+# includes. The 10-bit HEVC/VP9 profiles need EnableDecodingColorDepth10{Hevc,Vp9}, which
+# Jellyfin already defaults to true.
+jellyfin_hardware_decoding_codecs:
+  - h264
+  - hevc
+  - vp9
+  - av1

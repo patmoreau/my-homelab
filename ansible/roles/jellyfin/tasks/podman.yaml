@@ -21,5 +21,6 @@
 - name: Start jellyfin
   ansible.builtin.systemd:
     name: jellyfin.service
-    state: "{{ 'restarted' if (jellyfin_quadlet.changed or jellyfin_env.changed or jellyfin_encoding.changed) else 'started' }}"
+    state: "{{ 'restarted' if (jellyfin_quadlet.changed or jellyfin_env.changed or jellyfin_encoding.changed
+                       or jellyfin_encoding_codecs.changed) else 'started' }}"
     daemon_reload: true
