@@ -65,6 +65,15 @@ playback with `No space left on device` writing HLS transcode segments
 (`FFmpeg exited with code 187`). Both removals run unconditionally, so re-running the
 play on an already-migrated host reclaims the space.
 
+### Jellyfin transcode scratch
+The `jellyfin` role patches four keys in `/data/jellyfin/encoding.xml` in place —
+`EnableThrottling`, `ThrottleDelaySeconds`, `EnableSegmentDeletion`, `SegmentKeepSeconds`
+(see `roles/jellyfin/defaults/main.yaml`). Jellyfin ships all of them off/unused, so a
+transcoded session grows `/config/transcodes` for its entire runtime and never reclaims
+anything; a single 4K transcode can outgrow the whole rootfs. The file is patched, not
+templated, because Jellyfin rewrites it whenever Playback settings are saved in the UI —
+every key not listed above survives.
+
 ## Container runtime — every LXC runs rootful Podman
 
 **All LXCs run rootful Podman + Quadlet.** The `container_runtime` var still defaults to

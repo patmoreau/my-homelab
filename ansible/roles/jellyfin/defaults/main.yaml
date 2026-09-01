@@ -1,0 +1,11 @@
+---
+# HLS transcode scratch bounds. Jellyfin ships both of these off, which means a transcoded
+# session writes segments into /config/transcodes for its whole duration and never reclaims
+# them — unbounded growth on the container rootfs. Throttling pauses ffmpeg once it is far
+# enough ahead of the player; segment deletion drops segments the client has already played.
+jellyfin_enable_throttling: true
+jellyfin_throttle_delay_seconds: 180
+jellyfin_enable_segment_deletion: true
+# How much already-played video stays on disk. Also the window you can seek back into
+# without forcing a re-transcode, so do not set it too low.
+jellyfin_segment_keep_seconds: 720

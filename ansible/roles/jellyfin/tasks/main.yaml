@@ -17,5 +17,33 @@
     - '{{ docker_compose_dir }}/jellyfin/config/log'
     - '{{ docker_compose_dir }}/jellyfin/config/transcodes'
 
+# Jellyfin owns encoding.xml and rewrites it whenever the Playback settings are saved in
+# the UI, so the file is patched in place rather than templated — everything not listed
+# below keeps whatever the UI last set. The file only exists once Jellyfin has started at
+# least once, hence the stat guard on a freshly built host.
+- name: Check whether Jellyfin has written its encoding config
+  ansible.builtin.stat:
+    path: /data/jellyfin/encoding.xml
+  register: jellyfin_encoding_xml
+
+- name: Bound the HLS transcode scratch in encoding.xml
+  ansible.builtin.replace:
+    path: /data/jellyfin/encoding.xml
+    regexp: "<{{ item.tag }}>[^<]*</{{ item.tag }}>"
+    replace: "<{{ item.tag }}>{{ item.value }}</{{ item.tag }}>"
+  loop:
+    - tag: EnableThrottling
+      value: "{{ jellyfin_enable_throttling | string | lower }}"
+    - tag: ThrottleDelaySeconds
+      value: "{{ jellyfin_throttle_delay_seconds }}"
+    - tag: EnableSegmentDeletion
+      value: "{{ jellyfin_enable_segment_deletion | string | lower }}"
+    - tag: SegmentKeepSeconds
+      value: "{{ jellyfin_segment_keep_seconds }}"
+  loop_control:
+    label: "{{ item.tag }}"
+  when: jellyfin_encoding_xml.stat.exists
+  register: jellyfin_encoding
+
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
