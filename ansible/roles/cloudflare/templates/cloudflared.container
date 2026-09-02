@@ -4,7 +4,7 @@ After=traefik.service
 
 [Container]
 ContainerName=cloudflared
-Image=cloudflare/cloudflared:2026.8.2
+Image=cloudflare/cloudflared:2026.8.3
 # The tunnel's ingress targets http://traefik; map that name to the host, where traefik
 # publishes :80 (host-gateway = the container's host). No shared network/DNS needed.
 # AddHost= via PodmanArgs for podman 4.9 Quadlet compatibility.

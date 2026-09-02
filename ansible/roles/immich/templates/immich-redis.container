@@ -5,7 +5,7 @@ BindsTo=immich-database.service
 
 [Container]
 ContainerName=immich_redis
-Image=docker.io/valkey/valkey:9.1.1-alpine
+Image=docker.io/valkey/valkey:9.1.2-alpine
 Network=container:immich_postgres
 HealthCmd=redis-cli ping || exit 1
 
