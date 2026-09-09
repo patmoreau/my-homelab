@@ -149,7 +149,9 @@ LXC namespace (pulls fail with `EACCES`; containers can't `listen()`).
   systemd timer every 5 minutes. Writes `podman_orphan_veths` and `podman_arp_hijacked_ips`
   to `/var/lib/node_exporter/textfile`, which `node_exporter` scrapes via
   `--collector.textfile.directory`. A non-zero `podman_arp_hijacked_ips` is the actionable
-  one: a live container's IP is resolving to a dead netns and that service is already down.
+  one: a live container's IP is resolving to a dead netns and that service is already down,
+  and it raises the `podman-netns-leak-hijack` alert. `podman_orphan_veths` is left
+  unalerted on purpose — inert leaks exist on several hosts and would be pure noise.
 - **Multi-container apps → netns-share.** No aardvark DNS and no Quadlet `.pod` on podman 4.9,
   so a DB/owner container publishes all the ports and the others join it with
   `Network=container:<owner>` and talk over `127.0.0.1`. See `vaultwarden`, `book-orbit`,

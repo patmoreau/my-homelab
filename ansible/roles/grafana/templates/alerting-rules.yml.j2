@@ -223,6 +223,59 @@ groups:
                       - 14
 
   - orgId: 1
+    name: Podman
+    folder: Homelab Alerts
+    interval: 1m
+    rules:
+      # Podman 4.9 can leak a container's netns when the container is recreated (a Renovate
+      # image bump is enough). Because the Quadlet units pin IP=, the replacement reuses the
+      # address the corpse still answers ARP for, so the host reaches the dead namespace and
+      # every connection to the published port is refused — while the container itself is
+      # healthy and serving fine inside its own netns. Traefik returns 502 and nothing in the
+      # container's logs explains it. Homepage hit this twice in one day, vaultwarden once.
+      #
+      # Alerting on the hijack count rather than podman_orphan_veths is deliberate: a leaked
+      # veth is inert until it claims an address a live container is using, and several
+      # harmless ones exist right now. This metric going above zero means a service is
+      # already down. Written by podman-orphan-check via the node_exporter textfile
+      # collector — see roles/podman/files/podman-orphan-check.sh.
+      - uid: podman-netns-leak-hijack
+        title: Container IP hijacked by a leaked Podman netns
+        condition: C
+        for: 5m
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: critical
+        annotations:
+          summary: {% raw %}'A leaked netns is holding a live container IP on {{ $labels.instance }}'{% endraw %}
+
+          description: {% raw %}'{{ printf "%.0f" $values.A.Value }} container IP(s) on {{ $labels.instance }} resolve to a dead network namespace, so those services refuse connections despite the containers being healthy. Compare `bridge fdb show br podman0` against the running containers MACs, then `ip link delete <orphan veth> && ip neigh flush dev podman0`. See the Static IPs notes in ansible/README.md.'{% endraw %}
+
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              refId: A
+              instant: true
+              editorMode: code
+              expr: 'podman_arp_hijacked_ips'
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+
+  - orgId: 1
     name: Backups
     folder: Homelab Alerts
     interval: 5m
