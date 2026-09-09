@@ -23,6 +23,7 @@
     owner: "{{ nas_puid }}"
     group: "{{ nas_pgid }}"
     mode: "0644"
+  register: homepage_config
 
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml

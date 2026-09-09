@@ -1,3 +1,40 @@
+# Grafana panels embedded as iframes. Source dashboard: "Proxmox via Prometheus"
+# (uid Dp7Cd57Zza, ansible/roles/grafana/files/proxmox-cluster.json).
+# var-instance is the pve job's instance label = the Proxmox host address.
+# Needs GF_SECURITY_ALLOW_EMBEDDING=true on Grafana.
+- Host Metrics:
+    - 'CPU':
+        widget:
+          type: iframe
+          src: https://grafana.moreaulab.ca/d-solo/Dp7Cd57Zza/proxmox-via-prometheus?orgId=1&panelId=23&var-instance=192.168.8.10&from=now-6h&to=now&theme=dark&refresh=1m
+          classes: h-60
+          referrerPolicy: same-origin
+          allowScrolling: 'no'
+
+    - 'Memory':
+        widget:
+          type: iframe
+          src: https://grafana.moreaulab.ca/d-solo/Dp7Cd57Zza/proxmox-via-prometheus?orgId=1&panelId=24&var-instance=192.168.8.10&from=now-6h&to=now&theme=dark&refresh=1m
+          classes: h-60
+          referrerPolicy: same-origin
+          allowScrolling: 'no'
+
+    - 'Network IO':
+        widget:
+          type: iframe
+          src: https://grafana.moreaulab.ca/d-solo/Dp7Cd57Zza/proxmox-via-prometheus?orgId=1&panelId=13&var-instance=192.168.8.10&from=now-6h&to=now&theme=dark&refresh=1m
+          classes: h-60
+          referrerPolicy: same-origin
+          allowScrolling: 'no'
+
+    - 'Disk IO':
+        widget:
+          type: iframe
+          src: https://grafana.moreaulab.ca/d-solo/Dp7Cd57Zza/proxmox-via-prometheus?orgId=1&panelId=12&var-instance=192.168.8.10&from=now-6h&to=now&theme=dark&refresh=1m
+          classes: h-60
+          referrerPolicy: same-origin
+          allowScrolling: 'no'
+
 - Media:
     - Jellyfin:
         icon: jellyfin.png
@@ -11,6 +48,11 @@
           type: jellyfin
           url: https://jellyfin.moreaulab.ca
           key: {{HOMEPAGE_VAR_JELLYFIN_API_KEY}}
+          # Jellyfin 12 dropped the legacy /emby route prefix (404) and stopped
+          # accepting the key as an api_key query param or X-Emby-Token (401).
+          # version 2 makes the widget call the unprefixed endpoints with an
+          # Authorization: MediaBrowser Token="..." header instead.
+          version: 2
 
     - Immich:
         icon: immich.png

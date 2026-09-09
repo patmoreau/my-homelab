@@ -18,8 +18,11 @@
     mode: "0644"
   register: homepage_quadlet
 
+# Homepage does not reload service/widget definitions from config/ on its own, so a
+# config change has to restart the container or the running dashboard keeps the old
+# widget setup indefinitely.
 - name: Start Homepage
   ansible.builtin.systemd:
     name: homepage.service
-    state: "{{ 'restarted' if (homepage_quadlet.changed or homepage_env.changed) else 'started' }}"
+    state: "{{ 'restarted' if (homepage_quadlet.changed or homepage_env.changed or homepage_config.changed) else 'started' }}"
     daemon_reload: true
