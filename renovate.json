@@ -16,6 +16,12 @@
   ],
   "packageRules": [
     {
+      "description": "LinuxServer.io tags look like <upstream>[ubuNNNN][-rN]-lsNNN. Renovate's default docker versioning cannot parse the ubuNNNN glued straight onto the version, so jellyfin was dropped as unversioned, and for the rest it treats the trailing -lsNNN as a compatibility suffix that must match exactly, so homeassistant and mariadb never saw an update either. This regex versioning splits the parts properly; the Ubuntu base is captured unnamed so upgrades may cross ubu2404 to ubu2604, and the ls build number orders the LinuxServer rebuilds",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["lscr.io/linuxserver/**"],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)(?:\\.(?<patch>\\d+))?(?:ubu\\d+)?(?:-r(?<revision>\\d+))?(?:-ls(?<build>\\d+))?$"
+    },
+    {
       "description": "essere and holefeeder are deployed by their own CI — Renovate must not manage their images",
       "matchFileNames": [
         "ansible/roles/essere/**",
