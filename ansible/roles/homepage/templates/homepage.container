@@ -4,10 +4,15 @@ Description=Homepage dashboard
 [Container]
 ContainerName=homepage
 Image=ghcr.io/gethomepage/homepage:v2.2.0
-# Static IP so a recreate reuses the same address: netavark can leave a stale port-DNAT
-# rule pointing at the old container IP, which shadows the new one and causes 502s.
-IP=10.88.0.241
-PublishPort=3000:3000
+# Host networking rather than a published port on the bridge. The pinned-IP approach used
+# elsewhere works around netavark leaving a stale port-DNAT rule on recreate, but it trades
+# that for a worse failure: podman 4.9 can also leak the old container's netns, and because
+# the replacement reuses the pinned address the corpse keeps answering ARP for it. The host
+# then reaches the dead netns and every connection to :3000 is refused while the container
+# itself is perfectly healthy - twice here, hence the move. Host networking has no DNAT hop
+# and no veth, so neither leak can happen. Homepage binds :3000 directly on lxc-tools, which
+# is the address Traefik and the blackbox probe already target, so nothing downstream changes.
+Network=host
 Volume=/opt/docker/homepage/config:/app/config
 Volume=/opt/docker/homepage/config/logs:/app/config/logs
 # Secrets/vars are rendered separately (Renovate keeps this plain file's Image tag bumped).

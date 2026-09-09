@@ -82,6 +82,47 @@
     state: link
     force: true
 
+# The node_exporter textfile collector reads this directory; the orphan check writes into
+# it. Created here as well as in the node_exporter role so neither role's ordering matters.
+- name: Ensure node_exporter textfile directory exists
+  ansible.builtin.file:
+    path: /var/lib/node_exporter/textfile
+    state: directory
+    mode: "0755"
+
+- name: Deploy Podman orphan-check script
+  ansible.builtin.copy:
+    src: podman-orphan-check.sh
+    dest: /usr/local/bin/podman-orphan-check
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy Podman orphan-check systemd service
+  ansible.builtin.template:
+    src: podman-orphan-check.service.j2
+    dest: /etc/systemd/system/podman-orphan-check.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Deploy Podman orphan-check systemd timer
+  ansible.builtin.template:
+    src: podman-orphan-check.timer.j2
+    dest: /etc/systemd/system/podman-orphan-check.timer
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Ensure Podman orphan-check timer is enabled and running
+  ansible.builtin.systemd:
+    name: podman-orphan-check.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
 - name: Deploy Podman prune systemd service
   ansible.builtin.template:
     src: podman-prune.service.j2

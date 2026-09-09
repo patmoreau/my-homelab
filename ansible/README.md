@@ -126,13 +126,30 @@ LXC namespace (pulls fail with `EACCES`; containers can't `listen()`).
   digest and bumps that instead. See `filestash`.
 - **Static IPs.** Published-port containers pin `IP=10.88.0.x` (cadvisor `.240`, others `.241+`
   per host). netavark can leave a stale port-DNAT rule pointing at a dead IP on recreate → 502;
-  a fixed IP keeps the rule valid.
+  a fixed IP keeps the rule valid. `essere_postgres`'s `.241` is load-bearing beyond that —
+  `umami_db_host` reaches it by address across the bridge.
+- **The pin has a failure mode of its own.** Podman 4.9 can also leak the recreated
+  container's *netns*, and because the replacement reuses the pinned address the corpse keeps
+  answering ARP for it. The host then reaches the dead netns: the container is healthy and
+  serves fine inside its own namespace, yet every connection to the published port is refused
+  and Traefik returns 502. Signature: ping to the container IP succeeds, an RST comes back in
+  microseconds, and `tcpdump` inside the container's netns sees no packets at all. Confirm by
+  comparing `bridge fdb show br podman0` against the live containers' MACs, then
+  `ip link delete <orphan veth> && ip neigh flush dev podman0`. `podman-orphan-check` (below)
+  watches for this.
 - **When published ports fail anyway, use `Network=host`.** A pinned IP does not always save
   it: `pve_exporter` reached a state where the DNAT rule was present and pointed at the right
   address, container-to-container traffic to that address worked, and yet the host could not
   reach it — so every Prometheus scrape was refused for days. Each restart appended another
   stale jump rule rather than rebuilding the set. Host networking sidesteps the DNAT hop and
-  is what `node_exporter` and `pve_exporter` now use.
+  the veth entirely, so neither leak above can occur, and is what `node_exporter`,
+  `pve_exporter` and `homepage` now use. Prefer it for any service reached only through a
+  published host port; keep the bridge for containers something addresses by container IP.
+- **`podman-orphan-check`.** Installed by the `podman` role on every Podman host, run by a
+  systemd timer every 5 minutes. Writes `podman_orphan_veths` and `podman_arp_hijacked_ips`
+  to `/var/lib/node_exporter/textfile`, which `node_exporter` scrapes via
+  `--collector.textfile.directory`. A non-zero `podman_arp_hijacked_ips` is the actionable
+  one: a live container's IP is resolving to a dead netns and that service is already down.
 - **Multi-container apps → netns-share.** No aardvark DNS and no Quadlet `.pod` on podman 4.9,
   so a DB/owner container publishes all the ports and the others join it with
   `Network=container:<owner>` and talk over `127.0.0.1`. See `vaultwarden`, `book-orbit`,

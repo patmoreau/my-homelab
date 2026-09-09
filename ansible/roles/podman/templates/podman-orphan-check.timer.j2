@@ -1,0 +1,11 @@
+[Unit]
+Description=Periodic check for leaked Podman veth/netns state
+
+[Timer]
+# Every 5 minutes. The leak appears at container-recreate time, so this only needs to be
+# faster than someone noticing a Bad Gateway by hand, not near-realtime.
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target

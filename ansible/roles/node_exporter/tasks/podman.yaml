@@ -1,3 +1,9 @@
+- name: Ensure node_exporter textfile directory exists
+  ansible.builtin.file:
+    path: /var/lib/node_exporter/textfile
+    state: directory
+    mode: "0755"
+
 - name: Ensure Quadlet directory exists
   ansible.builtin.file:
     path: /etc/containers/systemd

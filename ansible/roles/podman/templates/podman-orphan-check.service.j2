@@ -1,0 +1,7 @@
+[Unit]
+Description=Report leaked Podman veth/netns state as node_exporter metrics
+After=podman.socket
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/podman-orphan-check

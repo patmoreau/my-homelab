@@ -13,6 +13,9 @@ Volume=/:/rootfs:ro
 # at /var/run/dbus/system_bus_socket specifically, so mount it at that path rather than
 # /run — this image has no /var/run -> /run symlink.
 Volume=/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
+# Textfile collector input. Host-side writers (podman-orphan-check on the Podman hosts)
+# drop .prom files here; an empty or absent directory simply yields no extra series.
+Volume=/var/lib/node_exporter/textfile:/var/lib/node_exporter/textfile:ro
 # The systemd collector is scoped to the PBS backup units on purpose. Collecting every
 # unit would add roughly 150 series per host; Prometheus' retention budget here is tight
 # enough that /data has filled before (see the note in prometheus.container).
@@ -21,7 +24,7 @@ Volume=/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
 # as an escape sequence, and on an unknown one Quadlet drops the *entire* Exec= line
 # without an error — the container then starts with no flags at all, silently losing the
 # --path.* options too. Keep this line backslash-free.
-Exec=--path.procfs=/host/proc --path.rootfs=/rootfs --path.sysfs=/host/sys --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/) --collector.systemd --collector.systemd.unit-include=^pbs-backup[.](service|timer)$$
+Exec=--path.procfs=/host/proc --path.rootfs=/rootfs --path.sysfs=/host/sys --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/) --collector.systemd --collector.systemd.unit-include=^pbs-backup[.](service|timer)$$ --collector.textfile.directory=/var/lib/node_exporter/textfile
 
 [Service]
 Restart=always
