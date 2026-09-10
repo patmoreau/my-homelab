@@ -1,9 +1,24 @@
 http:
   routers:
+    # Unauthenticated health endpoint, carved out of the SSO'd router below. Grafana
+    # answers /api/health without a session, and both the blackbox probe and Homepage's
+    # siteMonitor call it from outside the browser, where no Auth0 cookie exists.
+    # Explicit priority: default priority is rule length, and this rule must win.
+    grafana-health:
+      rule: "Host(`grafana.moreaulab.ca`) && Path(`/api/health`)"
+      priority: 100
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: grafana
+
     grafana:
       rule: "Host(`grafana.moreaulab.ca`)"
       entryPoints:
         - websecure
+      middlewares:
+        - oauth2-auth@file
       tls:
         certResolver: cloudflare
       service: grafana

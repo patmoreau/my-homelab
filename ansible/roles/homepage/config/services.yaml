@@ -191,10 +191,14 @@
 
 
 - Observability:
+    # Grafana sits behind Auth0 SSO. Homepage calls both of these server-side, with no
+    # browser cookie, so they must not go through the authenticated router: siteMonitor
+    # uses the /api/health path exempted in traefik conf.d/grafana.yaml, and the widget
+    # talks straight to lxc-monitoring, bypassing Traefik entirely.
     - Grafana:
         icon: grafana.png
         href: https://grafana.moreaulab.ca
-        siteMonitor: https://grafana.moreaulab.ca
+        siteMonitor: https://grafana.moreaulab.ca/api/health
         description: Metrics Dashboard
         proxmoxNode: homelab
         proxmoxVMID: 113
@@ -202,7 +206,7 @@
         widget:
           type: grafana
           version: 2
-          url: https://grafana.moreaulab.ca
+          url: http://192.168.8.43:3000
           username: {{HOMEPAGE_VAR_GRAFANA_ADMIN_USER}}
           password: {{HOMEPAGE_VAR_GRAFANA_ADMIN_PASSWORD}}
 

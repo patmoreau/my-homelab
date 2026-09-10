@@ -1,0 +1,36 @@
+# Auth0 SSO front door. `oauth2-auth@file` is the middleware to hang on any router that
+# should require a login; it is applied to homepage and grafana today.
+http:
+  routers:
+    # The proxy's own hostname must stay unauthenticated — it is where the Auth0
+    # redirect lands (/oauth2/callback) and where sign-in starts.
+    oauth2-proxy:
+      rule: "Host(`{{ oauth2_proxy_domain }}`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: oauth2-proxy
+
+  middlewares:
+    # Address is the proxy root, NOT /oauth2/auth. /oauth2/auth is the nginx-style
+    # endpoint that answers a bare 401, which Traefik hands to the browser as a 401 page
+    # showing the redirect as a clickable link instead of following it. The root path
+    # returns 302-to-Auth0 when unauthenticated and 202 (static upstream) when it is,
+    # and forwardAuth passes any non-2xx response through verbatim — Location header and
+    # CSRF cookie included — so the browser redirects on its own. The return URL is built
+    # from the X-Forwarded-* headers Traefik sends, which is why REVERSE_PROXY=true.
+    oauth2-auth:
+      forwardAuth:
+        address: 'http://{{ ansible_host }}:{{ oauth2_proxy_port }}/'
+        trustForwardHeader: true
+        authResponseHeaders:
+          - X-Auth-Request-User
+          - X-Auth-Request-Email
+          - X-Auth-Request-Preferred-Username
+
+  services:
+    oauth2-proxy:
+      loadBalancer:
+        servers:
+          - url: "http://{{ ansible_host }}:{{ oauth2_proxy_port }}"

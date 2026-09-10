@@ -241,6 +241,9 @@ These must be populated to deploy all services:
 | `vault_holefeeder_powersync_admin_token`| holefeeder                           | PowerSync service admin token                                                                            |
 | `vault_nut_admin_password`              | nut_server                           | NUT `upsmon` primary password — local monitor that shuts the Proxmox host down on low battery            |
 | `vault_nut_monitor_password`            | nut_server                           | NUT `homeassistant` read-only password — used by the Home Assistant NUT integration                      |
+| `vault_oauth2_proxy_client_id`          | oauth2-proxy                         | Client ID of the Auth0 *Regular Web Application* fronting the homelab                                     |
+| `vault_oauth2_proxy_client_secret`      | oauth2-proxy                         | Its client secret                                                                                         |
+| `vault_oauth2_proxy_cookie_secret`      | oauth2-proxy                         | Session cookie encryption key (`openssl rand -base64 32 \| tr -- '+/' '-_'`); rotating it logs everyone out |
 | `vault_umami_app_secret`                | umami                                | Umami session/JWT signing secret (`openssl rand -hex 32`); rotating it logs every Umami user out          |
 
 ## Monitoring roles
@@ -449,6 +452,64 @@ what belongs in the gateway's `conf.d/`. The role renders every file in that lis
 Retiring a service therefore means two edits: delete its template and drop its entry from
 `traefik_conf_files`. Without the delete step, a decommissioned service leaves a stale
 router behind that answers `502` forever.
+
+### Auth0 SSO (`oauth2-proxy`)
+
+The `oauth2-proxy` role runs on `lxc-gateway` alongside Traefik and is the login for
+`*.moreaulab.ca`. **Currently applied to `home.moreaulab.ca` and `grafana.moreaulab.ca`
+only** — gating a further service is one line (`middlewares: [oauth2-auth@file]`) on its
+router in `conf.d/`.
+
+Flow: Traefik's `oauth2-auth@file` chain calls oauth2-proxy over `forwardAuth`; an
+unauthenticated request gets a `401`, which the `oauth2-signin` errors middleware turns
+into a redirect to Auth0. On return, oauth2-proxy sets a session cookie for the whole
+`.moreaulab.ca` site, so one login covers every gated subdomain — including the Grafana
+iframes Homepage embeds, which are same-site and therefore carry the `SameSite=lax`
+cookie. Grafana then reads the identity from `X-Auth-Request-Email` (`GF_AUTH_PROXY_*`)
+instead of prompting for its own login.
+
+> `GF_AUTH_PROXY_WHITELIST` is a security control, not a tidiness setting. Grafana also
+> listens on `192.168.8.43:3000` on the LAN, where anyone can set `X-Auth-Request-Email`
+> by hand; the whitelist restricts header trust to `lxc-gateway`. Never enable
+> `GF_AUTH_PROXY_ENABLED` without it. The Grafana admin login stays enabled as
+> break-glass, and `oauth2_proxy_allowed_emails` (role defaults) is the authorisation
+> list — Auth0 authenticates, that file decides who is let in.
+
+### Session lifetime
+
+Sliding, not fixed. `oauth2_proxy_cookie_refresh` (1 h) revalidates against Auth0 and
+re-issues the cookie with a fresh `oauth2_proxy_cookie_expire` (24 h), so `_expire` acts
+as an **idle** timeout: an active browser stays logged in indefinitely, an untouched one
+is out after a day. The hourly revalidation is also the revocation path — disabling the
+user in Auth0 ends live sessions within the hour instead of whenever the cookie lapses.
+
+This depends on Auth0 actually returning a refresh token: `offline_access` is in
+`oauth2_proxy_scope` **and** the Auth0 application must have the *Refresh Token* grant
+enabled (Application → Advanced Settings → Grant Types). Miss the grant and the scope is
+accepted with no token issued, which turns `_refresh` into a forced re-login every hour.
+
+Signing out of Grafana walks the whole chain — Grafana session, then the oauth2-proxy
+cookie, then the Auth0 tenant session — via `GF_AUTH_SIGNOUT_REDIRECT_URL`. Skipping the
+last hop would leave Auth0 logged in and make the next sign-in silent.
+
+Anything that calls a gated service **without a browser** has to route around the login:
+
+| Caller | Fix |
+| ------ | --- |
+| Homepage's `grafana` widget | Points at `http://192.168.8.43:3000`, bypassing Traefik |
+| Homepage `siteMonitor`, blackbox probe | Use `https://grafana.moreaulab.ca/api/health` — the one path exempted by the `grafana-health` router |
+
+Auth0 application settings (Regular Web Application, separate from Holefeeder's):
+
+| Field | Value |
+| ----- | ----- |
+| Allowed Callback URLs | `https://auth.moreaulab.ca/oauth2/callback` |
+| Allowed Logout URLs | `https://home.moreaulab.ca` |
+| Sign-ups | Disabled on the database connection |
+
+`auth.moreaulab.ca` needs a Cloudflare DNS record and a tunnel ingress hostname like every
+other service; its own router is deliberately **not** authenticated, since that is where
+the Auth0 callback lands.
 
 ### Entrypoints
 

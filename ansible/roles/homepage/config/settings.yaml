@@ -16,6 +16,9 @@ providers:
   weatherapi: weatherapiapikey
 
 layout:
+  Host Metrics:
+    style: row
+    columns: 2
   Media:
     style: row
     columns: 4

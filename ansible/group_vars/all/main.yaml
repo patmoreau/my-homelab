@@ -12,6 +12,14 @@ nas_pgid: 0
 timezone: 'America/Montreal'
 traefik_acme_email: 'patrick@drifterapps.com'
 pbs_domain: 'pbs.moreaulab.ca'
+# Auth0 SSO front door (oauth2-proxy on lxc-gateway). Shared because two roles need it:
+# oauth2-proxy builds its redirect URL from it, traefik points forwardAuth at it.
+oauth2_proxy_domain: 'auth.moreaulab.ca'
+oauth2_proxy_port: 4180
+# Auth0 tenant. Shared for the same reason: grafana builds its sign-out chain from it.
+oauth2_proxy_issuer_url: 'https://dev-vx1jio3owhaqdmqa.ca.auth0.com/'
+# Where a completed sign-out lands. Must be in the Auth0 app's Allowed Logout URLs.
+oauth2_proxy_logout_return_url: 'https://home.moreaulab.ca'
 proxmox_domain: 'pve.moreaulab.ca'
 proxmox_node: 'homelab'
 

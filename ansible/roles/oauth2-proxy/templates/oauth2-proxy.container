@@ -1,0 +1,21 @@
+[Unit]
+Description=OAuth2 Proxy (Auth0 SSO for *.moreaulab.ca)
+Before=traefik.service
+
+[Container]
+ContainerName=oauth2-proxy
+Image=quay.io/oauth2-proxy/oauth2-proxy:v7.7.1
+NoNewPrivileges=true
+# Host networking, not a published port on the bridge: this service is only ever reached
+# through the host port (Traefik's forwardAuth call), which is exactly the case the repo
+# convention says to keep off the bridge — no DNAT hop, no veth, so neither the stale
+# port-DNAT rule nor the leaked-netns ARP hijack can take it down.
+Network=host
+EnvironmentFile=/opt/docker/oauth2-proxy/oauth2-proxy.env
+Volume=/opt/docker/oauth2-proxy/authenticated-emails:/etc/oauth2-proxy/authenticated-emails:ro
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

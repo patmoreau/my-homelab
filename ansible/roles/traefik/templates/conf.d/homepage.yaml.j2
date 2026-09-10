@@ -4,6 +4,8 @@ http:
       rule: "Host(`home.moreaulab.ca`)"
       entryPoints:
         - websecure
+      middlewares:
+        - oauth2-auth@file
       tls:
         certResolver: cloudflare
       service: homepage

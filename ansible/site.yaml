@@ -22,6 +22,9 @@
 - name: Deploy Gateway
   hosts: lxc-gateway
   roles:
+    # oauth2-proxy before traefik: traefik's routers reference it as forwardAuth, and a
+    # router whose auth backend is not listening fails closed on every request.
+    - oauth2-proxy
     - traefik
     - cloudflare
 

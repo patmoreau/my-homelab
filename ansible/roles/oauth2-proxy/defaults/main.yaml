@@ -1,0 +1,27 @@
+---
+# oauth2_proxy_domain / _port / _issuer_url / _logout_return_url live in
+# group_vars/all/main.yaml — the traefik and grafana roles need them too, and role
+# defaults are not in scope outside their own role. The Auth0 tenant is the same one
+# Holefeeder's PowerSync validates JWTs against, but a separate Auth0 application.
+
+# Cookie is issued for the whole site so one login covers every *.moreaulab.ca
+# router that carries the oauth2-auth middleware — including the Grafana panels
+# Homepage embeds as iframes.
+oauth2_proxy_cookie_domain: '.moreaulab.ca'
+
+# Sliding session, not a hard cap. Every _refresh interval oauth2-proxy revalidates with
+# Auth0 using the refresh token and re-issues the cookie with a fresh _expire, so an
+# active browser never gets logged out and _expire behaves as an idle timeout instead.
+# Revalidation is also the revocation path: disabling the Auth0 user kicks any live
+# session within _refresh rather than at the end of the week.
+# _refresh must stay well below _expire, and offline_access below is what makes it work —
+# without a refresh token oauth2-proxy drops the session at each refresh instead,
+# turning _refresh into a forced re-login interval.
+oauth2_proxy_cookie_expire: '24h'
+oauth2_proxy_cookie_refresh: '1h'
+oauth2_proxy_scope: 'openid email profile offline_access'
+
+# Hard allowlist. Auth0 will happily authenticate anyone who signs up; this is what
+# keeps the homelab to known people. Empty list = everyone the tenant lets in.
+oauth2_proxy_allowed_emails:
+  - patrick@drifterapps.com

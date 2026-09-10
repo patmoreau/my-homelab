@@ -1,0 +1,26 @@
+---
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: '0755'
+
+- name: Create oauth2-proxy env file
+  ansible.builtin.template:
+    src: oauth2-proxy.env.j2
+    dest: '{{ docker_compose_dir }}/oauth2-proxy/oauth2-proxy.env'
+    mode: '0600'
+  register: oauth2_proxy_env
+
+- name: Deploy oauth2-proxy Quadlet unit
+  ansible.builtin.template:
+    src: oauth2-proxy.container
+    dest: /etc/containers/systemd/oauth2-proxy.container
+    mode: '0644'
+  register: oauth2_proxy_quadlet
+
+- name: Start oauth2-proxy
+  ansible.builtin.systemd:
+    name: oauth2-proxy.service
+    state: "{{ 'restarted' if (oauth2_proxy_quadlet.changed or oauth2_proxy_env.changed or oauth2_proxy_emails.changed) else 'started' }}"
+    daemon_reload: true

@@ -1,0 +1,16 @@
+---
+- name: Create directory
+  ansible.builtin.file:
+    path: '{{ docker_compose_dir }}/oauth2-proxy'
+    state: directory
+    mode: '0755'
+
+- name: Render authenticated emails allowlist
+  ansible.builtin.template:
+    src: authenticated-emails.j2
+    dest: '{{ docker_compose_dir }}/oauth2-proxy/authenticated-emails'
+    mode: '0644'
+  register: oauth2_proxy_emails
+
+- name: Deploy via Podman Quadlet
+  ansible.builtin.include_tasks: podman.yaml
