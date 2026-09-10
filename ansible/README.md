@@ -676,6 +676,16 @@ Conventions:
   two or fewer keep `columns: 2`. The `layout:` block must list exactly the groups
   present in `services.yaml` — a stale entry for a deleted group is silently ignored
   and easy to miss.
+- **Two tabs, set in `settings.yaml`.** Every group carries `tab: Daily` or
+  `tab: Monitoring` — a group without a `tab:` renders on *every* tab. Daily holds the
+  apps opened on purpose (Media, Apps, Smart Home, Vault) plus all bookmark groups;
+  Monitoring holds Host Metrics, Infrastructure, Observability and Network. The six
+  Grafana iframes are what made the single-page layout unusable, hence the split.
+- **`custom.css` is the escape hatch for anything Homepage has no setting for.**
+  Bookmarks show icon + title only because `.bookmark-description` is hidden there.
+  There is no `hideBookmarkDescriptions` setting — an unknown key is not rejected, it
+  is simply echoed back in the page props, which makes a typo look like it applied.
+  `bookmarksStyle: icons` (or per-group `iconsOnly`) is real but drops the title too.
 - **Health checks use `siteMonitor`, not `ping`.** `ping` is ICMP to a host and says
   nothing about the app; `siteMonitor` does an HTTP request to the real URL and shows
   the status plus response time. Homepage treats anything above 403 as down, so an

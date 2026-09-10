@@ -15,10 +15,8 @@
     apiKey: "{{HOMEPAGE_VAR_OPENWEATHERMAP_API_KEY}}"
     cache: 5
 
-- resources:
-    cpu: true
-    memory: true
-    disk: /
+# The header `resources` widget was dropped: it duplicated the CPU/memory gauges now
+# sitting at the top of the Monitoring tab.
 
 - search:
     provider: google

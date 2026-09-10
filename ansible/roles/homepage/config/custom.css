@@ -1,0 +1,10 @@
+/* Homepage auto-loads this file from config/. */
+
+/* Bookmarks: icon + title only.
+   Homepage renders the URL host in `.bookmark-description` and offers no setting to
+   turn it off — `bookmarksStyle: icons` / `layout.<group>.iconsOnly` drop the title
+   too, which is not what we want. Hiding the element is the only way to keep the
+   name and lose the URL. */
+.bookmark-description {
+  display: none;
+}

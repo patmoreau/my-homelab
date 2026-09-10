@@ -16,24 +16,63 @@ providers:
   weatherapi: weatherapiapikey
 
 layout:
-  Host Metrics:
-    style: row
-    columns: 2
+  # Two tabs. Groups are listed per tab in display order; every group and bookmark
+  # group must carry a `tab:` — one without it renders on every tab.
+  #
+  # Daily — what gets opened on purpose.
   Media:
     style: row
     columns: 4
-  Infrastructure:
-    style: row
-    columns: 4
-  Observability:
-    style: row
-    columns: 4
-  Security & Network:
-    style: row
-    columns: 4
-  Smart Home:
-    style: row
-    columns: 2
+    tab: Daily
   Apps:
     style: row
     columns: 2
+    tab: Daily
+  Smart Home:
+    style: row
+    columns: 2
+    tab: Daily
+  Vault:
+    style: row
+    columns: 2
+    tab: Daily
+  AI:
+    tab: Daily
+  Finance:
+    tab: Daily
+  Productivity:
+    tab: Daily
+  Developer:
+    tab: Daily
+  Social:
+    tab: Daily
+  Entertainment:
+    tab: Daily
+  Books:
+    tab: Daily
+  Arg:
+    tab: Daily
+
+  # Monitoring — what gets opened when something is wrong. The six Grafana iframes
+  # live here: they were the bulk of the clutter on the landing page.
+  Host Metrics:
+    style: row
+    columns: 2
+    tab: Monitoring
+  Infrastructure:
+    style: row
+    columns: 4
+    tab: Monitoring
+  Observability:
+    style: row
+    columns: 4
+    tab: Monitoring
+  Network:
+    style: row
+    columns: 2
+    tab: Monitoring
+
+# Tiles in a row share a height instead of each sizing to its own content.
+useEqualHeights: true
+# Boxed header keeps the tab strip visually separate from the info widgets.
+headerStyle: boxed

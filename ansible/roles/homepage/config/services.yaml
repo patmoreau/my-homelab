@@ -3,6 +3,25 @@
 # var-instance is the pve job's instance label = the Proxmox host address.
 # Needs GF_SECURITY_ALLOW_EMBEDDING=true on Grafana.
 - Host Metrics:
+    # Gauges first: current state at a glance, on a shorter row than the histories
+    # below (a gauge in h-60 is mostly empty space). h-48 and not less — at h-40 the
+    # bottom of the gauge arc is clipped by the iframe edge.
+    - 'Current CPU':
+        widget:
+          type: iframe
+          src: https://grafana.moreaulab.ca/d-solo/Dp7Cd57Zza/proxmox-via-prometheus?orgId=1&panelId=7&var-instance=192.168.8.10&from=now-6h&to=now&theme=dark&refresh=1m
+          classes: h-48
+          referrerPolicy: same-origin
+          allowScrolling: 'no'
+
+    - 'Current Memory':
+        widget:
+          type: iframe
+          src: https://grafana.moreaulab.ca/d-solo/Dp7Cd57Zza/proxmox-via-prometheus?orgId=1&panelId=8&var-instance=192.168.8.10&from=now-6h&to=now&theme=dark&refresh=1m
+          classes: h-48
+          referrerPolicy: same-origin
+          allowScrolling: 'no'
+
     - 'CPU':
         widget:
           type: iframe
@@ -232,7 +251,9 @@
         proxmoxVMID: 112
         proxmoxType: lxc
 
-- Security & Network:
+# Vaultwarden is a daily-use app, Cloudflare and Tailscale are plumbing you only look
+# at when something breaks — hence two groups, one per tab (see settings.yaml layout).
+- Vault:
     - Vaultwarden:
         icon: vaultwarden.png
         href: https://vault.moreaulab.ca
@@ -242,6 +263,7 @@
         proxmoxVMID: 115
         proxmoxType: lxc
 
+- Network:
     - Cloudflare:
         icon: cloudflare.png
         href: https://dash.cloudflare.com
