@@ -9,9 +9,15 @@ background:
   # is also what shows if custom.js never runs. The rotation itself is in custom.js —
   # this setting takes one still URL.
   image: /images/space/01-cosmic-cliffs.png
-  blur: sm # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
-  saturate: 50 # 0, 50, 100... see https://tailwindcss.com/docs/backdrop-saturate
-  brightness: 50 # 0, 50, 75... see https://tailwindcss.com/docs/backdrop-brightness
+  # Tuned for the space pool, which starts far darker than the landscape photo it
+  # replaced. `blur:` and `saturate:` are deliberately absent — an unset key adds no
+  # backdrop class at all. blur-sm smeared the stars into mud, and saturate-50 drained
+  # exactly the colour that makes a nebula worth looking at; together with
+  # brightness-50 they left the page reading as plain black.
+  # What remains is one stop of dimming for text contrast: brightness-75 on the
+  # backdrop plus a 50% flat overlay. Checked against 01-cosmic-cliffs, the brightest
+  # image in the pool, so the darker nebulae have headroom.
+  brightness: 75 # 0, 50, 75... see https://tailwindcss.com/docs/backdrop-brightness
   opacity: 50 # 0-100
 
 providers:
