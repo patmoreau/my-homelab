@@ -5,6 +5,19 @@
     state: directory
     mode: '0755'
 
+- name: Deploy session store Quadlet unit
+  ansible.builtin.template:
+    src: oauth2-proxy-session-store.container
+    dest: /etc/containers/systemd/oauth2-proxy-session-store.container
+    mode: '0644'
+  register: oauth2_proxy_session_store_quadlet
+
+- name: Start session store
+  ansible.builtin.systemd:
+    name: oauth2-proxy-session-store.service
+    state: "{{ 'restarted' if oauth2_proxy_session_store_quadlet.changed else 'started' }}"
+    daemon_reload: true
+
 - name: Create oauth2-proxy env file
   ansible.builtin.template:
     src: oauth2-proxy.env.j2
@@ -22,5 +35,10 @@
 - name: Start oauth2-proxy
   ansible.builtin.systemd:
     name: oauth2-proxy.service
-    state: "{{ 'restarted' if (oauth2_proxy_quadlet.changed or oauth2_proxy_env.changed or oauth2_proxy_emails.changed) else 'started' }}"
+    state: >-
+      {{ 'restarted'
+         if (oauth2_proxy_quadlet.changed or oauth2_proxy_env.changed
+             or oauth2_proxy_emails.changed
+             or oauth2_proxy_session_store_quadlet.changed)
+         else 'started' }}
     daemon_reload: true

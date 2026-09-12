@@ -468,6 +468,20 @@ iframes Homepage embeds, which are same-site and therefore carry the `SameSite=l
 cookie. Grafana then reads the identity from `X-Auth-Request-Email` (`GF_AUTH_PROXY_*`)
 instead of prompting for its own login.
 
+Sessions are held server-side in a loopback-only Valkey container
+(`oauth2-proxy-session-store`, `oauth2_proxy_session_store_port`), so the cookie carries
+a short ticket instead of the Auth0 tokens. With the cookie store it held the ID and
+refresh tokens, grew past 4 KB and split across `_oauth2_proxy_0/_1`, and — being scoped
+to the whole site — the browser sent those kilobytes to *every* `*.moreaulab.ca` host,
+gated or not. `router.moreaulab.ca` answered `400 Request Header Or Cookie Too Large`,
+because the GL.iNet nginx rejects a `Cookie` header over ~2 KB; reaching the router by IP
+worked, since the cookie is scoped by name. Any host on the domain that runs a server
+with small header buffers hits this, so keep the session out of the cookie.
+
+> The store is deliberately not persisted (`--save "" --appendonly no`). Restarting it
+> drops live sessions, which the browser resolves with a silent Auth0 redirect because
+> the tenant session still stands — no password prompt, nothing to back up.
+
 > `GF_AUTH_PROXY_WHITELIST` is a security control, not a tidiness setting. Grafana also
 > listens on `192.168.8.43:3000` on the LAN, where anyone can set `X-Auth-Request-Email`
 > by hand; the whitelist restricts header trust to `lxc-gateway`. Never enable

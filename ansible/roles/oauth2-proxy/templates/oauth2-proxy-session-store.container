@@ -1,0 +1,22 @@
+[Unit]
+Description=Valkey session store for oauth2-proxy
+Before=oauth2-proxy.service
+
+[Container]
+ContainerName=oauth2-proxy-session-store
+Image=docker.io/valkey/valkey:8.1-alpine
+NoNewPrivileges=true
+# Host networking to match oauth2-proxy, which reaches it over the loopback. The bind
+# below keeps it on 127.0.0.1, so nothing on the LAN can read the session store even
+# though the container shares the host's network namespace.
+Network=host
+# Sessions only: no RDB snapshots, no AOF. Losing the store logs sessions out, which the
+# browser resolves with a silent Auth0 redirect (the tenant session is still valid), so
+# durability buys nothing here and a stale dump file on disk would only confuse.
+Exec=valkey-server --bind 127.0.0.1 --port {{ oauth2_proxy_session_store_port }} --save "" --appendonly no
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

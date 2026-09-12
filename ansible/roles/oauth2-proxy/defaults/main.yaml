@@ -9,6 +9,10 @@
 # Homepage embeds as iframes.
 oauth2_proxy_cookie_domain: '.moreaulab.ca'
 
+# Loopback-only Valkey holding the sessions, so the site-wide cookie stays a small
+# ticket instead of carrying the Auth0 tokens to every subdomain.
+oauth2_proxy_session_store_port: 6379
+
 # Sliding session, not a hard cap. Every _refresh interval oauth2-proxy revalidates with
 # Auth0 using the refresh token and re-issues the cookie with a fresh _expire, so an
 # active browser never gets logged out and _expire behaves as an idle timeout instead.

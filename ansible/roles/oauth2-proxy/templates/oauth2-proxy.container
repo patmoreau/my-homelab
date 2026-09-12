@@ -1,6 +1,10 @@
 [Unit]
 Description=OAuth2 Proxy (Auth0 SSO for *.moreaulab.ca)
 Before=traefik.service
+# Sessions live in the store, so a proxy that starts first has nowhere to read or write
+# them and answers the forwardAuth probe with a 500 until the pool recovers.
+Requires=oauth2-proxy-session-store.service
+After=oauth2-proxy-session-store.service
 
 [Container]
 ContainerName=oauth2-proxy
