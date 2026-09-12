@@ -8,3 +8,13 @@
 .bookmark-description {
   display: none;
 }
+
+/* Grafana iframes: panel title only.
+   A `d-solo` panel draws its own title inside the embed, and Grafana offers no URL
+   parameter to suppress it, so Homepage's service name rendered the same text a second
+   time right above it. Keyed on the widget being an iframe rather than on the group, so
+   any future embed behaves the same. Hides the whole `.service-title` row — these
+   entries carry no icon or href, so nothing else lives in it. */
+li.service:has(.service-block iframe) .service-title {
+  display: none;
+}

@@ -700,6 +700,10 @@ Conventions:
   There is no `hideBookmarkDescriptions` setting — an unknown key is not rejected, it
   is simply echoed back in the page props, which makes a typo look like it applied.
   `bookmarksStyle: icons` (or per-group `iconsOnly`) is real but drops the title too.
+  It also hides the service name on the Grafana iframe tiles: a `d-solo` panel draws
+  its own title inside the embed and Grafana has no URL parameter to suppress it, so
+  the name showed the same text twice. The rule keys on the widget being an iframe,
+  not on the group, so a new embed inherits it.
 - **Health checks use `siteMonitor`, not `ping`.** `ping` is ICMP to a host and says
   nothing about the app; `siteMonitor` does an HTTP request to the real URL and shows
   the status plus response time. Homepage treats anything above 403 as down, so an
