@@ -46,11 +46,16 @@ li.service:has(.service-block iframe) .service-title {
   pointer-events: none;
 }
 
-/* The grid. Offset by exactly one cell and translated by exactly one cell, so the crawl
-   loops seamlessly instead of sliding a visible edge into frame. Masked to fade out
-   towards the bottom, where the footer and the tab strip need a calm backdrop. */
+/* The grid. The crawl shifts the pattern by exactly one cell rather than moving the
+   layer, so it loops seamlessly with the layer pinned at `inset: 0`. It must stay
+   pinned: `#inner_wrapper` has a backdrop filter, which makes it the containing block
+   for this fixed pseudo-element, so anything sticking out of it — a negative inset, a
+   translate — becomes scrollable overflow and puts a scrollbar on the page. That costs
+   a repaint per frame instead of riding the compositor, which is a fair trade for two
+   gradients moving 64px over a minute and a half. Masked to fade out towards the
+   bottom, where the footer and the tab strip need a calm backdrop. */
 #inner_wrapper::before {
-  inset: -64px;
+  inset: 0;
   background-image:
     linear-gradient(to right, rgb(148 163 184 / 0.1) 1px, transparent 1px),
     linear-gradient(to bottom, rgb(148 163 184 / 0.1) 1px, transparent 1px);
@@ -61,8 +66,9 @@ li.service:has(.service-block iframe) .service-title {
 }
 
 /* The sweep. Fades in and out at the ends so the loop has no jump cut, and only
-   `transform`/`opacity` animate, which keeps it on the compositor — no repaint per
-   frame, nothing measurable on a phone. */
+   `transform`/`opacity` animate, which keeps it on the compositor. Its bleed is safe
+   where the grid's was not: `#background` has no filter, so this one's containing block
+   is the viewport, and fixed boxes there are left out of scrollable overflow. */
 #background::after {
   inset: -25% -60%;
   background-image: linear-gradient(
@@ -76,7 +82,7 @@ li.service:has(.service-block iframe) .service-title {
 
 @keyframes homelab-grid-crawl {
   to {
-    transform: translate3d(64px, 64px, 0);
+    background-position: 64px 64px;
   }
 }
 
