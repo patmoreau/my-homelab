@@ -19,27 +19,41 @@ li.service:has(.service-block iframe) .service-title {
   display: none;
 }
 
-/* Live background: a faint perspective-less grid crawling under a slow light sweep.
-   Both layers are pseudo-elements of `#background`, the fixed full-screen div Homepage
-   paints the wallpaper into (`z-index: 0; pointer-events: none`), so they sit above the
-   photo and can never cover a tile no matter how the layout changes. There is no
-   `background:` setting for this — the only motion Homepage supports natively is none. */
+/* Live background: a faint grid crawling under a slow light sweep. Homepage's
+   `background:` takes a still image and nothing else, so the motion lives here.
 
-#background::before,
+   Layering is the whole trick. Homepage paints the wallpaper into `#background`
+   (fixed, `z-index: 0`) and then puts `#inner_wrapper` over it carrying
+   `backdrop-blur-sm backdrop-saturate-50 backdrop-brightness-50` from the
+   `background:` block. That backdrop filter applies to everything behind it, so a
+   pseudo-element on `#background` gets blurred and dimmed by half — which is exactly
+   how the first attempt at this ended up invisible.
+
+   So the two layers go on different sides of the filter:
+     - the grid on `#inner_wrapper::before` — above the filter, and being the element's
+       first child it still paints below every tile, which no z-index juggling can
+       promise as reliably;
+     - the sweep on `#background::after` — behind the filter on purpose, since a light
+       band wants to be soft. Its alpha has to be an order of magnitude higher than it
+       looks: `brightness-50` halves it and the blur spreads it, so 0.06 there was
+       invisible on the page while 0.45 reads as the faint glow intended.
+   Both are `position: fixed`, so neither scrolls with the tile list. */
+
+#inner_wrapper::before,
 #background::after {
   content: '';
-  position: absolute;
+  position: fixed;
   pointer-events: none;
 }
 
-/* The grid. Inset by exactly one cell and translated by exactly one cell, so the crawl
+/* The grid. Offset by exactly one cell and translated by exactly one cell, so the crawl
    loops seamlessly instead of sliding a visible edge into frame. Masked to fade out
    towards the bottom, where the footer and the tab strip need a calm backdrop. */
-#background::before {
+#inner_wrapper::before {
   inset: -64px;
   background-image:
-    linear-gradient(to right, rgb(148 163 184 / 0.13) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(148 163 184 / 0.13) 1px, transparent 1px);
+    linear-gradient(to right, rgb(148 163 184 / 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(148 163 184 / 0.1) 1px, transparent 1px);
   background-size: 64px 64px;
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 90%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 90%);
@@ -54,7 +68,7 @@ li.service:has(.service-block iframe) .service-title {
   background-image: linear-gradient(
     100deg,
     transparent 42%,
-    rgb(56 189 248 / 0.06) 50%,
+    rgb(56 189 248 / 0.45) 50%,
     transparent 58%
   );
   animation: homelab-scan 26s ease-in-out infinite;
@@ -84,7 +98,7 @@ li.service:has(.service-block iframe) .service-title {
 /* Motion is decoration here, so it goes away entirely when the visitor asks for less.
    The grid stays — it is static once the animation is off. */
 @media (prefers-reduced-motion: reduce) {
-  #background::before {
+  #inner_wrapper::before {
     animation: none;
   }
 
