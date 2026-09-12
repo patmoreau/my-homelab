@@ -18,3 +18,77 @@
 li.service:has(.service-block iframe) .service-title {
   display: none;
 }
+
+/* Live background: a faint perspective-less grid crawling under a slow light sweep.
+   Both layers are pseudo-elements of `#background`, the fixed full-screen div Homepage
+   paints the wallpaper into (`z-index: 0; pointer-events: none`), so they sit above the
+   photo and can never cover a tile no matter how the layout changes. There is no
+   `background:` setting for this — the only motion Homepage supports natively is none. */
+
+#background::before,
+#background::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+/* The grid. Inset by exactly one cell and translated by exactly one cell, so the crawl
+   loops seamlessly instead of sliding a visible edge into frame. Masked to fade out
+   towards the bottom, where the footer and the tab strip need a calm backdrop. */
+#background::before {
+  inset: -64px;
+  background-image:
+    linear-gradient(to right, rgb(148 163 184 / 0.13) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(148 163 184 / 0.13) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 90%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 90%);
+  animation: homelab-grid-crawl 90s linear infinite;
+}
+
+/* The sweep. Fades in and out at the ends so the loop has no jump cut, and only
+   `transform`/`opacity` animate, which keeps it on the compositor — no repaint per
+   frame, nothing measurable on a phone. */
+#background::after {
+  inset: -25% -60%;
+  background-image: linear-gradient(
+    100deg,
+    transparent 42%,
+    rgb(56 189 248 / 0.06) 50%,
+    transparent 58%
+  );
+  animation: homelab-scan 26s ease-in-out infinite;
+}
+
+@keyframes homelab-grid-crawl {
+  to {
+    transform: translate3d(64px, 64px, 0);
+  }
+}
+
+@keyframes homelab-scan {
+  0% {
+    transform: translate3d(-45%, 0, 0);
+    opacity: 0;
+  }
+  12%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(45%, 0, 0);
+    opacity: 0;
+  }
+}
+
+/* Motion is decoration here, so it goes away entirely when the visitor asks for less.
+   The grid stays — it is static once the animation is off. */
+@media (prefers-reduced-motion: reduce) {
+  #background::before {
+    animation: none;
+  }
+
+  #background::after {
+    display: none;
+  }
+}

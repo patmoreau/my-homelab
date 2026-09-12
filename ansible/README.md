@@ -704,6 +704,11 @@ Conventions:
   its own title inside the embed and Grafana has no URL parameter to suppress it, so
   the name showed the same text twice. The rule keys on the widget being an iframe,
   not on the group, so a new embed inherits it.
+  The live background is the same escape hatch: `background:` takes a still image only,
+  so the crawling grid and the light sweep are pseudo-elements of `#background`, the
+  fixed wallpaper div. Anchoring them there — rather than on `body` — keeps them below
+  every tile by construction, and both animate `transform`/`opacity` only, so they stay
+  on the compositor. They honour `prefers-reduced-motion`.
 - **Health checks use `siteMonitor`, not `ping`.** `ping` is ICMP to a host and says
   nothing about the app; `siteMonitor` does an HTTP request to the real URL and shows
   the status plus response time. Homepage treats anything above 403 as down, so an
