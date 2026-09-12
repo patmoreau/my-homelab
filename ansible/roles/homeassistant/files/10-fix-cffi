@@ -1,8 +1,45 @@
 #!/bin/sh
-# The container is recreated fresh from the image on every restart (Podman Quadlet uses
-# --rm), so Home Assistant re-runs its component dependency install each start. During
-# that upgrade cffi's python package and its compiled backend briefly disagree, and any
-# integration importing cffi (e.g. wyzeapi via wyzeapy -> pycryptodome/cryptography)
-# fails with "Version mismatch". Upgrade cffi to a single consistent version here, before
-# HA loads integrations, so HA finds it already satisfied and skips the racy upgrade.
-/usr/local/bin/pip install --upgrade --no-cache-dir cffi
+# The container is recreated fresh from the image on every restart, so Home Assistant
+# re-runs its component dependency install each start. Upgrading cffi to the latest
+# release here used to fight that install: HA pins cffi in package_constraints.txt and
+# reinstalls the pinned version, leaving the compiled _cffi_backend extension and the
+# cffi Python package on different versions. Any integration importing cffi (e.g.
+# wyzeapi via wyzeapy -> pycryptodome) then fails with "Version mismatch".
+#
+# Instead, reinstall exactly the version HA pins, and only when the two halves already
+# disagree, so there is no version churn for HA to undo.
+set -e
+
+SITE_PACKAGES=$(python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
+CONSTRAINTS="${SITE_PACKAGES}/homeassistant/package_constraints.txt"
+
+if [ ! -f "$CONSTRAINTS" ]; then
+    echo "[10-fix-cffi] no package_constraints.txt at ${CONSTRAINTS}, skipping"
+    exit 0
+fi
+
+PIN=$(sed -n 's/^cffi==\([0-9][^ ;]*\).*$/\1/p' "$CONSTRAINTS" | head -n1)
+if [ -z "$PIN" ]; then
+    echo "[10-fix-cffi] cffi not pinned by Home Assistant, skipping"
+    exit 0
+fi
+
+STATE=$(python - <<'PY'
+try:
+    import cffi, _cffi_backend
+except Exception as err:  # noqa: BLE001 - any import failure means "reinstall"
+    print("broken", err)
+else:
+    print(cffi.__version__, _cffi_backend.__version__)
+PY
+)
+PKG_VERSION=$(echo "$STATE" | cut -d' ' -f1)
+BACKEND_VERSION=$(echo "$STATE" | cut -d' ' -f2)
+
+if [ "$PKG_VERSION" = "$PIN" ] && [ "$BACKEND_VERSION" = "$PIN" ]; then
+    echo "[10-fix-cffi] cffi ${PIN} already consistent"
+    exit 0
+fi
+
+echo "[10-fix-cffi] cffi package=${PKG_VERSION} backend=${BACKEND_VERSION}, reinstalling ${PIN}"
+/usr/local/bin/pip install --force-reinstall --no-deps --no-cache-dir "cffi==${PIN}"
