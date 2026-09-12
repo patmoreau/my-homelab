@@ -1,0 +1,39 @@
+---
+# Rotating space wallpaper. Homepage's `background:` setting takes a single still URL,
+# so the pool lives here and `custom.js` picks from it by clock — see the README.
+#
+# Images are NASA/ESA public domain, downloaded once to the LXC rather than hotlinked:
+# the dashboard then paints without reaching the internet, and a URL going stale
+# upstream cannot blank the background. Every entry is at least 1920px wide and no
+# narrower than square, because the layer is `background-size: cover` and a portrait
+# image would crop to a sliver of itself.
+homepage_background_images:
+  - file: '01-cosmic-cliffs.png'
+    url: 'https://images-assets.nasa.gov/image/carina_nebula/carina_nebula~orig.png'
+    credit: 'Cosmic Cliffs, Carina Nebula — NASA/ESA/CSA/STScI (JWST)'
+  - file: '02-southern-ring-nebula.png'
+    url: 'https://images-assets.nasa.gov/image/southern_ring_nebula/southern_ring_nebula~orig.png'
+    credit: 'Southern Ring Nebula — NASA/ESA/CSA/STScI (JWST)'
+  - file: '03-lagoon-nebula.jpg'
+    url: 'https://images-assets.nasa.gov/image/GSFC_20171208_Archive_e001955/GSFC_20171208_Archive_e001955~orig.jpg'
+    credit: 'Lagoon Nebula — NASA/ESA (Hubble)'
+  - file: '04-galactic-center.jpg'
+    url: 'https://images-assets.nasa.gov/image/PIA17009/PIA17009~orig.jpg'
+    credit: 'Centre of the Milky Way — NASA/JPL-Caltech (Spitzer)'
+  - file: '05-crab-nebula.jpg'
+    url: 'https://images-assets.nasa.gov/image/PIA03606/PIA03606~orig.jpg'
+    credit: 'Crab Nebula — NASA/ESA (Hubble)'
+  - file: '06-pillars-of-creation.jpg'
+    url: 'https://images-assets.nasa.gov/image/GSFC_20171208_Archive_e000842/GSFC_20171208_Archive_e000842~large.jpg'
+    credit: 'Pillars of Creation, Eagle Nebula — NASA/ESA (Hubble)'
+  - file: '07-monkey-head-nebula.jpg'
+    url: 'https://images-assets.nasa.gov/image/PIA19836/PIA19836~orig.jpg'
+    credit: 'Monkey Head Nebula — NASA/ESA (Hubble)'
+  - file: '08-heart-and-soul.jpg'
+    url: 'https://images-assets.nasa.gov/image/PIA13112/PIA13112~large.jpg'
+    credit: 'Heart and Soul Nebulae — NASA/JPL-Caltech (WISE)'
+
+# How long each image stays up. Eight images at three hours each is a full day per
+# cycle. The block is derived from the wall clock, not from page load, so every browser
+# showing the dashboard agrees on which image is current.
+homepage_background_rotate_hours: 3

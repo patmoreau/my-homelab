@@ -25,5 +25,35 @@
     mode: "0644"
   register: homepage_config
 
+- name: Create background image directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/homepage/images/space"
+    state: directory
+    mode: "0755"
+
+# force: false so a deploy with NASA unreachable is a no-op rather than a failure — the
+# files only need fetching once, and they are served from the LXC from then on.
+- name: Download space backgrounds
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    dest: "{{ docker_compose_dir }}/homepage/images/space/{{ item.file }}"
+    mode: "0644"
+    force: false
+    timeout: 60
+  loop: "{{ homepage_background_images }}"
+  loop_control:
+    label: "{{ item.file }}"
+
+# Rendered rather than copied with the rest of config/, so the rotation list is the same
+# variable the download loop above uses.
+- name: Render background rotation script
+  ansible.builtin.template:
+    src: custom.js.j2
+    dest: "{{ docker_compose_dir }}/homepage/config/custom.js"
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0644"
+  register: homepage_custom_js
+
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml

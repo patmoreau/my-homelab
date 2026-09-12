@@ -24,5 +24,9 @@
 - name: Start Homepage
   ansible.builtin.systemd:
     name: homepage.service
-    state: "{{ 'restarted' if (homepage_quadlet.changed or homepage_env.changed or homepage_config.changed) else 'started' }}"
+    state: >-
+      {{ 'restarted'
+         if (homepage_quadlet.changed or homepage_env.changed
+             or homepage_config.changed or homepage_custom_js.changed)
+         else 'started' }}
     daemon_reload: true

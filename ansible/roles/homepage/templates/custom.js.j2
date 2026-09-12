@@ -1,0 +1,58 @@
+// Rotating space wallpaper. Rendered from templates/custom.js.j2 — the image pool is
+// `homepage_background_images` in the role defaults, so the list of files that exist on
+// disk and the list this script rotates through cannot drift apart.
+//
+// Homepage's `background:` setting takes one still URL and offers no rotation, and
+// `custom.css` cannot read a clock, so the swap happens here. Homepage loads this file
+// through /api/config/custom.js after hydration.
+(() => {
+  const IMAGES = [
+{% for image in homepage_background_images %}
+    '/images/space/{{ image.file }}', // {{ image.credit }}
+{% endfor %}
+  ];
+  const PERIOD_MS = {{ homepage_background_rotate_hours }} * 60 * 60 * 1000;
+
+  // Derived from the wall clock rather than from page load, so a browser opened just now
+  // and one left running for a week show the same image, and it changes on the hour
+  // boundary instead of drifting per tab.
+  const currentImage = () => IMAGES[Math.floor(Date.now() / PERIOD_MS) % IMAGES.length];
+
+  // Homepage renders `background-image: linear-gradient(<dim>, <dim>), url(<image>)` as
+  // an inline style, the gradient being the `opacity:` from settings.yaml. Reuse
+  // whatever it rendered instead of restating the value here, so changing `opacity:`
+  // keeps working. The fallback matters only if that markup ever changes shape.
+  const DEFAULT_DIM =
+    'linear-gradient(rgb(var(--bg-color) / 0.5), rgb(var(--bg-color) / 0.5))';
+
+  const dimLayer = (el) => {
+    const inline = (el && el.style && el.style.backgroundImage) || '';
+    const withoutUrl = inline.replace(/,?\s*url\((['"]?).*?\1\)\s*$/, '').trim();
+    return withoutUrl.startsWith('linear-gradient') ? withoutUrl : DEFAULT_DIM;
+  };
+
+  // An injected stylesheet, not an inline style: `!important` is what lets it survive
+  // every React re-render of #background without this script having to watch the DOM.
+  const sheet = document.createElement('style');
+  sheet.id = 'homelab-background-rotation';
+  document.head.appendChild(sheet);
+
+  let showing = null;
+
+  const apply = () => {
+    const image = currentImage();
+    if (image === showing) return;
+
+    const background = document.getElementById('background');
+    if (!background) return; // pre-hydration; the interval below picks it up
+
+    showing = image;
+    sheet.textContent =
+      `#background { background-image: ${dimLayer(background)}, url("${image}") !important; }`;
+  };
+
+  apply();
+  // One minute is fine: the check is two comparisons, and it bounds how late a rotation
+  // can land on a dashboard nobody has touched.
+  setInterval(apply, 60 * 1000);
+})();

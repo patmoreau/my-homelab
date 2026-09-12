@@ -15,6 +15,10 @@ Image=ghcr.io/gethomepage/homepage:v2.2.0
 Network=host
 Volume=/opt/docker/homepage/config:/app/config
 Volume=/opt/docker/homepage/config/logs:/app/config/logs
+# /api/config only serves custom.css and custom.js, so a local wallpaper has to go in
+# Homepage's own public dir, where it is served as /images/<name>. Shadows a stray
+# solisquad.svg shipped in the image that nothing references.
+Volume=/opt/docker/homepage/images:/app/public/images
 # Secrets/vars are rendered separately (Renovate keeps this plain file's Image tag bumped).
 EnvironmentFile=/opt/docker/homepage/homepage.env
 

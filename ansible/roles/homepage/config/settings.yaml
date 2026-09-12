@@ -5,7 +5,10 @@
 title: 'MoreauLab'
 subtitle: 'My Homelab Dashboard'
 background:
-  image: https://images.unsplash.com/photo-1502790671504-542ad42d5189?auto=format&fit=crop&w=2560&q=80
+  # First of the rotating space pool (role defaults `homepage_background_images`), which
+  # is also what shows if custom.js never runs. The rotation itself is in custom.js —
+  # this setting takes one still URL.
+  image: /images/space/01-cosmic-cliffs.png
   blur: sm # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
   saturate: 50 # 0, 50, 100... see https://tailwindcss.com/docs/backdrop-saturate
   brightness: 50 # 0, 50, 75... see https://tailwindcss.com/docs/backdrop-brightness

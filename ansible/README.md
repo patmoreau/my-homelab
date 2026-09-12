@@ -704,6 +704,20 @@ Conventions:
   its own title inside the embed and Grafana has no URL parameter to suppress it, so
   the name showed the same text twice. The rule keys on the widget being an iframe,
   not on the group, so a new embed inherits it.
+- **The wallpaper is a rotating pool of NASA/ESA space images.** `background:` takes a
+  single still URL, so `homepage_background_images` (role defaults) lists the pool and
+  the rendered `custom.js` swaps `#background` every
+  `homepage_background_rotate_hours` (3 h — eight images is a day per cycle). The block
+  comes from the wall clock, so every browser agrees on the current image and a tab left
+  open for a week keeps rotating. `settings.yaml` points at the first image, which is
+  what shows if the script never runs.
+  The files are downloaded to the LXC once (`force: false`, so a deploy with NASA
+  unreachable is a no-op) and mounted at `/app/public/images`, because `/api/config`
+  serves only `custom.css` and `custom.js` — a local wallpaper cannot live in `config/`.
+  `custom.js` is rendered from `templates/custom.js.j2` rather than copied with the rest
+  of `config/`, so the files on disk and the list the script rotates cannot drift apart.
+  Adding an image means adding one entry to the defaults: keep it at least 1920px wide
+  and no narrower than square, since the layer is `background-size: cover`.
   The live background is the same escape hatch: `background:` takes a still image only,
   so the crawling grid and the light sweep are pseudo-elements of `#background`, the
   fixed wallpaper div. Anchoring them there — rather than on `body` — keeps them below
