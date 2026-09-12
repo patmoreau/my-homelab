@@ -8,7 +8,7 @@ After=oauth2-proxy-session-store.service
 
 [Container]
 ContainerName=oauth2-proxy
-Image=quay.io/oauth2-proxy/oauth2-proxy:v7.7.1
+Image=quay.io/oauth2-proxy/oauth2-proxy:v7.15.4
 NoNewPrivileges=true
 # Host networking, not a published port on the bridge: this service is only ever reached
 # through the host port (Traefik's forwardAuth call), which is exactly the case the repo

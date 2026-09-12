@@ -3,7 +3,7 @@ Description=Home Assistant
 
 [Container]
 ContainerName=homeassistant
-Image=lscr.io/linuxserver/homeassistant:2026.9.1-ls245
+Image=lscr.io/linuxserver/homeassistant:2026.9.2-ls246
 # Host networking so device discovery (mDNS) and the IoT VLAN reach Home Assistant,
 # exactly as under Docker.
 Network=host
