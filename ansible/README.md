@@ -235,6 +235,7 @@ These must be populated to deploy all services:
 | `vault_pbs_client_password`             | proxmox-backup-client                | Password for `backup-client@pbs` — set once in vault, reused by all LXC containers                        |
 | `vault_proxmox_token_id`                | traefik (certs-dumper), pve_exporter | Proxmox API Token ID (`user@realm!tokenname`)                                                             |
 | `vault_proxmox_token_secret`            | traefik (certs-dumper), pve_exporter | Proxmox API Token Secret                                                                                  |
+| `vault_github_dashboard_token`          | homepage                             | Fine-grained GitHub PAT, read-only (Metadata + Pull requests + Issues), all `patmoreau` repos — the Dev tab's `customapi` tiles                                                        |
 | `vault_github_runner_pat`               | github-runner, essere                | GitHub PAT (repo scope) used to fetch self-hosted runner registration tokens for `patmoreau/holefeeder` and `patmoreau/essere`; also the default for GHCR pulls (needs `read:packages`) |
 | `vault_holefeeder_postgres_password`    | holefeeder                           | PostgreSQL superuser password                                                                            |
 | `vault_holefeeder_postgres_app_password`         | holefeeder                           | Holefeeder app DB user password (also used by the API + PowerSync)                                       |
@@ -690,11 +691,12 @@ Conventions:
   two or fewer keep `columns: 2`. The `layout:` block must list exactly the groups
   present in `services.yaml` — a stale entry for a deleted group is silently ignored
   and easy to miss.
-- **Two tabs, set in `settings.yaml`.** Every group carries `tab: Daily` or
-  `tab: Monitoring` — a group without a `tab:` renders on *every* tab. Daily holds the
-  apps opened on purpose (Media, Apps, Smart Home, Vault) plus all bookmark groups;
-  Monitoring holds Host Metrics, Infrastructure, Observability and Network. The six
-  Grafana iframes are what made the single-page layout unusable, hence the split.
+- **Three tabs, set in `settings.yaml`.** Every group carries `tab: Daily`,
+  `tab: Monitoring` or `tab: Dev` — a group without a `tab:` renders on *every* tab.
+  Daily holds the apps opened on purpose (Media, Apps, Smart Home, Vault) plus most
+  bookmark groups; Monitoring holds Host Metrics, Infrastructure, Observability and
+  Network; Dev holds the GitHub group and the Developer bookmarks. The six Grafana
+  iframes are what made the single-page layout unusable, hence the first split.
 - **`custom.css` is the escape hatch for anything Homepage has no setting for.**
   Bookmarks show icon + title only because `.bookmark-description` is hidden there.
   There is no `hideBookmarkDescriptions` setting — an unknown key is not rejected, it
@@ -735,6 +737,37 @@ Conventions:
   itself. Note a socket bind-mounted `:ro` still allows the full API, so that mount was
   read-write access in practice. Homepage regenerates empty stubs for both files at
   startup; that is expected and harmless.
+
+### Dev tab (GitHub via customapi)
+
+Homepage ships no GitHub widget, so the three tiles in the `GitHub` group are
+`customapi` calls against the GitHub search API, authenticated with
+`vault_github_dashboard_token`. Homepage fetches them server-side, so the token stays on
+`lxc-tools` and never reaches the browser.
+
+- **Open PRs** uses `display: dynamic-list` over `items[]` from
+  `search/issues?q=is:open+is:pr+user:patmoreau`. The search payload carries no plain
+  repo name — only `repository_url`, and `mappings` can read a field but not transform
+  one — so the right-hand column is `user.login`, which is what separates a
+  `renovate[bot]` PR from one of yours. Each row links to its PR through
+  `target: '{html_url}'` ( `{key}` is substituted from the item, dot paths allowed).
+- **Renovate PRs** is the same query narrowed to `author:app/renovate`, displayed as the
+  `total_count` scalar — bot PRs that did not automerge.
+- **Renovate Approvals** answers "is Renovate waiting on me". Updates gated by
+  `dependencyDashboardApproval` (see the repo-root `renovate.json`) never open a PR;
+  they sit as unticked checkboxes under a `## Pending Approval` heading in each repo's
+  Dependency Dashboard issue. GitHub's search index covers issue bodies, so
+  `in:title "Dependency Dashboard" in:body "Pending Approval"` finds exactly those
+  repos. Two caveats: the count is repos holding something, not individual updates, and
+  the index lags a dashboard edit by a minute or two. It breaks if Renovate ever renames
+  that heading.
+
+Two headers are load-bearing beyond the token. GitHub refuses any request without a
+`User-Agent` (403 `Request forbidden by administrative rules`) and Homepage's proxy sends
+none of its own, so each tile sets `User-Agent: moreaulab-homepage`. And the search API
+allows 30 requests/minute per token while the widget default is a 10-second poll, which
+would rate-limit all three within the minute — hence the explicit
+`refreshInterval: 300000`. Copy both onto any tile added to this group.
 
 ### Router widget (openwrt)
 

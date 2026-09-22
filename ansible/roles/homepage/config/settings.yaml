@@ -25,7 +25,7 @@ providers:
   weatherapi: weatherapiapikey
 
 layout:
-  # Two tabs. Groups are listed per tab in display order; every group and bookmark
+  # Three tabs. Groups are listed per tab in display order; every group and bookmark
   # group must carry a `tab:` — one without it renders on every tab.
   #
   # Daily — what gets opened on purpose.
@@ -50,8 +50,6 @@ layout:
   Finance:
     tab: Daily
   Productivity:
-    tab: Daily
-  Developer:
     tab: Daily
   Social:
     tab: Daily
@@ -80,6 +78,14 @@ layout:
     style: row
     columns: 2
     tab: Monitoring
+
+  # Dev — GitHub state: what is open, and what Renovate is holding for approval.
+  GitHub:
+    style: row
+    columns: 4
+    tab: Dev
+  Developer:
+    tab: Dev
 
 # Tiles in a row share a height instead of each sizing to its own content.
 useEqualHeights: true
