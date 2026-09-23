@@ -70,6 +70,22 @@
   when: '"<AllowedHosts>" not in (radarr_config_raw.content | b64decode)'
   register: radarr_allowed_hosts_added
 
+- name: Set TrustedNetworks in config.xml
+  ansible.builtin.replace:
+    path: /data/radarr/config.xml
+    regexp: '<TrustedNetworks>[^<]*</TrustedNetworks>'
+    replace: '<TrustedNetworks>{{ radarr_trusted_networks }}</TrustedNetworks>'
+  when: '"<TrustedNetworks>" in (radarr_config_raw.content | b64decode)'
+  register: radarr_trusted_networks_set
+
+- name: Add TrustedNetworks to config.xml when the tag is missing
+  ansible.builtin.replace:
+    path: /data/radarr/config.xml
+    regexp: '</Config>'
+    replace: '  <TrustedNetworks>{{ radarr_trusted_networks }}</TrustedNetworks>\n</Config>'
+  when: '"<TrustedNetworks>" not in (radarr_config_raw.content | b64decode)'
+  register: radarr_trusted_networks_added
+
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
 

@@ -86,3 +86,11 @@ radarr_custom_formats:
 # scan. Must track the IP= line in roles/jellyfin/templates/jellyfin.container.
 radarr_jellyfin_host: 10.88.0.241
 radarr_jellyfin_port: 8096
+
+# Proxies whose X-Forwarded-For Radarr should believe. Without this, *any*
+# XFF header makes it treat the request as non-local — Traefik always sends one, so
+# AuthenticationRequired=DisabledForLocalAddresses never applied through the proxy and
+# every page, including the /MediaCover images the posters grid loads, redirected to the
+# login form. With the LAN listed, a browser on the LAN is local again whether it goes
+# direct or through Traefik, while anything arriving from outside still has to log in.
+radarr_trusted_networks: "192.168.8.0/24"

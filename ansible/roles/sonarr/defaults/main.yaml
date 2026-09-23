@@ -59,3 +59,11 @@ sonarr_custom_formats:
   - name: MP4
     regex: '\b(mp4|m4v)\b'
     score: -500
+
+# Proxies whose X-Forwarded-For Sonarr should believe. Without this, *any*
+# XFF header makes it treat the request as non-local — Traefik always sends one, so
+# AuthenticationRequired=DisabledForLocalAddresses never applied through the proxy and
+# every page, including the /MediaCover images the posters grid loads, redirected to the
+# login form. With the LAN listed, a browser on the LAN is local again whether it goes
+# direct or through Traefik, while anything arriving from outside still has to log in.
+sonarr_trusted_networks: "192.168.8.0/24"

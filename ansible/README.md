@@ -121,6 +121,29 @@ Verifying by hand:
 ssh root@192.168.8.41 'podman exec transmission curl -s https://ipinfo.io/json'
 ```
 
+## TrustedNetworks on the *arr apps
+
+`AuthenticationRequired: DisabledForLocalAddresses` does not survive a reverse proxy.
+**Any** `X-Forwarded-For` header makes Radarr, Sonarr and Prowlarr classify the request as
+non-local — a LAN address in the header is no exemption — and Traefik always sends one, so
+every proxied request redirected to the login form:
+
+```
+plain direct                          200
+X-Forwarded-For: 192.168.8.99 (LAN)   302
+X-Forwarded-For: 8.8.8.8              302
+```
+
+It shows up first as *missing posters*. The movie grid loads local `/MediaCover/…` images
+and renders blanks when they 302, while the detail page still shows a poster because it
+falls back to the TMDB remote URL — so the library looks half-broken rather than
+unauthenticated.
+
+`<TrustedNetworks>192.168.8.0/24</TrustedNetworks>` (a role default, seeded and patched
+like `AllowedHosts`) makes each app believe the forwarded address, so a LAN browser is
+local again whether it goes direct or through Traefik, while anything arriving from
+outside the LAN still has to log in.
+
 ## Transmission bandwidth limits
 
 The line is 400/50 Mbps and torrents are capped well under it, because what saturates a

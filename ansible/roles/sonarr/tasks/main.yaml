@@ -62,6 +62,22 @@
   when: '"<AllowedHosts>" not in (sonarr_config_raw.content | b64decode)'
   register: sonarr_allowed_hosts_added
 
+- name: Set TrustedNetworks in config.xml
+  ansible.builtin.replace:
+    path: /data/sonarr/config.xml
+    regexp: '<TrustedNetworks>[^<]*</TrustedNetworks>'
+    replace: '<TrustedNetworks>{{ sonarr_trusted_networks }}</TrustedNetworks>'
+  when: '"<TrustedNetworks>" in (sonarr_config_raw.content | b64decode)'
+  register: sonarr_trusted_networks_set
+
+- name: Add TrustedNetworks to config.xml when the tag is missing
+  ansible.builtin.replace:
+    path: /data/sonarr/config.xml
+    regexp: '</Config>'
+    replace: '  <TrustedNetworks>{{ sonarr_trusted_networks }}</TrustedNetworks>\n</Config>'
+  when: '"<TrustedNetworks>" not in (sonarr_config_raw.content | b64decode)'
+  register: sonarr_trusted_networks_added
+
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
 

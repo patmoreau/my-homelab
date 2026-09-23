@@ -22,6 +22,7 @@
   ansible.builtin.systemd:
     name: prowlarr.service
     state: "{{ 'restarted' if (prowlarr_quadlet.changed or prowlarr_env.changed
-                       or prowlarr_allowed_hosts_set.changed or prowlarr_allowed_hosts_added.changed)
+                       or prowlarr_allowed_hosts_set.changed or prowlarr_allowed_hosts_added.changed
+                       or prowlarr_trusted_networks_set.changed or prowlarr_trusted_networks_added.changed)
                   else 'started' }}"
     daemon_reload: true

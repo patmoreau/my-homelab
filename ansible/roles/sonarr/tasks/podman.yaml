@@ -22,6 +22,7 @@
   ansible.builtin.systemd:
     name: sonarr.service
     state: "{{ 'restarted' if (sonarr_quadlet.changed or sonarr_env.changed
-                       or sonarr_allowed_hosts_set.changed or sonarr_allowed_hosts_added.changed)
+                       or sonarr_allowed_hosts_set.changed or sonarr_allowed_hosts_added.changed
+                       or sonarr_trusted_networks_set.changed or sonarr_trusted_networks_added.changed)
                   else 'started' }}"
     daemon_reload: true

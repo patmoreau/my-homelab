@@ -56,6 +56,22 @@
   when: '"<AllowedHosts>" not in (prowlarr_config_raw.content | b64decode)'
   register: prowlarr_allowed_hosts_added
 
+- name: Set TrustedNetworks in config.xml
+  ansible.builtin.replace:
+    path: /data/prowlarr/config.xml
+    regexp: '<TrustedNetworks>[^<]*</TrustedNetworks>'
+    replace: '<TrustedNetworks>{{ prowlarr_trusted_networks }}</TrustedNetworks>'
+  when: '"<TrustedNetworks>" in (prowlarr_config_raw.content | b64decode)'
+  register: prowlarr_trusted_networks_set
+
+- name: Add TrustedNetworks to config.xml when the tag is missing
+  ansible.builtin.replace:
+    path: /data/prowlarr/config.xml
+    regexp: '</Config>'
+    replace: '  <TrustedNetworks>{{ prowlarr_trusted_networks }}</TrustedNetworks>\n</Config>'
+  when: '"<TrustedNetworks>" not in (prowlarr_config_raw.content | b64decode)'
+  register: prowlarr_trusted_networks_added
+
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
 

@@ -22,6 +22,7 @@
   ansible.builtin.systemd:
     name: radarr.service
     state: "{{ 'restarted' if (radarr_quadlet.changed or radarr_env.changed
-                       or radarr_allowed_hosts_set.changed or radarr_allowed_hosts_added.changed)
+                       or radarr_allowed_hosts_set.changed or radarr_allowed_hosts_added.changed
+                       or radarr_trusted_networks_set.changed or radarr_trusted_networks_added.changed)
                   else 'started' }}"
     daemon_reload: true
