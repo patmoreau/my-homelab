@@ -19,9 +19,9 @@
     url: "{{ radarr_api_url }}/rootfolder"
     headers:
       X-Api-Key: "{{ vault_radarr_api_key }}"
-  register: radarr_root_folders
+  register: radarr_root_folders_current
 
-- name: Add the movies root folder
+- name: Add the root folders
   ansible.builtin.uri:
     url: "{{ radarr_api_url }}/rootfolder"
     method: POST
@@ -29,9 +29,10 @@
       X-Api-Key: "{{ vault_radarr_api_key }}"
     body_format: json
     body:
-      path: "{{ radarr_root_folder }}"
+      path: "{{ item }}"
     status_code: [200, 201]
-  when: radarr_root_folder not in (radarr_root_folders.json | map(attribute='path') | list)
+  loop: "{{ radarr_root_folders }}"
+  when: item not in (radarr_root_folders_current.json | map(attribute='path') | list)
   changed_when: true
 
 - name: Read the configured download clients
@@ -90,6 +91,30 @@
   when: "'Transmission' not in (radarr_download_clients.json | map(attribute='name') | list)"
   changed_when: true
   no_log: true
+
+# Without this, Radarr looks for Transmission's /downloads/complete/... path inside its
+# own filesystem, finds nothing, and the import fails as "file does not exist".
+- name: Read the remote path mappings
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/remotepathmapping"
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+  register: radarr_remote_path_mappings
+
+- name: Map Transmission's download path
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/remotepathmapping"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+    body_format: json
+    body:
+      host: "{{ radarr_transmission_host }}"
+      remotePath: "{{ radarr_remote_path_remote }}"
+      localPath: "{{ radarr_remote_path_local }}"
+    status_code: [200, 201]
+  when: radarr_remote_path_remote not in (radarr_remote_path_mappings.json | map(attribute='remotePath') | list)
+  changed_when: true
 
 # Quality definitions are global (not per profile), so this is the one place that decides
 # how big a 4K grab may be. Each PUT sends the definition back whole — the API replaces

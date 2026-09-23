@@ -147,10 +147,22 @@ one removed there is removed from Radarr too. Both ends of that link address eac
 by pinned bridge IP (`prowlarr` `.247`, `radarr` `.246`). Which indexers to enable stays
 a UI decision — they are per-site accounts, not something to template.
 
+Radarr keeps two root folders, `/media/movies` and `/media/holidays` — the split exists
+because Jellyfin serves each as its own library, and a Radarr root folder is just a
+destination, so the separation costs nothing but the second entry. Pick the root folder in
+the Add Movie dialog and the film lands in the right library. The holiday titles are
+deliberately unmonitored: they are watched once a year, and monitoring them would queue
+~200 GB of 4K upgrades for films nobody is waiting on.
+
 Paths are chosen so imports hardlink instead of copying: `/media/movies` and
-`/media/downloads` are the same NFS filesystem, and Radarr mounts the whole downloads
-tree at `/downloads`, which is exactly the path Transmission reports for a finished
-torrent. No remote path mapping is needed as long as both mounts stay as they are.
+`/media/downloads` are the same NFS filesystem, and Radarr mounts `/media` **once** rather than
+binding each subdirectory: `/media` is a single nfs4 mount on the host, but two separate
+bind mounts are two devices to the kernel, and `link()` across them fails with `EXDEV`
+however identical the underlying filesystem is. That is not theoretical — the first
+version of this role bound `/media/movies` and `/media/downloads` separately, and every
+import silently fell back to copying (a 25 GB write per film, and the download-side copy
+kept until the torrent stopped seeding). Transmission still reports its own `/downloads/…`
+paths, which the role's remote path mapping translates to `/media/downloads/…`.
 
 ## Container runtime — every LXC runs rootful Podman
 

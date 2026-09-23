@@ -17,11 +17,13 @@ EnvironmentFile=/opt/docker/radarr/radarr.env
 # AddHost= via PodmanArgs for podman 4.9 Quadlet compatibility (same as cloudflared).
 PodmanArgs=--add-host prowlarr.moreaulab.ca:10.88.0.247
 Volume=/data/radarr:/config
-Volume=/media/movies:/movies
-# The whole downloads tree, not just complete/: Radarr has to see the exact paths
-# Transmission reports, and /movies + /downloads are the same NFS filesystem, so
-# imports hardlink instead of copying.
-Volume=/media/downloads:/downloads
+# One mount of the whole NAS share, not a bind per subdirectory. /media is a single nfs4
+# mount on the host, but binding /media/movies and /media/downloads separately makes two
+# mounts inside the container, and link() across mount points fails with EXDEV however
+# identical the underlying filesystem is — so every import silently fell back to copying
+# 25 GB instead of hardlinking. Transmission still reports its own /downloads/... paths,
+# which the remote path mapping in tasks/configure.yaml translates.
+Volume=/media:/media
 
 [Service]
 Restart=always

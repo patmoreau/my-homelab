@@ -1,9 +1,19 @@
 ---
 radarr_port: 7878
 
-# Root folder Radarr imports finished movies into, as seen *inside* the container.
-# /movies is the bind of /media/movies, the same tree Jellyfin serves.
-radarr_root_folder: /movies
+# Root folders Radarr imports into, as seen *inside* the container. All under /media, the
+# single mount that also holds the downloads tree — that is what lets an import hardlink
+# rather than copy. Holiday films live in their own tree because Jellyfin serves it as a
+# separate library; Radarr treats a root folder as a plain destination, so the split costs
+# nothing but the extra entry, and the root folder is chosen per movie when it is added.
+radarr_root_folders:
+  - /media/movies
+  - /media/holidays
+
+# Transmission reports finished torrents under its own /downloads prefix; Radarr sees the
+# same files under /media/downloads. Both ends need the trailing slash.
+radarr_remote_path_remote: /downloads/
+radarr_remote_path_local: /media/downloads/
 
 # Transmission's RPC endpoint on the Podman bridge. Not the LXC's published port:
 # container-to-container traffic to a pinned bridge address skips the DNAT hop that
