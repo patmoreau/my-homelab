@@ -27,3 +27,45 @@ radarr_api_url: "http://127.0.0.1:{{ radarr_port }}/api/v3"
 # probes the LXC's LAN address. Loopback is always exempt, so the role's own API calls
 # need no entry. Left unset, Radarr accepts any Host and logs a warning for it.
 radarr_allowed_hosts: "*.moreaulab.ca,{{ ansible_host }}"
+
+# Release size limits, in MB per minute of runtime — Radarr multiplies these by the
+# movie's length, so 200 MB/min is ~24 GB for a 2h film. 2160p ships uncapped, which is
+# how a 65 GB Remux (~480 MB/min) wins over a perfectly good 22 GB WEB-DL. Capping all
+# the 4K qualities at the same ceiling excludes remuxes by size rather than by surgery on
+# the quality profile, and `preferred` is what Radarr aims for when several releases fit.
+# The floor keeps out the 3 GB upscales that advertise themselves as 2160p.
+# 1080p and below keep Radarr's defaults.
+radarr_quality_limits:
+  - quality: HDTV-2160p
+    min: 40
+    preferred: 170
+    max: 200
+  - quality: WEBDL-2160p
+    min: 40
+    preferred: 170
+    max: 200
+  - quality: WEBRip-2160p
+    min: 40
+    preferred: 170
+    max: 200
+  - quality: Bluray-2160p
+    min: 40
+    preferred: 175
+    max: 210
+  - quality: Remux-2160p
+    min: 40
+    preferred: 175
+    max: 210
+
+# Container preference, as custom formats scored into every quality profile. Radarr
+# cannot know a torrent's container before it downloads, so this reads the release title:
+# most releases say neither, score 0, and stay eligible. What it does buy is that an
+# MP4-labelled release loses — a profile's minFormatScore is 0, so a negative total is
+# rejected outright — while an MKV-labelled one wins a tie.
+radarr_custom_formats:
+  - name: MKV
+    regex: '\bmkv\b'
+    score: 20
+  - name: MP4
+    regex: '\b(mp4|m4v)\b'
+    score: -500

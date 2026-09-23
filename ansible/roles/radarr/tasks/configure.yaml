@@ -90,3 +90,110 @@
   when: "'Transmission' not in (radarr_download_clients.json | map(attribute='name') | list)"
   changed_when: true
   no_log: true
+
+# Quality definitions are global (not per profile), so this is the one place that decides
+# how big a 4K grab may be. Each PUT sends the definition back whole — the API replaces
+# the record — and only when one of the three sizes actually differs.
+- name: Read the quality definitions
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/qualitydefinition"
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+  register: radarr_quality_definitions
+
+- name: Cap the release sizes
+  vars:
+    radarr_definition: "{{ radarr_quality_definitions.json | selectattr('quality.name', 'equalto', item.quality) | first }}"
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/qualitydefinition/{{ radarr_definition.id }}"
+    method: PUT
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+    body_format: json
+    body: "{{ radarr_definition | combine({'minSize': item.min, 'preferredSize': item.preferred, 'maxSize': item.max}) }}"
+    status_code: [200, 202]
+  loop: "{{ radarr_quality_limits }}"
+  loop_control:
+    label: "{{ item.quality }}"
+  when: >-
+    radarr_definition.minSize != item.min
+    or radarr_definition.preferredSize != item.preferred
+    or radarr_definition.maxSize != item.max
+  changed_when: true
+
+- name: Read the custom formats
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/customformat"
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+  register: radarr_custom_formats_current
+
+- name: Add the container custom formats
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/customformat"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+    body_format: json
+    body:
+      name: "{{ item.name }}"
+      includeCustomFormatWhenRenaming: false
+      specifications:
+        - name: "{{ item.name }}"
+          implementation: ReleaseTitleSpecification
+          negate: false
+          required: true
+          fields:
+            - name: value
+              value: "{{ item.regex }}"
+    status_code: [200, 201]
+  loop: "{{ radarr_custom_formats }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.name not in (radarr_custom_formats_current.json | map(attribute='name') | list)
+  changed_when: true
+
+# A custom format does nothing until a profile scores it — Radarr adds it to every
+# profile at score 0. Profiles are read back after the POSTs above so a format created in
+# this same run is already in the list.
+- name: Read the quality profiles
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/qualityprofile"
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+  register: radarr_quality_profiles
+
+# Built in one pass rather than per profile: a profile is PUT whole, and only the ones
+# whose scores actually differ end up in the list, which is what keeps the task below
+# idempotent. Rendered as JSON and parsed back at the loop: a template carrying {% %}
+# statements returns a string, not a list.
+- name: Build the quality profiles that need rescoring
+  ansible.builtin.set_fact:
+    radarr_profile_updates: >-
+      {% set scores = dict(radarr_custom_formats | map(attribute='name')
+                           | zip(radarr_custom_formats | map(attribute='score'))) %}
+      {% set out = [] %}
+      {% for profile in radarr_quality_profiles.json %}
+      {%   set items = [] %}
+      {%   for format_item in profile.formatItems %}
+      {%     set _ = items.append(format_item | combine({'score': scores.get(format_item.name, format_item.score)})) %}
+      {%   endfor %}
+      {%   if items != profile.formatItems %}
+      {%     set _ = out.append(profile | combine({'formatItems': items})) %}
+      {%   endif %}
+      {% endfor %}
+      {{ out | to_json }}
+
+- name: Score the custom formats in every quality profile
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/qualityprofile/{{ item.id }}"
+    method: PUT
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+    body_format: json
+    body: "{{ item }}"
+    status_code: [200, 202]
+  loop: "{{ radarr_profile_updates | from_json }}"
+  loop_control:
+    label: "{{ item.name }}"
+  changed_when: true
