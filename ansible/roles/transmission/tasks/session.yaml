@@ -1,0 +1,65 @@
+# Transmission owns settings.json and rewrites it on exit, so the limits are applied over
+# RPC rather than templated — a file written underneath a running daemon is overwritten
+# the next time it stops. session-set persists into settings.json on Transmission's own
+# terms, and takes effect immediately.
+#
+# Every RPC call needs a session id, which the server only hands out by rejecting a call
+# with 409 and the header attached.
+- name: Get a Transmission RPC session id
+  ansible.builtin.uri:
+    url: "{{ transmission_rpc_url }}"
+    method: POST
+    url_username: "{{ vault_transmission_user }}"
+    url_password: "{{ vault_transmission_pass }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      method: session-get
+    status_code: [200, 409]
+  register: transmission_rpc_handshake
+  retries: 30
+  delay: 2
+  until: transmission_rpc_handshake is succeeded
+  no_log: true
+
+- name: Read the current session settings
+  ansible.builtin.uri:
+    url: "{{ transmission_rpc_url }}"
+    method: POST
+    url_username: "{{ vault_transmission_user }}"
+    url_password: "{{ vault_transmission_pass }}"
+    force_basic_auth: true
+    headers:
+      X-Transmission-Session-Id: "{{ transmission_rpc_handshake.x_transmission_session_id }}"
+    body_format: json
+    body:
+      method: session-get
+    status_code: 200
+  register: transmission_session
+  no_log: true
+
+# Compared as strings: the values above arrive from Jinja as strings while the daemon
+# reports numbers and booleans, and only a difference should count as changed.
+- name: Apply the bandwidth limits
+  ansible.builtin.uri:
+    url: "{{ transmission_rpc_url }}"
+    method: POST
+    url_username: "{{ vault_transmission_user }}"
+    url_password: "{{ vault_transmission_pass }}"
+    force_basic_auth: true
+    headers:
+      X-Transmission-Session-Id: "{{ transmission_rpc_handshake.x_transmission_session_id }}"
+    body_format: json
+    body:
+      method: session-set
+      arguments: "{{ transmission_session_settings }}"
+    status_code: 200
+  # Current values in the same key order as the desired ones, both stringified: the
+  # values above arrive from Jinja as strings while the daemon reports numbers and
+  # booleans, so a plain comparison would report changed on every run.
+  when: >-
+    transmission_session_settings.keys() | list
+    | map('extract', transmission_session.json.arguments) | map('string') | list
+    != transmission_session_settings.values() | list | map('string') | list
+  changed_when: true
+  no_log: true

@@ -121,6 +121,32 @@ Verifying by hand:
 ssh root@192.168.8.41 'podman exec transmission curl -s https://ipinfo.io/json'
 ```
 
+## Transmission bandwidth limits
+
+The line is 400/50 Mbps and torrents are capped well under it, because what saturates a
+link is throughput, not the number of torrents — one torrent takes the whole pipe given
+the chance, so a limit on concurrent downloads protects nothing on its own.
+
+| | down | up |
+| --- | --- | --- |
+| Normal (23:00–07:00) | 25 MB/s ≈ 200 Mbps | 3 MB/s ≈ 24 Mbps |
+| Turtle (07:00–23:00) | 8 MB/s ≈ 64 Mbps | 1 MB/s ≈ 8 Mbps |
+
+The upload cap earns its place more than it looks: seeding runs around the clock, and a
+saturated upstream starves the ACKs of every *download* in the house. `download-queue-size`
+is 3 — not the safeguard, just enough to stop a batch of grabs splitting the cap so thinly
+that nothing finishes.
+
+Applied over RPC (`tasks/session.yaml`), not templated into `settings.json`: Transmission
+owns that file and rewrites it on exit, so anything written underneath a running daemon is
+lost at the next stop. `session-set` takes effect immediately and Transmission persists it
+itself. Every RPC call needs a session id, which the server only issues by rejecting a
+call with 409 and the header attached — hence the handshake task. The idempotency check
+stringifies both sides, since the desired values arrive from Jinja as strings while the
+daemon reports numbers and booleans.
+
+Raising the caps is a defaults change (`roles/transmission/defaults/main.yaml`), in KB/s.
+
 ## Radarr, Sonarr, Prowlarr → Transmission
 `radarr` runs on lxc-media next to Jellyfin and Transmission. Two things about it are not
 visible from the Quadlet unit alone:

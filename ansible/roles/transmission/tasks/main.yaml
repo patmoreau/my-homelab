@@ -17,3 +17,6 @@
 
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
+
+- name: Apply the RPC session settings
+  ansible.builtin.include_tasks: session.yaml

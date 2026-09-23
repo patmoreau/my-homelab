@@ -45,3 +45,6 @@
   ansible.builtin.systemd:
     name: vpn-egress-check.service
     state: started
+  # Starting a oneshot is not a configuration change; without this every run of the play
+  # reports changed and hides the runs that actually altered something.
+  changed_when: false

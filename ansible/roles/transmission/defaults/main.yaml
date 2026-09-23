@@ -1,0 +1,43 @@
+---
+# Reached on the LXC's published port from the host Ansible is on.
+transmission_rpc_url: "http://127.0.0.1:9091/transmission/rpc"
+
+# Bandwidth ceilings, in KB/s as Transmission counts them (1 MB/s = 1024).
+#
+# The line is 400/50 Mbps. Torrents are capped well under it so they can never be the
+# reason a stream stutters or a call drops — what actually saturates a link is throughput,
+# not the number of torrents, and one torrent will take the whole pipe given the chance.
+# The upload cap matters more than it looks: seeding runs around the clock, and a
+# saturated upstream starves the ACKs of every *download* in the house.
+#
+# Normal limits apply overnight; the alt ("turtle") limits take over during waking hours
+# on the schedule below, at roughly a third of the rate.
+transmission_speed_limit_down: 25600   # 25 MB/s ≈ 200 Mbps, half the line
+transmission_speed_limit_up: 3072      # 3 MB/s ≈ 24 Mbps, under half the 50 Mbps up
+transmission_alt_speed_down: 8192      # 8 MB/s ≈ 64 Mbps
+transmission_alt_speed_up: 1024        # 1 MB/s ≈ 8 Mbps
+
+# Minutes past midnight: 07:00 to 23:00, every day (127 = all seven bits set).
+transmission_alt_speed_time_begin: 420
+transmission_alt_speed_time_end: 1380
+transmission_alt_speed_time_day: 127
+
+# How many torrents download at once. Not the safeguard — the speed caps are — but it
+# keeps a batch of grabs from splitting the cap so thinly that nothing finishes.
+transmission_download_queue_size: 3
+
+# The RPC session settings the role enforces, assembled from the values above. Anything
+# not listed here is left as Transmission has it.
+transmission_session_settings:
+  speed-limit-down: "{{ transmission_speed_limit_down }}"
+  speed-limit-down-enabled: true
+  speed-limit-up: "{{ transmission_speed_limit_up }}"
+  speed-limit-up-enabled: true
+  alt-speed-down: "{{ transmission_alt_speed_down }}"
+  alt-speed-up: "{{ transmission_alt_speed_up }}"
+  alt-speed-time-enabled: true
+  alt-speed-time-begin: "{{ transmission_alt_speed_time_begin }}"
+  alt-speed-time-end: "{{ transmission_alt_speed_time_end }}"
+  alt-speed-time-day: "{{ transmission_alt_speed_time_day }}"
+  download-queue-enabled: true
+  download-queue-size: "{{ transmission_download_queue_size }}"
