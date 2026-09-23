@@ -97,20 +97,15 @@
         proxmoxVMID: 111
         proxmoxType: lxc
 
-    - Transmission:
-        icon: transmission.png
-        href: https://transmission.moreaulab.ca
-        siteMonitor: https://transmission.moreaulab.ca
-        description: Torrent Client
+    - Filestash:
+        icon: filestash.png
+        href: https://docs.moreaulab.ca
+        siteMonitor: https://docs.moreaulab.ca
+        description: File Browser
         proxmoxNode: homelab
         proxmoxVMID: 111
         proxmoxType: lxc
-        widget:
-          type: transmission
-          url: https://transmission.moreaulab.ca
-          rpcUrl: /transmission/
-          username: {{HOMEPAGE_VAR_TRANSMISSION_USERNAME}}
-          password: {{HOMEPAGE_VAR_TRANSMISSION_PASSWORD}}
+        # No homepage widget exists for Filestash, so this tile is a plain link.
 
     - Radarr:
         icon: radarr.png
@@ -153,15 +148,20 @@
           url: https://prowlarr.moreaulab.ca
           key: {{HOMEPAGE_VAR_PROWLARR_API_KEY}}
 
-    - Filestash:
-        icon: filestash.png
-        href: https://docs.moreaulab.ca
-        siteMonitor: https://docs.moreaulab.ca
-        description: File Browser
+    - Transmission:
+        icon: transmission.png
+        href: https://transmission.moreaulab.ca
+        siteMonitor: https://transmission.moreaulab.ca
+        description: Torrent Client
         proxmoxNode: homelab
         proxmoxVMID: 111
         proxmoxType: lxc
-        # No homepage widget exists for Filestash, so this tile is a plain link.
+        widget:
+          type: transmission
+          url: https://transmission.moreaulab.ca
+          rpcUrl: /transmission/
+          username: {{HOMEPAGE_VAR_TRANSMISSION_USERNAME}}
+          password: {{HOMEPAGE_VAR_TRANSMISSION_PASSWORD}}
 
 - Infrastructure:
     - PVE:
