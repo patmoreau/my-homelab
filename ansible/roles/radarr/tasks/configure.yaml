@@ -1,0 +1,92 @@
+# Radarr keeps its root folders and download clients in its own SQLite DB, not in
+# config.xml, so they can only be set through the v3 API. Every call below is guarded by
+# a GET first: re-running the play leaves a hand-tuned client alone.
+- name: Wait for the Radarr API
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/system/status"
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+    status_code: 200
+  register: radarr_status
+  # First boot builds the SQLite DB before the API answers, so this is a few minutes of
+  # headroom, not the couple of seconds a restart needs.
+  retries: 60
+  delay: 5
+  until: radarr_status is succeeded
+
+- name: Read the configured root folders
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/rootfolder"
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+  register: radarr_root_folders
+
+- name: Add the movies root folder
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/rootfolder"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+    body_format: json
+    body:
+      path: "{{ radarr_root_folder }}"
+    status_code: [200, 201]
+  when: radarr_root_folder not in (radarr_root_folders.json | map(attribute='path') | list)
+  changed_when: true
+
+- name: Read the configured download clients
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/downloadclient"
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+  register: radarr_download_clients
+
+# Transmission is reached on the Podman bridge (see radarr_transmission_host in
+# defaults), with the same RPC credentials the transmission role sets. movieCategory
+# makes Transmission drop Radarr's torrents in their own subdirectory of its complete
+# dir; both containers see that path identically, so no remote path mapping is needed.
+- name: Add Transmission as the download client
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/downloadclient"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+    body_format: json
+    body:
+      enable: true
+      protocol: torrent
+      priority: 1
+      removeCompletedDownloads: true
+      removeFailedDownloads: true
+      name: Transmission
+      implementation: Transmission
+      implementationName: Transmission
+      configContract: TransmissionSettings
+      tags: []
+      fields:
+        - name: host
+          value: "{{ radarr_transmission_host }}"
+        - name: port
+          value: "{{ radarr_transmission_port }}"
+        - name: useSsl
+          value: false
+        - name: urlBase
+          value: "{{ radarr_transmission_url_base }}"
+        - name: username
+          value: "{{ vault_transmission_user }}"
+        - name: password
+          value: "{{ vault_transmission_pass }}"
+        - name: movieCategory
+          value: "{{ radarr_transmission_category }}"
+        - name: movieDirectory
+          value: ''
+        - name: recentMoviePriority
+          value: 0
+        - name: olderMoviePriority
+          value: 0
+        - name: addPaused
+          value: false
+    status_code: [200, 201]
+  when: "'Transmission' not in (radarr_download_clients.json | map(attribute='name') | list)"
+  changed_when: true
+  no_log: true

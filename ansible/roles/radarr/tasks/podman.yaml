@@ -1,0 +1,27 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create radarr env file
+  ansible.builtin.template:
+    src: radarr.env.j2
+    dest: "{{ docker_compose_dir }}/radarr/radarr.env"
+    mode: "0600"
+  register: radarr_env
+
+- name: Deploy radarr Quadlet unit
+  ansible.builtin.template:
+    src: radarr.container
+    dest: /etc/containers/systemd/radarr.container
+    mode: "0644"
+  register: radarr_quadlet
+
+- name: Start radarr
+  ansible.builtin.systemd:
+    name: radarr.service
+    state: "{{ 'restarted' if (radarr_quadlet.changed or radarr_env.changed
+                       or radarr_allowed_hosts_set.changed or radarr_allowed_hosts_added.changed)
+                  else 'started' }}"
+    daemon_reload: true

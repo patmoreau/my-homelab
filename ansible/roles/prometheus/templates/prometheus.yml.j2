@@ -56,6 +56,15 @@ scrape_configs:
       - targets: ['http://{{ hostvars["lxc-media"]["ansible_host"] }}:8096']
         labels:
           service: 'jellyfin'
+      # /ping, not /: Radarr answers a bare GET / with the SPA shell, which is a 200
+      # even when the backend is wedged. /ping is the API's own liveness endpoint and
+      # needs no API key.
+      - targets: ['http://{{ hostvars["lxc-media"]["ansible_host"] }}:7878/ping']
+        labels:
+          service: 'radarr'
+      - targets: ['http://{{ hostvars["lxc-media"]["ansible_host"] }}:9696/ping']
+        labels:
+          service: 'prowlarr'
       - targets: ['http://{{ hostvars["lxc-immich"]["ansible_host"] }}:2283/api/server/ping']
         labels:
           service: 'immich'

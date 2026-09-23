@@ -1,0 +1,64 @@
+- name: Create directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/radarr"
+    state: directory
+    mode: "0755"
+
+# /data/radarr itself must already exist — see the note in ansible/README.md: /data is a
+# bind mount of the host's /mnt/containers/lxc-media, whose owner falls outside the
+# container's nas_idmap range, so container root cannot create top-level entries there.
+# Create it once on pve-homelab:
+#   install -d -o 3000 -g 100 -m 0777 /mnt/containers/lxc-media/radarr
+- name: Create data directory
+  ansible.builtin.file:
+    path: /data/radarr
+    state: directory
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0777"
+
+# Radarr mints its own API key on first start, which would leave the homepage widget
+# waiting on a value nothing in the repo knows. Seeding config.xml before the first boot
+# pins the key to the vault instead. force: false because Radarr owns this file from then
+# on — it rewrites it whenever settings are saved in the UI, and everything below is
+# either a default or UI-managed.
+- name: Seed config.xml on first boot
+  ansible.builtin.template:
+    src: config.xml.j2
+    dest: /data/radarr/config.xml
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0600"
+    force: false
+
+# Radarr owns config.xml after the seed above, so AllowedHosts is patched in place rather
+# than re-templated — every other key keeps whatever the UI last set. Two tasks because
+# an install that predates this may have no such tag at all: one rewrites an existing
+# value, the other appends it. The slurp decides which, since a `replace` that matches
+# nothing reports no change and cannot be used as the test.
+- name: Read config.xml
+  ansible.builtin.slurp:
+    src: /data/radarr/config.xml
+  register: radarr_config_raw
+
+- name: Set AllowedHosts in config.xml
+  ansible.builtin.replace:
+    path: /data/radarr/config.xml
+    regexp: '<AllowedHosts>[^<]*</AllowedHosts>'
+    replace: '<AllowedHosts>{{ radarr_allowed_hosts }}</AllowedHosts>'
+  when: '"<AllowedHosts>" in (radarr_config_raw.content | b64decode)'
+  register: radarr_allowed_hosts_set
+
+- name: Add AllowedHosts to config.xml when the tag is missing
+  ansible.builtin.replace:
+    path: /data/radarr/config.xml
+    regexp: '</Config>'
+    replace: '  <AllowedHosts>{{ radarr_allowed_hosts }}</AllowedHosts>\n</Config>'
+  when: '"<AllowedHosts>" not in (radarr_config_raw.content | b64decode)'
+  register: radarr_allowed_hosts_added
+
+- name: Deploy via Podman Quadlet
+  ansible.builtin.include_tasks: podman.yaml
+
+- name: Configure root folder and download client
+  ansible.builtin.include_tasks: configure.yaml

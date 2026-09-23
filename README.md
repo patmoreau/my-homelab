@@ -88,6 +88,8 @@ The following services are configured in this homelab:
 | **Book Orbit**      | [books.moreaulab.ca](https://books.moreaulab.ca)                     | Web app for browsing and downloading eBooks                           |
 | **Transmission**    | [transmission.moreaulab.ca](https://transmission.moreaulab.ca)       | BitTorrent client                                                     |
 | **Filestash**       | [docs.moreaulab.ca](https://docs.moreaulab.ca)                       | Web-based file manager                                                |
+| **Radarr**          | [radarr.moreaulab.ca](https://radarr.moreaulab.ca)                   | Movie library manager; sends downloads to Transmission                |
+| **Prowlarr**        | [prowlarr.moreaulab.ca](https://prowlarr.moreaulab.ca)               | Indexer manager; syncs its indexer list into Radarr                   |
 | **Immich**          | [immich.moreaulab.ca](https://immich.moreaulab.ca)                   | Self-hosted photo and video management                                |
 | **Vaultwarden**     | [vault.moreaulab.ca](https://vault.moreaulab.ca)                     | Bitwarden-compatible password manager (exposed via Cloudflare tunnel) |
 | **Grafana**         | [grafana.moreaulab.ca](https://grafana.moreaulab.ca)                 | Metrics and log dashboards (Prometheus + Loki)                        |
@@ -107,7 +109,7 @@ NFS shares from the NAS are mounted on the Proxmox host under `/mnt/pve/` and bi
 
 | Host path (Proxmox)            | Container mount point | Used by                        |
 | ------------------------------ | --------------------- | ------------------------------ |
-| `/mnt/pve/nas-media`           | `/media`              | Jellyfin, Transmission, Filestash |
+| `/mnt/pve/nas-media`           | `/media`              | Jellyfin, Transmission, Radarr, Filestash |
 | `/mnt/pve/nas-books`           | `/media/books`        | Book Orbit (read/write)        |
 | `/mnt/pve/nas-photos`          | `/photos`             | Immich (read/write)            |
 | `/mnt/containers/lxc-*`        | `/data`               | All LXCs (persistent app data) |

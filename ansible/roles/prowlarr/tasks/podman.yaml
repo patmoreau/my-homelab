@@ -1,0 +1,27 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create prowlarr env file
+  ansible.builtin.template:
+    src: prowlarr.env.j2
+    dest: "{{ docker_compose_dir }}/prowlarr/prowlarr.env"
+    mode: "0600"
+  register: prowlarr_env
+
+- name: Deploy prowlarr Quadlet unit
+  ansible.builtin.template:
+    src: prowlarr.container
+    dest: /etc/containers/systemd/prowlarr.container
+    mode: "0644"
+  register: prowlarr_quadlet
+
+- name: Start prowlarr
+  ansible.builtin.systemd:
+    name: prowlarr.service
+    state: "{{ 'restarted' if (prowlarr_quadlet.changed or prowlarr_env.changed
+                       or prowlarr_allowed_hosts_set.changed or prowlarr_allowed_hosts_added.changed)
+                  else 'started' }}"
+    daemon_reload: true

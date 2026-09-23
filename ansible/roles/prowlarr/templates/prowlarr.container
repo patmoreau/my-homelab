@@ -1,0 +1,21 @@
+[Unit]
+Description=Prowlarr
+# Prowlarr pushes its indexer list into Radarr over the API, so Radarr should be up
+# first on a cold boot; a failed sync is retried, but this keeps the log quiet.
+After=radarr.service
+
+[Container]
+ContainerName=prowlarr
+Image=lscr.io/linuxserver/prowlarr:2.6.5.5623-ls162
+IP=10.88.0.247
+PublishPort=9696:9696
+EnvironmentFile=/opt/docker/prowlarr/prowlarr.env
+# The other half of the name mapping — see the note in radarr.container.
+PodmanArgs=--add-host radarr.moreaulab.ca:10.88.0.246
+Volume=/data/prowlarr:/config
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

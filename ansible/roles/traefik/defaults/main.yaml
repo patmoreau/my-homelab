@@ -18,6 +18,8 @@ traefik_conf_files:
   - pbs.yaml
   - pve.yaml
   - prometheus.yaml
+  - prowlarr.yaml
+  - radarr.yaml
   - service-watcher.yaml
   - router.yaml
   - traefik.yaml

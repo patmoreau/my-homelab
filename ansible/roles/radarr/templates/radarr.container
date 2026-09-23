@@ -1,0 +1,30 @@
+[Unit]
+Description=Radarr
+# Radarr's download client points at transmission's pinned bridge address; starting
+# after it keeps the first queue poll from failing on a cold boot.
+After=transmission.service
+
+[Container]
+ContainerName=radarr
+Image=lscr.io/linuxserver/radarr:6.4.4.10685-ls318
+IP=10.88.0.246
+PublishPort=7878:7878
+EnvironmentFile=/opt/docker/radarr/radarr.env
+# Radarr's AllowedHosts is *.moreaulab.ca, so it answers 400 "Invalid Hostname" to any
+# request whose Host header is a bare IP — including the app link Prowlarr validates.
+# The router refuses to resolve moreaulab.ca names to private addresses (DNS rebinding
+# protection), so the name is mapped to Prowlarr's pinned bridge address here instead.
+# AddHost= via PodmanArgs for podman 4.9 Quadlet compatibility (same as cloudflared).
+PodmanArgs=--add-host prowlarr.moreaulab.ca:10.88.0.247
+Volume=/data/radarr:/config
+Volume=/media/movies:/movies
+# The whole downloads tree, not just complete/: Radarr has to see the exact paths
+# Transmission reports, and /movies + /downloads are the same NFS filesystem, so
+# imports hardlink instead of copying.
+Volume=/media/downloads:/downloads
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

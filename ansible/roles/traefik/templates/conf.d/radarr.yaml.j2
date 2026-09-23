@@ -1,0 +1,15 @@
+http:
+  routers:
+    radarr:
+      rule: "Host(`radarr.moreaulab.ca`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: radarr
+
+  services:
+    radarr:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-media']['ansible_host'] }}:7878"

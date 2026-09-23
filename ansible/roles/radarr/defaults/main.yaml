@@ -1,0 +1,29 @@
+---
+radarr_port: 7878
+
+# Root folder Radarr imports finished movies into, as seen *inside* the container.
+# /movies is the bind of /media/movies, the same tree Jellyfin serves.
+radarr_root_folder: /movies
+
+# Transmission's RPC endpoint on the Podman bridge. Not the LXC's published port:
+# container-to-container traffic to a pinned bridge address skips the DNAT hop that
+# ansible/README.md documents as the flaky part. Must track the IP= line in
+# roles/transmission/templates/transmission.container.
+radarr_transmission_host: 10.88.0.242
+radarr_transmission_port: 9091
+radarr_transmission_url_base: /transmission/
+# Subdirectory Transmission drops Radarr's torrents into, under its own complete dir.
+# Both containers see that tree at the same path (/downloads/complete/...), so Radarr
+# needs no remote path mapping.
+radarr_transmission_category: radarr
+
+# Radarr's own API, reached on the LXC's published port from the host Ansible is on.
+radarr_api_url: "http://127.0.0.1:{{ radarr_port }}/api/v3"
+
+# Host header allowlist (Radarr's DNS-rebinding guard). Anything not listed gets
+# 400 "Invalid Hostname". Three callers have to be covered: the browser and the homepage
+# widget arrive through Traefik as *.moreaulab.ca, the Radarr/Prowlarr app link uses the
+# same names (see the --add-host in the .container units), and Prometheus's blackbox job
+# probes the LXC's LAN address. Loopback is always exempt, so the role's own API calls
+# need no entry. Left unset, Radarr accepts any Host and logs a warning for it.
+radarr_allowed_hosts: "*.moreaulab.ca,{{ ansible_host }}"

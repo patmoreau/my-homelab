@@ -93,6 +93,37 @@ anything; a single 4K transcode can outgrow the whole rootfs. The file is patche
 templated, because Jellyfin rewrites it whenever Playback settings are saved in the UI —
 every key not listed above survives.
 
+## Radarr, Prowlarr → Transmission
+`radarr` runs on lxc-media next to Jellyfin and Transmission. Two things about it are not
+visible from the Quadlet unit alone:
+
+- **`/data/radarr` was created host-side**, like every other `/data/*` directory on
+  lxc-media (`install -d -o 3000 -g 100 -m 0777 /mnt/containers/lxc-media/radarr` on
+  pve-homelab). Container root cannot create it — see the Filestash note below for why.
+- **The API key is seeded, not generated.** Radarr mints a random key on first start,
+  which would leave `vault_radarr_api_key` — and with it the homepage widget and the
+  role's own API calls — chasing a value only the container knows. `tasks/main.yaml`
+  templates `/data/radarr/config.xml` with `force: false` *before* the first boot, so the
+  key comes from the vault. Radarr owns the file from then on (it rewrites it whenever
+  settings are saved in the UI); the template is never re-applied.
+- **The root folder and the Transmission download client are set over the v3 API**
+  (`tasks/configure.yaml`), because Radarr keeps both in its SQLite DB rather than in
+  `config.xml`. Each call reads the current list first, so a hand-tuned client survives a
+  re-run. The client points at `10.88.0.242` — Transmission's pinned bridge address, not
+  the LXC's published port — and reuses `vault_transmission_user` / `vault_transmission_pass`.
+
+`prowlarr` is the third piece and follows the same shape (seeded `config.xml`, v1 API
+for the bits that live in its DB). Its one API call registers Radarr as a **fullSync**
+application, so every indexer added in the Prowlarr UI is pushed into Radarr and every
+one removed there is removed from Radarr too. Both ends of that link address each other
+by pinned bridge IP (`prowlarr` `.247`, `radarr` `.246`). Which indexers to enable stays
+a UI decision — they are per-site accounts, not something to template.
+
+Paths are chosen so imports hardlink instead of copying: `/media/movies` and
+`/media/downloads` are the same NFS filesystem, and Radarr mounts the whole downloads
+tree at `/downloads`, which is exactly the path Transmission reports for a finished
+torrent. No remote path mapping is needed as long as both mounts stay as they are.
+
 ## Container runtime — every LXC runs rootful Podman
 
 **All LXCs run rootful Podman + Quadlet.** The `container_runtime` var still defaults to
@@ -214,6 +245,8 @@ These must be populated to deploy all services:
 | `vault_qnap_username`                   | service-watcher                      | SSH user on QNAP                                                                                          |
 | `vault_qnap_password`                   | service-watcher                      | QNAP user password                                                                                        |
 | `vault_qnap_ssh_private_key`            | service-watcher                      | Base64-encoded `id_ed25519_qnap_monitor` private key                                                      |
+| `vault_prowlarr_api_key`                | prowlarr, homepage                   | Prowlarr API key, seeded the same way; used by the role's v1 API calls and the homepage widget |
+| `vault_radarr_api_key`                  | radarr, homepage                     | Radarr API key. Seeded into `config.xml` before Radarr's first boot (it would otherwise mint its own), then used by the role's v3 API calls and the homepage widget |
 | `vault_router_username`                 | homepage                             | Read-only `rpcd` account on the Flint 2 for the `openwrt` widget                                          |
 | `vault_router_password`                 | homepage                             | Its passphrase in plaintext — the router stores only the `uhttpd -m` hash                                 |
 | `vault_transmission_user`               | transmission                         |                                                                                                           |

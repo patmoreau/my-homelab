@@ -34,6 +34,8 @@
     - book-orbit
     - jellyfin
     - transmission
+    - radarr
+    - prowlarr
     - filestash
     - service-watcher
     - proxmox-backup-client

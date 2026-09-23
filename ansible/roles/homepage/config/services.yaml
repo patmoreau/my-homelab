@@ -112,6 +112,33 @@
           username: {{HOMEPAGE_VAR_TRANSMISSION_USERNAME}}
           password: {{HOMEPAGE_VAR_TRANSMISSION_PASSWORD}}
 
+    - Radarr:
+        icon: radarr.png
+        href: https://radarr.moreaulab.ca
+        siteMonitor: https://radarr.moreaulab.ca
+        description: Movie Library Manager
+        proxmoxNode: homelab
+        proxmoxVMID: 111
+        proxmoxType: lxc
+        widget:
+          type: radarr
+          url: https://radarr.moreaulab.ca
+          key: {{HOMEPAGE_VAR_RADARR_API_KEY}}
+          enableQueue: true
+
+    - Prowlarr:
+        icon: prowlarr.png
+        href: https://prowlarr.moreaulab.ca
+        siteMonitor: https://prowlarr.moreaulab.ca
+        description: Indexer Manager
+        proxmoxNode: homelab
+        proxmoxVMID: 111
+        proxmoxType: lxc
+        widget:
+          type: prowlarr
+          url: https://prowlarr.moreaulab.ca
+          key: {{HOMEPAGE_VAR_PROWLARR_API_KEY}}
+
     - Filestash:
         icon: filestash.png
         href: https://docs.moreaulab.ca

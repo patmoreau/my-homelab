@@ -1,0 +1,15 @@
+http:
+  routers:
+    prowlarr:
+      rule: "Host(`prowlarr.moreaulab.ca`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: prowlarr
+
+  services:
+    prowlarr:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-media']['ansible_host'] }}:9696"

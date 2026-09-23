@@ -1,0 +1,24 @@
+---
+prowlarr_port: 9696
+
+# Prowlarr's own API, reached on the LXC's published port from the host Ansible is on.
+prowlarr_api_url: "http://127.0.0.1:{{ prowlarr_port }}/api/v1"
+
+# Both ends of the app link, as each side has to reach the other. Addressed by hostname,
+# not by IP: Radarr's AllowedHosts is *.moreaulab.ca and it 400s a bare-IP Host header.
+# Each container carries an --add-host mapping the other's name to its pinned bridge
+# address (see the .container units) — the router will not resolve a moreaulab.ca name to
+# a private address, and this keeps the traffic off Traefik anyway.
+prowlarr_self_url: "http://prowlarr.moreaulab.ca:{{ prowlarr_port }}"
+prowlarr_radarr_url: "http://radarr.moreaulab.ca:7878"
+
+# Newznab/Torznab categories Prowlarr syncs to Radarr — Radarr's own movie defaults.
+prowlarr_radarr_sync_categories: [2000, 2010, 2020, 2030, 2040, 2045, 2050, 2060, 2070, 2080, 2090]
+
+# Host header allowlist (Prowlarr's DNS-rebinding guard). Anything not listed gets
+# 400 "Invalid Hostname". Three callers have to be covered: the browser and the homepage
+# widget arrive through Traefik as *.moreaulab.ca, the Radarr/Prowlarr app link uses the
+# same names (see the --add-host in the .container units), and Prometheus's blackbox job
+# probes the LXC's LAN address. Loopback is always exempt, so the role's own API calls
+# need no entry. Left unset, Prowlarr accepts any Host and logs a warning for it.
+prowlarr_allowed_hosts: "*.moreaulab.ca,{{ ansible_host }}"
