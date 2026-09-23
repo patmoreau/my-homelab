@@ -21,6 +21,7 @@ traefik_conf_files:
   - prowlarr.yaml
   - radarr.yaml
   - service-watcher.yaml
+  - sonarr.yaml
   - router.yaml
   - traefik.yaml
   - transmission.yaml

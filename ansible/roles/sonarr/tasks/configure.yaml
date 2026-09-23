@@ -1,0 +1,259 @@
+# Root folders, download clients, connections and custom formats live in Sonarr's SQLite
+# DB, not in config.xml, so the v3 API is the only way to set them. Every call is guarded
+# by a GET: re-running the play leaves a hand-tuned value alone.
+- name: Wait for the Sonarr API
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/system/status"
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+    status_code: 200
+  register: sonarr_status
+  retries: 60
+  delay: 5
+  until: sonarr_status is succeeded
+
+- name: Read the configured root folders
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/rootfolder"
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+  register: sonarr_root_folders_current
+
+- name: Add the root folders
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/rootfolder"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+    body_format: json
+    body:
+      path: "{{ item }}"
+    status_code: [200, 201]
+  loop: "{{ sonarr_root_folders }}"
+  when: item not in (sonarr_root_folders_current.json | map(attribute='path') | list)
+  changed_when: true
+
+- name: Read the configured download clients
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/downloadclient"
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+  register: sonarr_download_clients
+
+# Its own category, so Sonarr's grabs land in a different subdirectory from Radarr's and
+# neither tries to import the other's downloads.
+- name: Add Transmission as the download client
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/downloadclient"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+    body_format: json
+    body:
+      enable: true
+      protocol: torrent
+      priority: 1
+      removeCompletedDownloads: true
+      removeFailedDownloads: true
+      name: Transmission
+      implementation: Transmission
+      implementationName: Transmission
+      configContract: TransmissionSettings
+      tags: []
+      fields:
+        - name: host
+          value: "{{ sonarr_transmission_host }}"
+        - name: port
+          value: "{{ sonarr_transmission_port }}"
+        - name: useSsl
+          value: false
+        - name: urlBase
+          value: "{{ sonarr_transmission_url_base }}"
+        - name: username
+          value: "{{ vault_transmission_user }}"
+        - name: password
+          value: "{{ vault_transmission_pass }}"
+        - name: tvCategory
+          value: "{{ sonarr_transmission_category }}"
+        - name: tvDirectory
+          value: ''
+        - name: recentTvPriority
+          value: 0
+        - name: olderTvPriority
+          value: 0
+        - name: addPaused
+          value: false
+    status_code: [200, 201]
+  when: "'Transmission' not in (sonarr_download_clients.json | map(attribute='name') | list)"
+  changed_when: true
+  no_log: true
+
+- name: Read the remote path mappings
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/remotepathmapping"
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+  register: sonarr_remote_path_mappings
+
+- name: Map Transmission's download path
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/remotepathmapping"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+    body_format: json
+    body:
+      host: "{{ sonarr_transmission_host }}"
+      remotePath: "{{ sonarr_remote_path_remote }}"
+      localPath: "{{ sonarr_remote_path_local }}"
+    status_code: [200, 201]
+  when: sonarr_remote_path_remote not in (sonarr_remote_path_mappings.json | map(attribute='remotePath') | list)
+  changed_when: true
+
+- name: Read the notification connections
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/notification"
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+  register: sonarr_notifications
+
+- name: Add the Jellyfin connection
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/notification"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+    body_format: json
+    body:
+      name: Jellyfin
+      implementation: MediaBrowser
+      implementationName: Emby/Jellyfin
+      configContract: MediaBrowserSettings
+      onDownload: true
+      onUpgrade: true
+      onRename: true
+      onSeriesDelete: true
+      onEpisodeFileDelete: true
+      onEpisodeFileDeleteForUpgrade: true
+      tags: []
+      fields:
+        - name: host
+          value: "{{ sonarr_jellyfin_host }}"
+        - name: port
+          value: "{{ sonarr_jellyfin_port }}"
+        - name: useSsl
+          value: false
+        - name: urlBase
+          value: ''
+        - name: apiKey
+          value: "{{ vault_jellyfin_api_key }}"
+        - name: notify
+          value: false
+        - name: updateLibrary
+          value: true
+    status_code: [200, 201]
+  when: "'Jellyfin' not in (sonarr_notifications.json | map(attribute='name') | list)"
+  changed_when: true
+  no_log: true
+
+# Quality definitions are global, so this is the one place that decides how big a 4K
+# episode may be. Each PUT sends the definition back whole and only when a size differs.
+- name: Read the quality definitions
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/qualitydefinition"
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+  register: sonarr_quality_definitions
+
+- name: Cap the release sizes
+  vars:
+    sonarr_definition: "{{ sonarr_quality_definitions.json | selectattr('quality.name', 'equalto', item.quality) | first }}"
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/qualitydefinition/{{ sonarr_definition.id }}"
+    method: PUT
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+    body_format: json
+    body: "{{ sonarr_definition | combine({'minSize': item.min, 'preferredSize': item.preferred, 'maxSize': item.max}) }}"
+    status_code: [200, 202]
+  loop: "{{ sonarr_quality_limits }}"
+  loop_control:
+    label: "{{ item.quality }}"
+  when: >-
+    sonarr_definition.minSize != item.min
+    or sonarr_definition.preferredSize != item.preferred
+    or sonarr_definition.maxSize != item.max
+  changed_when: true
+
+- name: Read the custom formats
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/customformat"
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+  register: sonarr_custom_formats_current
+
+- name: Add the container custom formats
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/customformat"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+    body_format: json
+    body:
+      name: "{{ item.name }}"
+      includeCustomFormatWhenRenaming: false
+      specifications:
+        - name: "{{ item.name }}"
+          implementation: ReleaseTitleSpecification
+          negate: false
+          required: true
+          fields:
+            - name: value
+              value: "{{ item.regex }}"
+    status_code: [200, 201]
+  loop: "{{ sonarr_custom_formats }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.name not in (sonarr_custom_formats_current.json | map(attribute='name') | list)
+  changed_when: true
+
+- name: Read the quality profiles
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/qualityprofile"
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+  register: sonarr_quality_profiles
+
+# Built in one pass rather than per profile: a profile is PUT whole, and only the ones
+# whose scores actually differ end up in the list. Rendered as JSON and parsed back at the
+# loop, because a template carrying {% raw %}{% %}{% endraw %} statements returns a string, not a list.
+- name: Build the quality profiles that need rescoring
+  ansible.builtin.set_fact:
+    sonarr_profile_updates: >-
+      {% set scores = dict(sonarr_custom_formats | map(attribute='name')
+                           | zip(sonarr_custom_formats | map(attribute='score'))) %}
+      {% set out = [] %}
+      {% for profile in sonarr_quality_profiles.json %}
+      {%   set items = [] %}
+      {%   for format_item in profile.formatItems %}
+      {%     set _ = items.append(format_item | combine({'score': scores.get(format_item.name, format_item.score)})) %}
+      {%   endfor %}
+      {%   if items != profile.formatItems %}
+      {%     set _ = out.append(profile | combine({'formatItems': items})) %}
+      {%   endif %}
+      {% endfor %}
+      {{ out | to_json }}
+
+- name: Score the custom formats in every quality profile
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/qualityprofile/{{ item.id }}"
+    method: PUT
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+    body_format: json
+    body: "{{ item }}"
+    status_code: [200, 202]
+  loop: "{{ sonarr_profile_updates | from_json }}"
+  loop_control:
+    label: "{{ item.name }}"
+  changed_when: true

@@ -1,0 +1,15 @@
+http:
+  routers:
+    sonarr:
+      rule: "Host(`sonarr.moreaulab.ca`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: sonarr
+
+  services:
+    sonarr:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-media']['ansible_host'] }}:8989"

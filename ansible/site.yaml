@@ -35,6 +35,7 @@
     - jellyfin
     - transmission
     - radarr
+    - sonarr
     - prowlarr
     - vpn_egress_check
     - filestash

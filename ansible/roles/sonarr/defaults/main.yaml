@@ -1,0 +1,61 @@
+---
+sonarr_port: 8989
+
+# Sonarr's own API, reached on the LXC's published port from the host Ansible is on.
+sonarr_api_url: "http://127.0.0.1:{{ sonarr_port }}/api/v3"
+
+# Root folder Sonarr imports series into, as seen *inside* the container. Under /media,
+# the single mount that also holds the downloads tree — that is what lets an import
+# hardlink rather than copy.
+sonarr_root_folders:
+  - /media/tv
+
+# Transmission's RPC endpoint on the Podman bridge; see the same note in the radarr role.
+sonarr_transmission_host: 10.88.0.242
+sonarr_transmission_port: 9091
+sonarr_transmission_url_base: /transmission/
+sonarr_transmission_category: sonarr
+
+# Transmission reports finished torrents under its own /downloads prefix; Sonarr sees the
+# same files under /media/downloads. Both ends need the trailing slash.
+sonarr_remote_path_remote: /downloads/
+sonarr_remote_path_local: /media/downloads/
+
+# Host header allowlist (Sonarr's DNS-rebinding guard) — see the radarr role for why the
+# LAN address has to be listed alongside the wildcard.
+sonarr_allowed_hosts: "*.moreaulab.ca,{{ ansible_host }}"
+
+# Jellyfin's bridge address, so Sonarr can tell it to rescan on import.
+sonarr_jellyfin_host: 10.88.0.241
+sonarr_jellyfin_port: 8096
+
+# Release size limits, in MB per minute of runtime. Sonarr multiplies by the episode's
+# length, so 210 MB/min is ~12 GB for a one-hour episode and ~6 GB for a half-hour one.
+# 2160p ships uncapped here too. The floor keeps out upscales passing themselves off as
+# 2160p. 1080p and below keep Sonarr's defaults.
+sonarr_quality_limits:
+  - quality: HDTV-2160p
+    min: 35
+    preferred: 170
+    max: 210
+  - quality: WEBDL-2160p
+    min: 35
+    preferred: 170
+    max: 210
+  - quality: WEBRip-2160p
+    min: 35
+    preferred: 170
+    max: 210
+  - quality: Bluray-2160p
+    min: 35
+    preferred: 175
+    max: 220
+
+# Container preference, scored into every quality profile — see the radarr role.
+sonarr_custom_formats:
+  - name: MKV
+    regex: '\bmkv\b'
+    score: 20
+  - name: MP4
+    regex: '\b(mp4|m4v)\b'
+    score: -500

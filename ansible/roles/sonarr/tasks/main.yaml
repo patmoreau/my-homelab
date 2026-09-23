@@ -1,0 +1,69 @@
+- name: Create directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/sonarr"
+    state: directory
+    mode: "0755"
+
+# /data/sonarr itself must already exist — see the note in ansible/README.md: /data is a
+# bind mount of the host's /mnt/containers/lxc-media, whose owner falls outside the
+# container's nas_idmap range, so container root cannot create top-level entries there.
+# Create it once on pve-homelab:
+#   install -d -o 3000 -g 100 -m 0777 /mnt/containers/lxc-media/sonarr
+- name: Create data directory
+  ansible.builtin.file:
+    path: /data/sonarr
+    state: directory
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0777"
+
+# Transmission only creates the category directory on the first grab; until then Sonarr's
+# RemotePathMappingCheck reports the path as missing.
+- name: Create the Transmission category directory
+  ansible.builtin.file:
+    path: "/media/downloads/complete/{{ sonarr_transmission_category }}"
+    state: directory
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0775"
+
+# Sonarr mints its own API key on first start, which would leave the vault — and with it
+# the homepage widget and the API calls below — chasing a value only the container knows.
+- name: Seed config.xml on first boot
+  ansible.builtin.template:
+    src: config.xml.j2
+    dest: /data/sonarr/config.xml
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0600"
+    force: false
+
+# Sonarr owns config.xml after the seed, so AllowedHosts is patched in place rather than
+# re-templated. The slurp decides between rewriting an existing value and appending one,
+# since a `replace` that matches nothing reports no change.
+- name: Read config.xml
+  ansible.builtin.slurp:
+    src: /data/sonarr/config.xml
+  register: sonarr_config_raw
+
+- name: Set AllowedHosts in config.xml
+  ansible.builtin.replace:
+    path: /data/sonarr/config.xml
+    regexp: '<AllowedHosts>[^<]*</AllowedHosts>'
+    replace: '<AllowedHosts>{{ sonarr_allowed_hosts }}</AllowedHosts>'
+  when: '"<AllowedHosts>" in (sonarr_config_raw.content | b64decode)'
+  register: sonarr_allowed_hosts_set
+
+- name: Add AllowedHosts to config.xml when the tag is missing
+  ansible.builtin.replace:
+    path: /data/sonarr/config.xml
+    regexp: '</Config>'
+    replace: '  <AllowedHosts>{{ sonarr_allowed_hosts }}</AllowedHosts>\n</Config>'
+  when: '"<AllowedHosts>" not in (sonarr_config_raw.content | b64decode)'
+  register: sonarr_allowed_hosts_added
+
+- name: Deploy via Podman Quadlet
+  ansible.builtin.include_tasks: podman.yaml
+
+- name: Configure root folder, download client and connections
+  ansible.builtin.include_tasks: configure.yaml

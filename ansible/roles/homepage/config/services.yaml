@@ -126,6 +126,20 @@
           key: {{HOMEPAGE_VAR_RADARR_API_KEY}}
           enableQueue: true
 
+    - Sonarr:
+        icon: sonarr.png
+        href: https://sonarr.moreaulab.ca
+        siteMonitor: https://sonarr.moreaulab.ca
+        description: Series Library Manager
+        proxmoxNode: homelab
+        proxmoxVMID: 111
+        proxmoxType: lxc
+        widget:
+          type: sonarr
+          url: https://sonarr.moreaulab.ca
+          key: {{HOMEPAGE_VAR_SONARR_API_KEY}}
+          enableQueue: true
+
     - Prowlarr:
         icon: prowlarr.png
         href: https://prowlarr.moreaulab.ca

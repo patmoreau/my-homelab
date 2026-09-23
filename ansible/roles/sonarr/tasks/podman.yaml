@@ -1,0 +1,27 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create sonarr env file
+  ansible.builtin.template:
+    src: sonarr.env.j2
+    dest: "{{ docker_compose_dir }}/sonarr/sonarr.env"
+    mode: "0600"
+  register: sonarr_env
+
+- name: Deploy sonarr Quadlet unit
+  ansible.builtin.template:
+    src: sonarr.container
+    dest: /etc/containers/systemd/sonarr.container
+    mode: "0644"
+  register: sonarr_quadlet
+
+- name: Start sonarr
+  ansible.builtin.systemd:
+    name: sonarr.service
+    state: "{{ 'restarted' if (sonarr_quadlet.changed or sonarr_env.changed
+                       or sonarr_allowed_hosts_set.changed or sonarr_allowed_hosts_added.changed)
+                  else 'started' }}"
+    daemon_reload: true

@@ -65,6 +65,9 @@ scrape_configs:
       - targets: ['http://{{ hostvars["lxc-media"]["ansible_host"] }}:9696/ping']
         labels:
           service: 'prowlarr'
+      - targets: ['http://{{ hostvars["lxc-media"]["ansible_host"] }}:8989/ping']
+        labels:
+          service: 'sonarr'
       - targets: ['http://{{ hostvars["lxc-immich"]["ansible_host"] }}:2283/api/server/ping']
         labels:
           service: 'immich'

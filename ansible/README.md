@@ -121,7 +121,7 @@ Verifying by hand:
 ssh root@192.168.8.41 'podman exec transmission curl -s https://ipinfo.io/json'
 ```
 
-## Radarr, Prowlarr → Transmission
+## Radarr, Sonarr, Prowlarr → Transmission
 `radarr` runs on lxc-media next to Jellyfin and Transmission. Two things about it are not
 visible from the Quadlet unit alone:
 
@@ -146,6 +146,17 @@ application, so every indexer added in the Prowlarr UI is pushed into Radarr and
 one removed there is removed from Radarr too. Both ends of that link address each other
 by pinned bridge IP (`prowlarr` `.247`, `radarr` `.246`). Which indexers to enable stays
 a UI decision — they are per-site accounts, not something to template.
+
+`sonarr` is the same role shape again, for series: seeded `config.xml`, `AllowedHosts`,
+one `/media` mount, the v3 API for everything that lives in its DB. It uses its own
+Transmission category (`sonarr`, next to `radarr`) so neither app tries to import the
+other's downloads, and Prowlarr pushes the same indexers into it with the 5000-range TV
+categories — YTS drops out of that set by itself, being a movie-only tracker. Its size
+caps are per episode, where Sonarr multiplies MB/min by the episode runtime rather than a
+film's, so 210 MB/min lands at ~12 GB for an hour-long 4K episode.
+
+`prowlarr_applications` is a list; adding a third consumer is an entry in it, not new
+tasks.
 
 Radarr keeps two root folders, `/media/movies` and `/media/holidays` — the split exists
 because Jellyfin serves each as its own library, and a Radarr root folder is just a
@@ -286,6 +297,7 @@ These must be populated to deploy all services:
 | `vault_qnap_password`                   | service-watcher                      | QNAP user password                                                                                        |
 | `vault_qnap_ssh_private_key`            | service-watcher                      | Base64-encoded `id_ed25519_qnap_monitor` private key                                                      |
 | `vault_prowlarr_api_key`                | prowlarr, homepage                   | Prowlarr API key, seeded the same way; used by the role's v1 API calls and the homepage widget |
+| `vault_sonarr_api_key`                  | sonarr, prowlarr, homepage           | Sonarr API key, seeded the same way; also what Prowlarr authenticates its app link with |
 | `vault_radarr_api_key`                  | radarr, homepage                     | Radarr API key. Seeded into `config.xml` before Radarr's first boot (it would otherwise mint its own), then used by the role's v3 API calls and the homepage widget |
 | `vault_router_username`                 | homepage                             | Read-only `rpcd` account on the Flint 2 for the `openwrt` widget                                          |
 | `vault_router_password`                 | homepage                             | Its passphrase in plaintext — the router stores only the `uhttpd -m` hash                                 |

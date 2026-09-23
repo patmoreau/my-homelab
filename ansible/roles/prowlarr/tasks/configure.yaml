@@ -21,9 +21,9 @@
     url: "{{ prowlarr_api_url }}/applications"
     headers:
       X-Api-Key: "{{ vault_prowlarr_api_key }}"
-  register: prowlarr_applications
+  register: prowlarr_applications_current
 
-- name: Add Radarr as an application
+- name: Add the applications
   ansible.builtin.uri:
     url: "{{ prowlarr_api_url }}/applications"
     method: POST
@@ -31,11 +31,11 @@
       X-Api-Key: "{{ vault_prowlarr_api_key }}"
     body_format: json
     body:
-      name: Radarr
-      implementation: Radarr
-      implementationName: Radarr
-      configContract: RadarrSettings
-      # Prowlarr owns the indexer list: indexers added here are pushed to Radarr, and
+      name: "{{ item.name }}"
+      implementation: "{{ item.implementation }}"
+      implementationName: "{{ item.name }}"
+      configContract: "{{ item.config_contract }}"
+      # Prowlarr owns the indexer list: indexers added here are pushed to the app, and
       # ones removed here are removed there.
       syncLevel: fullSync
       tags: []
@@ -43,13 +43,16 @@
         - name: prowlarrUrl
           value: "{{ prowlarr_self_url }}"
         - name: baseUrl
-          value: "{{ prowlarr_radarr_url }}"
+          value: "{{ item.base_url }}"
         - name: apiKey
-          value: "{{ vault_radarr_api_key }}"
+          value: "{{ item.api_key }}"
         - name: syncCategories
-          value: "{{ prowlarr_radarr_sync_categories }}"
+          value: "{{ item.sync_categories }}"
     status_code: [200, 201]
-  when: "'Radarr' not in (prowlarr_applications.json | map(attribute='name') | list)"
+  loop: "{{ prowlarr_applications }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.name not in (prowlarr_applications_current.json | map(attribute='name') | list)
   changed_when: true
   no_log: true
 
