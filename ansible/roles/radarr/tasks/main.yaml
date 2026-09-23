@@ -31,6 +31,19 @@
     mode: "0600"
     force: false
 
+# Transmission drops Radarr's grabs in a subdirectory named after the download client
+# category, and only creates it on the first grab — until then Radarr's
+# RemotePathMappingCheck reports the path as missing. Creating it up front keeps the
+# health page clean on a fresh install. Owned by the NAS uid, like everything under
+# /media/downloads.
+- name: Create the Transmission category directory
+  ansible.builtin.file:
+    path: "/media/downloads/complete/{{ radarr_transmission_category }}"
+    state: directory
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0775"
+
 # Radarr owns config.xml after the seed above, so AllowedHosts is patched in place rather
 # than re-templated — every other key keeps whatever the UI last set. Two tasks because
 # an install that predates this may have no such tag at all: one rewrites an existing

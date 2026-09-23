@@ -52,3 +52,44 @@
   when: "'Radarr' not in (prowlarr_applications.json | map(attribute='name') | list)"
   changed_when: true
   no_log: true
+
+# An indexer is added by POSTing its definition back with enable + an app profile, so the
+# catalog is fetched first rather than the payloads being spelled out here: the fields
+# differ per definition and change with the definition itself.
+- name: Read the indexer definitions
+  ansible.builtin.uri:
+    url: "{{ prowlarr_api_url }}/indexer/schema"
+    headers:
+      X-Api-Key: "{{ vault_prowlarr_api_key }}"
+  register: prowlarr_indexer_schema
+
+- name: Read the configured indexers
+  ansible.builtin.uri:
+    url: "{{ prowlarr_api_url }}/indexer"
+    headers:
+      X-Api-Key: "{{ vault_prowlarr_api_key }}"
+  register: prowlarr_indexers_current
+
+# Definitions get renamed and retired upstream, and a name that matches nothing would
+# otherwise fail deep inside the loop with a Jinja error about an empty sequence.
+- name: Check every requested indexer exists in the catalog
+  ansible.builtin.assert:
+    that: prowlarr_indexers | difference(prowlarr_indexer_schema.json | map(attribute='name') | list) == []
+    fail_msg: >-
+      No Prowlarr definition named
+      {{ prowlarr_indexers | difference(prowlarr_indexer_schema.json | map(attribute='name') | list) | join(', ') }}
+      — check the spelling against Prowlarr's Add Indexer list.
+
+- name: Add the public indexers
+  ansible.builtin.uri:
+    url: "{{ prowlarr_api_url }}/indexer"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_prowlarr_api_key }}"
+    body_format: json
+    body: "{{ prowlarr_indexer_schema.json | selectattr('name', 'equalto', item) | first
+              | combine({'enable': true, 'appProfileId': prowlarr_app_profile_id}) }}"
+    status_code: [200, 201]
+  loop: "{{ prowlarr_indexers }}"
+  when: item not in (prowlarr_indexers_current.json | map(attribute='name') | list)
+  changed_when: true
