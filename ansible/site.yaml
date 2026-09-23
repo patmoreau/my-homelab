@@ -36,6 +36,7 @@
     - transmission
     - radarr
     - prowlarr
+    - vpn_egress_check
     - filestash
     - service-watcher
     - proxmox-backup-client

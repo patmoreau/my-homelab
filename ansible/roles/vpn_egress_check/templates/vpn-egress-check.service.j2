@@ -1,0 +1,8 @@
+[Unit]
+Description=Report which network this host's traffic leaves on, as node_exporter metrics
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/vpn-egress-check {{ vpn_egress_expected_asn }} {{ vpn_egress_home_asn }} {{ vpn_egress_lookup_url }}

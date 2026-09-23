@@ -1,0 +1,11 @@
+[Unit]
+Description=Periodic check of this host's egress network
+
+[Timer]
+# A leak is a router-side event, so it can start at any moment; ten minutes keeps the
+# unauthenticated lookup quota comfortable while bounding how long a leak goes unseen.
+OnBootSec=3min
+OnUnitActiveSec={{ vpn_egress_interval }}
+
+[Install]
+WantedBy=timers.target

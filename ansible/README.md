@@ -93,6 +93,34 @@ anything; a single 4K transcode can outgrow the whole rootfs. The file is patche
 templated, because Jellyfin rewrites it whenever Playback settings are saved in the UI —
 every key not listed above survives.
 
+## VPN egress check on lxc-media
+
+lxc-media's traffic is routed through a VPN by a **per-MAC policy on the router**
+(`bc:24:11:ae:0d:d9`, pinned in `terraform/lxc-media.tf`), not by anything on the host.
+That means there is no kill switch: if the tunnel drops, every service on the LXC falls
+back to the home ISP address and keeps running — torrent peer traffic included — with
+nothing in any log to say so.
+
+The `vpn_egress_check` role closes the visibility gap, not the leak. A timer asks
+ipinfo.io every 10 minutes which address the traffic arrives from and writes three gauges
+through the node_exporter textfile collector:
+
+| Metric | Meaning |
+| ------ | ------- |
+| `vpn_egress_on_home_asn` | 1 = traffic is on the home ISP. The actionable one; raises `vpn-egress-isp-leak` (critical) after 5m |
+| `vpn_egress_on_expected_asn` | 1 = traffic is on the VPN's ASN |
+| `vpn_egress_check_success` | 0 = the lookup itself failed; raises `vpn-egress-check-stale` (warning) after 45m, because a leak with the lookup blocked would otherwise read as no alert |
+
+`vpn_egress_home_asn` is matched explicitly rather than inferred from "not the expected
+ASN", so an unfamiliar-but-not-ISP answer (a VPN exit node moving, say) does not page as
+a leak. Both ASNs are role defaults — change them there if the provider or ISP changes.
+
+Verifying by hand:
+
+```bash
+ssh root@192.168.8.41 'podman exec transmission curl -s https://ipinfo.io/json'
+```
+
 ## Radarr, Prowlarr → Transmission
 `radarr` runs on lxc-media next to Jellyfin and Transmission. Two things about it are not
 visible from the Quadlet unit alone:

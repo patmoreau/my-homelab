@@ -1,0 +1,47 @@
+# The node_exporter textfile collector reads this directory. Created here as well as in
+# the node_exporter role so neither role's ordering matters.
+- name: Ensure node_exporter textfile directory exists
+  ansible.builtin.file:
+    path: /var/lib/node_exporter/textfile
+    state: directory
+    mode: "0755"
+
+- name: Deploy VPN egress-check script
+  ansible.builtin.copy:
+    src: vpn-egress-check.sh
+    dest: /usr/local/bin/vpn-egress-check
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy VPN egress-check systemd service
+  ansible.builtin.template:
+    src: vpn-egress-check.service.j2
+    dest: /etc/systemd/system/vpn-egress-check.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Deploy VPN egress-check systemd timer
+  ansible.builtin.template:
+    src: vpn-egress-check.timer.j2
+    dest: /etc/systemd/system/vpn-egress-check.timer
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Ensure VPN egress-check timer is enabled and running
+  ansible.builtin.systemd:
+    name: vpn-egress-check.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
+# The timer's first run is three minutes out, and a fresh deploy should not leave the
+# alert on NoData until then.
+- name: Run the VPN egress check once now
+  ansible.builtin.systemd:
+    name: vpn-egress-check.service
+    state: started

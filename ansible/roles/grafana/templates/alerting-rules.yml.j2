@@ -276,6 +276,93 @@ groups:
                       - 0
 
   - orgId: 1
+    name: Network
+    folder: Homelab Alerts
+    interval: 1m
+    rules:
+      # lxc-media's traffic is routed through a VPN by a per-MAC policy on the router, not
+      # by anything on the host — so there is no kill switch. If the tunnel drops, every
+      # service on that LXC silently falls back to the home ISP address and keeps running,
+      # torrent peer traffic included, with nothing in any log to say so. vpn-egress-check
+      # asks an external service which address the traffic arrives from every 10 minutes
+      # and writes the answer through the node_exporter textfile collector — see
+      # roles/vpn_egress_check/files/vpn-egress-check.sh.
+      - uid: vpn-egress-isp-leak
+        title: Traffic leaving on the home ISP instead of the VPN
+        condition: C
+        for: 5m
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: critical
+        annotations:
+          summary: {% raw %}'{{ $labels.instance }} is no longer behind the VPN'{% endraw %}
+
+          description: {% raw %}'Traffic from {{ $labels.instance }} is leaving on the home ISP address, so the router VPN policy for its MAC is not in effect — check the policy on the Flint 2 and that the tunnel is up. Stop transmission there until it is fixed: `systemctl stop transmission` on lxc-media.'{% endraw %}
+
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              refId: A
+              instant: true
+              editorMode: code
+              expr: 'vpn_egress_on_home_asn'
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+
+      # A check that cannot reach the lookup service proves nothing either way, and a
+      # leak with the lookup blocked would otherwise read as "no alert". Warning, not
+      # critical: the usual cause is the service being briefly unreachable.
+      - uid: vpn-egress-check-stale
+        title: VPN egress check has not succeeded
+        condition: C
+        for: 45m
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: {% raw %}'Cannot confirm the VPN egress on {{ $labels.instance }}'{% endraw %}
+
+          description: {% raw %}'The exit-address lookup on {{ $labels.instance }} has been failing for 45 minutes, so a VPN leak there would go unnoticed. Run `systemctl start vpn-egress-check` and read `journalctl -u vpn-egress-check`.'{% endraw %}
+
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              refId: A
+              instant: true
+              editorMode: code
+              expr: 'vpn_egress_check_success'
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+
+  - orgId: 1
     name: Backups
     folder: Homelab Alerts
     interval: 5m
