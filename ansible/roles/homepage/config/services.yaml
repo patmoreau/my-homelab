@@ -119,7 +119,6 @@
           type: radarr
           url: https://radarr.moreaulab.ca
           key: {{HOMEPAGE_VAR_RADARR_API_KEY}}
-          enableQueue: true
 
     - Sonarr:
         icon: sonarr.png
@@ -133,7 +132,6 @@
           type: sonarr
           url: https://sonarr.moreaulab.ca
           key: {{HOMEPAGE_VAR_SONARR_API_KEY}}
-          enableQueue: true
 
     - Prowlarr:
         icon: prowlarr.png
