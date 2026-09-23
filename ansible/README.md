@@ -184,12 +184,21 @@ film's, so 210 MB/min lands at ~12 GB for an hour-long 4K episode.
 `prowlarr_applications` is a list; adding a third consumer is an entry in it, not new
 tasks.
 
-Radarr keeps two root folders, `/media/movies` and `/media/holidays` — the split exists
+Radarr keeps three root folders — `/media/movies`, `/media/holidays` and `/media/kids`. The split exists
 because Jellyfin serves each as its own library, and a Radarr root folder is just a
 destination, so the separation costs nothing but the second entry. Pick the root folder in
 the Add Movie dialog and the film lands in the right library. The holiday titles are
 deliberately unmonitored: they are watched once a year, and monitoring them would queue
-~200 GB of 4K upgrades for films nobody is waiting on.
+~200 GB of 4K upgrades for films nobody is waiting on. The kids' tree is monitored, like
+the main one.
+
+**Do not bulk-edit collections.** A `PUT /api/v3/collection` propagates its monitoring
+fields to every member movie and a later collection refresh adds the members you do not
+own — a root-folder edit across 27 collections silently re-monitored every deliberately
+unmonitored film and added five titles with no files. Collections are pinned
+`monitored: false`, `monitorMovies: false`, `searchOnAdd: false` so a refresh cannot act
+on its own; change a collection's root folder one at a time, or repoint the movies
+instead.
 
 Paths are chosen so imports hardlink instead of copying: `/media/movies` and
 `/media/downloads` are the same NFS filesystem, and Radarr mounts `/media` **once** rather than

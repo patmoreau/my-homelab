@@ -9,6 +9,7 @@ radarr_port: 7878
 radarr_root_folders:
   - /media/movies
   - /media/holidays
+  - /media/kids
 
 # Transmission reports finished torrents under its own /downloads prefix; Radarr sees the
 # same files under /media/downloads. Both ends need the trailing slash.
