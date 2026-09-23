@@ -197,3 +197,52 @@
   loop_control:
     label: "{{ item.name }}"
   changed_when: true
+
+- name: Read the notification connections
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/notification"
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+  register: radarr_notifications
+
+# onRename covers the reorganisation an import does, onMovieFileDelete keeps Jellyfin
+# from holding on to a file an upgrade replaced. onGrab is deliberately off: nothing
+# exists for Jellyfin to scan when the torrent has only just been handed to Transmission.
+- name: Add the Jellyfin connection
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/notification"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+    body_format: json
+    body:
+      name: Jellyfin
+      implementation: MediaBrowser
+      implementationName: Emby/Jellyfin
+      configContract: MediaBrowserSettings
+      onDownload: true
+      onUpgrade: true
+      onRename: true
+      onMovieDelete: true
+      onMovieFileDelete: true
+      onMovieFileDeleteForUpgrade: true
+      tags: []
+      fields:
+        - name: host
+          value: "{{ radarr_jellyfin_host }}"
+        - name: port
+          value: "{{ radarr_jellyfin_port }}"
+        - name: useSsl
+          value: false
+        - name: urlBase
+          value: ''
+        - name: apiKey
+          value: "{{ vault_jellyfin_api_key }}"
+        - name: notify
+          value: false
+        - name: updateLibrary
+          value: true
+    status_code: [200, 201]
+  when: "'Jellyfin' not in (radarr_notifications.json | map(attribute='name') | list)"
+  changed_when: true
+  no_log: true

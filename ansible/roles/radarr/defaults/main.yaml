@@ -69,3 +69,9 @@ radarr_custom_formats:
   - name: MP4
     regex: '\b(mp4|m4v)\b'
     score: -500
+
+# Jellyfin's bridge address, so Radarr can tell it to rescan the moment a movie is
+# imported, upgraded or renamed — otherwise the new file waits for Jellyfin's scheduled
+# scan. Must track the IP= line in roles/jellyfin/templates/jellyfin.container.
+radarr_jellyfin_host: 10.88.0.241
+radarr_jellyfin_port: 8096
