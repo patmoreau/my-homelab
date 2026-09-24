@@ -3,7 +3,7 @@ Description=Jellyfin
 
 [Container]
 ContainerName=jellyfin
-Image=lscr.io/linuxserver/jellyfin:12.0ubu2604-ls48
+Image=lscr.io/linuxserver/jellyfin:12.1ubu2604-ls50
 IP=10.88.0.241
 PublishPort=8096:8096
 EnvironmentFile=/opt/docker/jellyfin/jellyfin.env
