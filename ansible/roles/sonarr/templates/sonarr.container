@@ -4,7 +4,7 @@ After=transmission.service
 
 [Container]
 ContainerName=sonarr
-Image=lscr.io/linuxserver/sonarr:5.14
+Image=lscr.io/linuxserver/sonarr:4.0.20.3014-ls325
 IP=10.88.0.248
 PublishPort=8989:8989
 EnvironmentFile=/opt/docker/sonarr/sonarr.env
