@@ -1,0 +1,126 @@
+# The Prowlarr connection and the Transmission download client live in BookOrbit's postgres
+# DB, so the admin API is the only way to set them. BookOrbit has no API-key auth — every
+# admin route is behind a JWT — so the role signs in first and carries the bearer token.
+# Both writes are guarded by a GET, so a hand-tuned row survives a re-run.
+- name: Check the book-request encryption key
+  ansible.builtin.assert:
+    that: bookorbit_book_request_encryption_key is match('^[0-9a-f]{64}$')
+    fail_msg: >-
+      vault_bookorbit_book_request_encryption_key must be a 64-character hex string
+      (openssl rand -hex 32). BookOrbit refuses to store indexer and download-client
+      credentials rather than keep them in the clear when the key is missing or malformed.
+    quiet: true
+
+- name: Wait for the BookOrbit API
+  ansible.builtin.uri:
+    url: "{{ bookorbit_api_url }}/auth/setup-status"
+    status_code: 200
+  register: bookorbit_status
+  # A cold start runs the schema migrations before the API answers, so this is minutes of
+  # headroom rather than the couple of seconds a restart needs.
+  retries: 60
+  delay: 5
+  until: bookorbit_status is succeeded
+
+# Login is rate-limited to five attempts a minute, so this stays a single call and the
+# token is reused by both writes below.
+- name: Sign in to BookOrbit
+  ansible.builtin.uri:
+    url: "{{ bookorbit_api_url }}/auth/login"
+    method: POST
+    body_format: json
+    body:
+      username: "{{ bookorbit_admin_user }}"
+      password: "{{ bookorbit_admin_password }}"
+    status_code: 200
+  register: bookorbit_login
+  changed_when: false
+  no_log: true
+
+- name: Read the configured indexer managers
+  ansible.builtin.uri:
+    url: "{{ bookorbit_api_url }}/admin/request-indexer-managers"
+    headers:
+      Authorization: "Bearer {{ bookorbit_login.json.accessToken }}"
+  register: bookorbit_indexer_managers
+  no_log: true
+
+# Creating the connection also syncs it: BookOrbit pulls Prowlarr's indexer list and keeps
+# every one of them as a search source, so which trackers to run stays a Prowlarr decision.
+- name: Add Prowlarr as the indexer manager
+  ansible.builtin.uri:
+    url: "{{ bookorbit_api_url }}/admin/request-indexer-managers"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ bookorbit_login.json.accessToken }}"
+    body_format: json
+    body:
+      name: "{{ bookorbit_prowlarr_name }}"
+      type: prowlarr
+      baseUrl: "{{ bookorbit_prowlarr_url }}"
+      credential: "{{ vault_prowlarr_api_key }}"
+      enabled: true
+      # BookOrbit refuses RFC1918 targets unless told the hop is deliberate.
+      allowPrivateAddress: true
+      syncNewIndexers: true
+    status_code: [200, 201]
+  when: bookorbit_prowlarr_name not in (bookorbit_indexer_managers.json.managers | map(attribute='name') | list)
+  changed_when: true
+  no_log: true
+
+# Creating the connection syncs it, but on a fresh host that first sync runs before the
+# prowlarr role has fixed AllowedHosts, which leaves the manager registered with no sources.
+# Re-synced only when the last one did not succeed: doing it every run would report changed
+# forever.
+- name: Sync the Prowlarr indexers
+  vars:
+    bookorbit_prowlarr_manager: >-
+      {{ (bookorbit_indexer_managers.json.managers | selectattr('name', 'equalto', bookorbit_prowlarr_name) | list | first)
+         | default({}, true) }}
+  ansible.builtin.uri:
+    url: "{{ bookorbit_api_url }}/admin/request-indexer-managers/{{ bookorbit_prowlarr_manager.id }}/sync"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ bookorbit_login.json.accessToken }}"
+    status_code: [200, 201]
+  when:
+    - bookorbit_prowlarr_manager.id is defined
+    - not (bookorbit_prowlarr_manager.lastSyncOk | default(false))
+  changed_when: true
+  no_log: true
+
+- name: Read the configured download clients
+  ansible.builtin.uri:
+    url: "{{ bookorbit_api_url }}/admin/download-clients"
+    headers:
+      Authorization: "Bearer {{ bookorbit_login.json.accessToken }}"
+  register: bookorbit_download_clients
+  no_log: true
+
+# Its own category, so BookOrbit only ever acts on the torrents it added and radarr's and
+# sonarr's grabs stay out of its queue.
+- name: Add Transmission as the download client
+  ansible.builtin.uri:
+    url: "{{ bookorbit_api_url }}/admin/download-clients"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ bookorbit_login.json.accessToken }}"
+    body_format: json
+    body:
+      name: "{{ bookorbit_transmission_name }}"
+      adapterType: transmission
+      baseUrl: "{{ bookorbit_transmission_url }}"
+      username: "{{ vault_transmission_user }}"
+      password: "{{ vault_transmission_pass }}"
+      enabled: true
+      priority: 1
+      category: "{{ bookorbit_transmission_category }}"
+      useHardlinks: "{{ bookorbit_use_hardlinks | bool }}"
+      allowPrivateAddress: true
+      pathMappings:
+        - remotePath: "{{ bookorbit_download_remote_path }}"
+          localPath: "{{ bookorbit_download_local_path }}"
+    status_code: [200, 201]
+  when: bookorbit_transmission_name not in (bookorbit_download_clients.json.clients | map(attribute='name') | list)
+  changed_when: true
+  no_log: true

@@ -11,6 +11,9 @@ Image=ghcr.io/bookorbit/bookorbit:3.0.0
 Network=container:bookorbit-db
 EnvironmentFile=/opt/docker/bookorbit/bookorbit.env
 Volume=/media/books:/books
+# The finished-downloads tree, at the same path Transmission reports it under, so the
+# client's path mapping is one-to-one. Read-write: importing a grab moves the file out.
+Volume=/media/downloads:/downloads
 Volume=/data/bookorbit/data:/data
 
 [Service]

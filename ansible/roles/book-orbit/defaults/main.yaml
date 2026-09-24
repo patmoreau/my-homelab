@@ -1,0 +1,37 @@
+---
+# The port bookorbit-db publishes on the LXC — the app answers there, since it shares that
+# container's network namespace (see the Quadlet units).
+bookorbit_port: 3001
+
+# BookOrbit's own API, reached on the LXC's published port. Everything below sits under it.
+bookorbit_api_url: "http://127.0.0.1:{{ bookorbit_port }}/api/v1"
+
+# Prowlarr, registered as BookOrbit's indexer manager ("prowlarr" is the only type it takes).
+# Addressed by pinned bridge IP rather than by hostname the way radarr and sonarr address it:
+# bookorbit-app joins bookorbit-db's network namespace, and podman refuses --add-host on a
+# container that did not create the namespace, so there is no /etc/hosts entry to add. That
+# bare-IP Host header is why prowlarr_allowed_hosts lists 10.88.0.247.
+bookorbit_prowlarr_name: Prowlarr
+bookorbit_prowlarr_url: "http://10.88.0.247:9696"
+
+# Transmission, the same daemon radarr and sonarr grab through. Transmission has no
+# categories, so BookOrbit turns the category into a subfolder of the daemon's own
+# download-dir: grabs land in /downloads/complete/bookorbit inside the transmission
+# container, which is /media/downloads/complete/bookorbit on the LXC.
+bookorbit_transmission_name: Transmission
+bookorbit_transmission_url: "http://10.88.0.242:9091"
+bookorbit_transmission_category: bookorbit
+
+# What Transmission reports a finished download as, and where the bookorbit container sees
+# the same files. Identical here because both containers mount the downloads tree at
+# /downloads — the mapping is still required, since it is also what declares the one
+# directory BookOrbit may import out of.
+bookorbit_download_remote_path: /downloads/complete
+bookorbit_download_local_path: /downloads/complete
+
+# Hardlink on import is off on purpose. The import lands in the Book Dock on /data (the
+# host's /mnt/containers/lxc-media), while the downloads are on the nas-media export and the
+# library on a third one, nas-books — link() across them is EXDEV, so every import would
+# try, fail and copy anyway, one warning per file. Books are small enough that the copy is a
+# workable steady state; flip this to true only if the dock moves onto nas-media.
+bookorbit_use_hardlinks: false

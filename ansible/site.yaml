@@ -31,12 +31,14 @@
 - name: Deploy Media
   hosts: lxc-media
   roles:
-    - book-orbit
     - jellyfin
     - transmission
     - radarr
     - sonarr
+    # After prowlarr: book-orbit registers it as an indexer source over the API, and that
+    # call is refused until prowlarr's AllowedHosts carries the bridge address it arrives on.
     - prowlarr
+    - book-orbit
     - vpn_egress_check
     - filestash
     - service-watcher

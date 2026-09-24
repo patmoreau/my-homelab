@@ -30,12 +30,15 @@ prowlarr_applications:
 prowlarr_radarr_sync_categories: [2000, 2010, 2020, 2030, 2040, 2045, 2050, 2060, 2070, 2080, 2090]
 
 # Host header allowlist (Prowlarr's DNS-rebinding guard). Anything not listed gets
-# 400 "Invalid Hostname". Three callers have to be covered: the browser and the homepage
+# 400 "Invalid Hostname". Four callers have to be covered: the browser and the homepage
 # widget arrive through Traefik as *.moreaulab.ca, the Radarr/Prowlarr app link uses the
-# same names (see the --add-host in the .container units), and Prometheus's blackbox job
-# probes the LXC's LAN address. Loopback is always exempt, so the role's own API calls
-# need no entry. Left unset, Prowlarr accepts any Host and logs a warning for it.
-prowlarr_allowed_hosts: "*.moreaulab.ca,{{ ansible_host }}"
+# same names (see the --add-host in the .container units), Prometheus's blackbox job
+# probes the LXC's LAN address, and BookOrbit arrives on this container's own bridge
+# address — it shares bookorbit-db's network namespace, where podman refuses --add-host,
+# so it is the one caller that cannot send a name. Loopback is always exempt, so the
+# role's own API calls need no entry. Left unset, Prowlarr accepts any Host and logs a
+# warning for it.
+prowlarr_allowed_hosts: "*.moreaulab.ca,{{ ansible_host }},10.88.0.247"
 
 # Indexers Prowlarr enables, by the exact name its definition catalog uses (Prowlarr ships
 # ~630 definitions; enabling one is what creates an indexer). These four are public, need

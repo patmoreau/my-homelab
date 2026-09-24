@@ -233,6 +233,43 @@ import silently fell back to copying (a 25 GB write per film, and the download-s
 kept until the torrent stopped seeding). Transmission still reports its own `/downloads/…`
 paths, which the role's remote path mapping translates to `/media/downloads/…`.
 
+## BookOrbit → Prowlarr and Transmission (lxc-media)
+
+BookOrbit 3.0 can fulfil its own book requests: it searches through a **Prowlarr
+connection** and hands the grab to a download client. Both rows live in its postgres DB, so
+`tasks/configure.yaml` sets them over the admin API — the same guarded-GET shape the *arr
+roles use, with three differences worth knowing:
+
+- **There is no API key.** Every admin route is behind a JWT, so the role signs in with
+  `vault_bookorbit_admin_user` / `vault_bookorbit_admin_password` (login is throttled to
+  five attempts a minute, hence the single call whose token both writes reuse). Leave
+  either blank and the whole step is skipped — the rest of the role still deploys.
+- **`BOOK_REQUEST_ENCRYPTION_KEY` is not optional.** Unlike BookOrbit's other encryption
+  keys, credentials are *refused* rather than stored in the clear when it is unset, so
+  without it neither row can be created. 64 hex characters, from the vault.
+- **Prowlarr is addressed by bare IP** (`http://10.88.0.247:9696`), which is why
+  `prowlarr_allowed_hosts` carries `10.88.0.247` on top of the wildcard. Radarr and Sonarr
+  avoid that with `--add-host`, but bookorbit-app joins bookorbit-db's network namespace and
+  podman refuses extra host entries on a container that did not create the namespace. Both
+  rows also set `allowPrivateAddress`, or BookOrbit's SSRF guard blocks an RFC1918 target.
+
+Transmission has no categories, so BookOrbit's `category` becomes a subfolder of the
+daemon's own download dir: grabs land in `/media/downloads/complete/bookorbit`, which the
+role creates with the NAS ownership up front. The bookorbit container mounts
+`/media/downloads` at `/downloads`, the same prefix Transmission reports, so the required
+path mapping is one-to-one.
+
+**Imports copy, they do not hardlink** (`bookorbit_use_hardlinks: false`). Unlike the *arr
+roles, no single mount can cover both ends here: the import destination is the Book Dock
+under `/data` (the host's `/mnt/containers/lxc-media`), the downloads are on the nas-media
+export, and the library is on a third one, nas-books. `link()` across them is `EXDEV`, so
+leaving hardlinks on would mean a failed attempt and a warning per file before the copy
+happens anyway. Books are small enough that the copy is a fine steady state; moving
+`BOOK_DOCK_PATH` onto nas-media is what would make hardlinks possible.
+
+Which indexers BookOrbit searches is a Prowlarr decision: the connection syncs whatever is
+enabled there, and `syncNewIndexers` keeps later additions coming.
+
 ## Container runtime — every LXC runs rootful Podman
 
 **All LXCs run rootful Podman + Quadlet.** The `container_runtime` var still defaults to
@@ -339,6 +376,9 @@ These must be populated to deploy all services:
 | `vault_bitwarden_mariadb_root_password` | vaultwarden                          |                                                                                                           |
 | `vault_bitwarden_mariadb_password`      | vaultwarden                          |                                                                                                           |
 | `vault_cloudflare_tunnel_token`         | cloudflare                           | Cloudflare Zero Trust tunnel token                                                                        |
+| `vault_bookorbit_admin_user`            | book-orbit                           | BookOrbit admin username. Its admin API is JWT-only, so the role signs in to register the Prowlarr connection and the Transmission client; blank skips that step |
+| `vault_bookorbit_admin_password`        | book-orbit                           | Password for the account above                                                                            |
+| `vault_bookorbit_book_request_encryption_key` | book-orbit                     | 64-char hex (`openssl rand -hex 32`). Encrypts the indexer and download-client credentials at rest; BookOrbit refuses to save them at all when it is unset |
 | `vault_essere_mariadb_root_password`    | essere                               |                                                                                                           |
 | `vault_essere_mariadb_password`         | essere                               |                                                                                                           |
 | `vault_filestash_admin_password`        | filestash                            | Admin password in plaintext — kept for recovery only, nothing reads it                                    |

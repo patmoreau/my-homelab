@@ -11,3 +11,9 @@ service_watcher_targets: ''
 bookorbit_postgres_password: '{{ vault_bookorbit_postgres_password }}'
 bookorbit_jwt_token: '{{ vault_bookorbit_jwt_token }}'
 bookorbit_setup_bootstrap_token: '{{ vault_bookorbit_setup_bootstrap_token }}'
+bookorbit_book_request_encryption_key: '{{ vault_bookorbit_book_request_encryption_key }}'
+# BookOrbit's admin API is JWT-only, so the role signs in as this account to register the
+# Prowlarr connection and the Transmission client. Leave either blank and that step is
+# skipped; the rest of the role still deploys.
+bookorbit_admin_user: '{{ vault_bookorbit_admin_user }}'
+bookorbit_admin_password: '{{ vault_bookorbit_admin_password }}'

@@ -16,5 +16,25 @@
     - /data/bookorbit/postgres
     - /data/bookorbit/data
 
+# Transmission puts BookOrbit's grabs in a subfolder of its own download-dir named after
+# the category. Created here so the directory carries the NAS ownership every other
+# /media path does, rather than whatever Transmission's first grab would leave behind.
+- name: Create the download category directory
+  ansible.builtin.file:
+    path: '/media/downloads/complete/{{ bookorbit_transmission_category }}'
+    state: directory
+    owner: '{{ nas_puid }}'
+    group: '{{ nas_pgid }}'
+    mode: '0777'
+
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
+
+# Skipped, not failed, while the admin credentials are unset: everything above still
+# deploys, and the two rows are added on the first run after the vault carries a BookOrbit
+# admin. BookOrbit has no API-key auth, so there is no way to make these calls without one.
+- name: Register Prowlarr and Transmission
+  ansible.builtin.include_tasks: configure.yaml
+  when:
+    - bookorbit_admin_user | default('', true) | length > 0
+    - bookorbit_admin_password | default('', true) | length > 0
