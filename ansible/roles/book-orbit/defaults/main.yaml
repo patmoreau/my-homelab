@@ -35,3 +35,16 @@ bookorbit_download_local_path: /downloads/complete
 # try, fail and copy anyway, one warning per file. Books are small enough that the copy is a
 # workable steady state; flip this to true only if the dock moves onto nas-media.
 bookorbit_use_hardlinks: false
+
+# Where a request lands when the requester named no library — the instance default per
+# medium (ebook, audiobook, comic). Empty means BookOrbit keeps whatever the UI last set,
+# and with nothing set an import whose requester named no library is held for review
+# instead of filed.
+#
+# Keyed by name and path rather than by id: ids are handed out at runtime and say nothing
+# about which library is which. Omit `folder` to let BookOrbit take the library's first
+# folder, which it resolves and stores on save.
+bookorbit_request_destinations: {}
+#   ebook:
+#     library: Books
+#     folder: /books/ebooks

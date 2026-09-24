@@ -17,3 +17,15 @@ bookorbit_book_request_encryption_key: '{{ vault_bookorbit_book_request_encrypti
 # skipped; the rest of the role still deploys.
 bookorbit_admin_user: '{{ vault_bookorbit_admin_user }}'
 bookorbit_admin_password: '{{ vault_bookorbit_admin_password }}'
+
+# Instance default destination per medium, for a request whose requester named no library.
+bookorbit_request_destinations:
+  ebook:
+    library: Livres
+    folder: /books/books
+  audiobook:
+    library: Audiobooks
+    folder: /books/audiobooks
+  comic:
+    library: Bandes dessinées
+    folder: /books/comics

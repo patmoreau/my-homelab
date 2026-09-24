@@ -168,6 +168,19 @@ call with 409 and the header attached — hence the handshake task. The idempote
 stringifies both sides, since the desired values arrive from Jinja as strings while the
 daemon reports numbers and booleans.
 
+Seeding stops at ratio 2.0 (`seedRatioLimited` / `seedRatioLimit`, the RPC spelling of
+settings.json's `ratio-limit-enabled` / `ratio-limit`). Until this was set nothing ever
+stopped, so every completed grab kept seeding and kept its copy on the NAS beside the
+imported one. A per-torrent goal still wins where one exists — BookOrbit writes one with
+`seedRatioMode=single` when a tracker asks for a particular ratio — so this is only the
+floor for the grabs that carry none, which today is all of them. Stopping is not deleting:
+Transmission keeps the files and the torrent, it just stops uploading.
+
+The ratio is written as a float (`2.0`, not `2`) because the idempotency check stringifies
+both sides and Transmission reports it back as `2.0`. Note also that `settings.json` lags
+the live session — Transmission rewrites it on its own schedule, so a value read from that
+file right after a run can still show the old one; `session-get` is the truth.
+
 Raising the caps is a defaults change (`roles/transmission/defaults/main.yaml`), in KB/s.
 
 ## Radarr, Sonarr, Prowlarr → Transmission
@@ -269,6 +282,14 @@ happens anyway. Books are small enough that the copy is a fine steady state; mov
 
 Which indexers BookOrbit searches is a Prowlarr decision: the connection syncs whatever is
 enabled there, and `syncNewIndexers` keeps later additions coming.
+
+`bookorbit_request_destinations` (in `host_vars/lxc-media.yaml`) is the last rung of the
+library lookup: a request takes the library its requester named, else the instance default
+for its medium, else nothing — and nothing means the import is held for review rather than
+filed. Keyed by library name and folder path, because the ids are handed out at runtime.
+A medium left out keeps whatever the UI last set, and an omitted `folder` means the
+library's first one, which the server resolves and stores on save — the role's comparison
+accounts for that, so it does not report changed on every run.
 
 ## Container runtime — every LXC runs rootful Podman
 

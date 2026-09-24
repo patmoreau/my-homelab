@@ -124,3 +124,86 @@
   when: bookorbit_transmission_name not in (bookorbit_download_clients.json.clients | map(attribute='name') | list)
   changed_when: true
   no_log: true
+
+# The destination defaults live in app_settings, and the medium each one keys off is the
+# only thing known about a request before its file exists — so this is the rung that keeps
+# a request from being held purely for having no library to go to.
+- name: Read the libraries
+  ansible.builtin.uri:
+    url: "{{ bookorbit_api_url }}/libraries"
+    headers:
+      Authorization: "Bearer {{ bookorbit_login.json.accessToken }}"
+  register: bookorbit_libraries
+  when: bookorbit_request_destinations | length > 0
+  no_log: true
+
+# Named libraries get renamed and folders get moved, and either would otherwise fail deep
+# in the next task with a Jinja error about an empty sequence.
+- name: Check every destination library and folder exists
+  ansible.builtin.assert:
+    that:
+      - bookorbit_libraries.json | selectattr('name', 'equalto', item.value.library) | list | length == 1
+      - item.value.folder is not defined
+        or (bookorbit_libraries.json | selectattr('name', 'equalto', item.value.library) | map(attribute='folders')
+            | flatten | selectattr('path', 'equalto', item.value.folder) | list | length == 1)
+    fail_msg: >-
+      No BookOrbit library named "{{ item.value.library }}"
+      {{ ('with a folder at ' ~ item.value.folder) if item.value.folder is defined else '' }}
+      — check bookorbit_request_destinations against the libraries in the UI.
+    quiet: true
+  loop: "{{ bookorbit_request_destinations | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  when: bookorbit_request_destinations | length > 0
+
+- name: Read the request automation settings
+  ansible.builtin.uri:
+    url: "{{ bookorbit_api_url }}/admin/book-request-automation"
+    headers:
+      Authorization: "Bearer {{ bookorbit_login.json.accessToken }}"
+  register: bookorbit_automation
+  when: bookorbit_request_destinations | length > 0
+  no_log: true
+
+# Built in one pass and rendered as JSON, then parsed back: a template carrying Jinja
+# statements returns a string rather than a dict. Whether it differs is decided in the same
+# pass, because a wanted folderId of null means "the library's first folder" — the server
+# resolves and stores a concrete one, so comparing the two payloads directly would report
+# changed on every run.
+- name: Build the destination defaults
+  vars:
+    bookorbit_destinations_current: "{{ bookorbit_automation.json.destinations | default({}, true) }}"
+  ansible.builtin.set_fact:
+    bookorbit_destinations: >-
+      {% set wanted = {} %}
+      {% set unmatched = [] %}
+      {% for medium, want in bookorbit_request_destinations.items() %}
+      {%   set library = bookorbit_libraries.json | selectattr('name', 'equalto', want.library) | list | first %}
+      {%   set folder = (library.folders | selectattr('path', 'equalto', want.folder) | list | first)
+                        if want.folder is defined else none %}
+      {%   set _ = wanted.update({medium: {'libraryId': library.id, 'folderId': folder.id if folder else none}}) %}
+      {%   set current = bookorbit_destinations_current.get(medium, {}) %}
+      {%   set folder_ok = (current.get('folderId') == folder.id) if folder
+                           else (current.get('folderId') is not none) %}
+      {%   if current.get('libraryId') != library.id or not folder_ok %}
+      {%     set _ = unmatched.append(medium) %}
+      {%   endif %}
+      {% endfor %}
+      {{ {'wanted': wanted, 'differs': unmatched | length > 0} | to_json }}
+  when: bookorbit_request_destinations | length > 0
+
+- name: Set the request destination defaults
+  ansible.builtin.uri:
+    url: "{{ bookorbit_api_url }}/admin/book-request-automation"
+    method: PUT
+    headers:
+      Authorization: "Bearer {{ bookorbit_login.json.accessToken }}"
+    body_format: json
+    body:
+      destinations: "{{ (bookorbit_destinations | from_json).wanted }}"
+    status_code: [200, 201]
+  when:
+    - bookorbit_request_destinations | length > 0
+    - (bookorbit_destinations | from_json).differs
+  changed_when: true
+  no_log: true
