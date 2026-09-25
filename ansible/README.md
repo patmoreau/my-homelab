@@ -183,6 +183,22 @@ file right after a run can still show the old one; `session-get` is the truth.
 
 Raising the caps is a defaults change (`roles/transmission/defaults/main.yaml`), in KB/s.
 
+**Queue size is 8, and it is not a bandwidth knob.** The caps above apply to the sum of all
+torrents, so eight running at once take no more of the line than three did. It was 3, and the
+effect was that healthy grabs waited behind dead ones: two of the three slots were held by
+torrents at 5% and 27% that had not moved a byte in two days, so everything behind them sat
+queued indefinitely.
+
+`queue-stalled-enabled` alone does not fix that, which is worth knowing before reaching for
+it. Transmission's idle timer keys off `activityDate`, and **any** peer contact refreshes it —
+a handshake counts, a received byte is not required. A torrent with two peers dribbling at
+0 B/s reports `idle=0` and `isStalled=false` forever. The 15-minute timer catches the
+genuinely peerless ones; the chatty-but-dead case needs the queue headroom instead.
+
+What neither setting does is get rid of a dud. A torrent stuck at 5% keeps its slot until
+somebody blocklists it in Radarr/Sonarr and takes another release — the *arr apps only
+auto-blocklist when the client reports an actual failure, and "no peers" is not one.
+
 **Incomplete downloads live on local NVMe, not the NAS.** `/downloads/incomplete` is the
 `media-downloads` LVM volume (see `terraform/README.md`); only the finished file is written
 to `/media/downloads/complete` on the export. This is not a tuning preference. Transmission's

@@ -39,9 +39,21 @@ transmission_alt_speed_time_day: 127
 # compare "2" against "2.0" and report changed on every run.
 transmission_seed_ratio_limit: 2.0
 
-# How many torrents download at once. Not the safeguard — the speed caps are — but it
-# keeps a batch of grabs from splitting the cap so thinly that nothing finishes.
-transmission_download_queue_size: 3
+# How many torrents download at once. Not the safeguard — the speed caps are, and they apply
+# to the sum of all torrents no matter how many run — so this number does not decide how much
+# of the line torrents take. It was 3, which turned out to be the reason healthy grabs sat
+# waiting: a dead torrent still occupies a slot. Two of three slots were held by torrents at
+# 5% and 27% that had moved no data in two days, so everything behind them queued forever.
+# Eight leaves room for a few duds without starving the rest; the cap still governs the total.
+transmission_download_queue_size: 8
+
+# Minutes without data before a torrent is treated as stalled and yields its queue slot.
+# The subtlety that made this ineffective at 30: Transmission's idle timer keys off
+# `activityDate`, which any peer contact refreshes — a handshake counts, a received byte is
+# not required. A torrent with two peers dribbling at 0 B/s therefore reports idle=0 forever
+# and is never stalled. Fifteen minutes catches the genuinely peerless ones sooner; the
+# chatty-but-dead case needs the queue headroom above, not a shorter timer.
+transmission_queue_stalled_minutes: 15
 
 # The RPC session settings the role enforces, assembled from the values above. Anything
 # not listed here is left as Transmission has it.
@@ -58,6 +70,8 @@ transmission_session_settings:
   alt-speed-time-day: "{{ transmission_alt_speed_time_day }}"
   download-queue-enabled: true
   download-queue-size: "{{ transmission_download_queue_size }}"
+  queue-stalled-enabled: true
+  queue-stalled-minutes: "{{ transmission_queue_stalled_minutes }}"
   # RPC spells these differently from settings.json's ratio-limit / ratio-limit-enabled.
   seedRatioLimit: "{{ transmission_seed_ratio_limit }}"
   seedRatioLimited: true
