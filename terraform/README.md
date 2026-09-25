@@ -151,6 +151,7 @@ put only reproducible data there.
 | Volume            | Size | Holds                                     |
 | ----------------- | ---- | ----------------------------------------- |
 | media-data        | 10G  | Media service state                       |
+| media-downloads   | 200G | Transmission incomplete (torrent scratch) |
 | essere-data       | 10G  | Essere app data                           |
 | monitoring-data   | 8G   | Prometheus TSDB, Loki chunks, Grafana DB  |
 | vault-data        | 2G   | Vaultwarden data                          |
@@ -161,6 +162,16 @@ put only reproducible data there.
 Raising a `size` and re-applying grows the volume in place (`lvextend` +
 online `resize2fs`). Lowering it is ignored — shrinking ext4 needs an unmount and
 must be done by hand.
+
+`media-downloads` is bind-mounted into lxc-media as `/downloads` (not `/data`) and holds
+only Transmission's in-progress files. It is deliberately a second volume rather than extra
+room on `media-data`: torrents grow to fill whatever they are given — an in-flight season
+pack is ~90G — and sharing would leave the Radarr/Sonarr/Prowlarr databases one oversized
+download away from ENOSPC, the same trap `monitoring-data` fell into with Grafana. The
+finished file still lands on the NAS under `/media/downloads/complete`.
+
+> Adding a mount point to an existing container needs a **restart**: `pct set -mpN` writes
+> the config but mount points do not hotplug.
 
 > Any service with its own retention budget must keep that budget **below** its
 > volume size. `monitoring-data` is 8G against Prometheus'

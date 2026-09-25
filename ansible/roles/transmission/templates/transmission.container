@@ -11,7 +11,12 @@ PublishPort=51413:51413/udp
 EnvironmentFile=/opt/docker/transmission/transmission.env
 Volume=/data/transmission/config:/config
 Volume=/media/downloads/complete:/downloads/complete
-Volume=/media/downloads/incomplete:/downloads/incomplete
+# Incomplete on the local NVMe volume, not the NAS export. The in-progress writes are what
+# broke this: a stuck NFS COMMIT on a .part file left the disk thread in D state and the RPC
+# unreachable while the container looked healthy. Completion moves the finished file to
+# /downloads/complete on the NAS, which is a copy across mounts rather than a rename — the
+# one cost of splitting them, and cheaper than the stall it avoids.
+Volume=/downloads/incomplete:/downloads/incomplete
 
 [Service]
 Restart=always

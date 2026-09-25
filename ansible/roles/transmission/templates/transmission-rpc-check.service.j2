@@ -1,0 +1,8 @@
+[Unit]
+Description=Probe the Transmission RPC and restart it when it stops answering
+After=transmission.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/opt/docker/transmission/rpc-check.env
+ExecStart=/usr/local/bin/transmission-rpc-check

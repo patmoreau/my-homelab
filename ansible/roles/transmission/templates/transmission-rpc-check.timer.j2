@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodic Transmission RPC health probe
+
+[Timer]
+# Every two minutes, three strikes before a restart: a wedge is caught in ~6 minutes, which
+# is well inside the gap that let the last one sit unnoticed for hours.
+OnBootSec=5min
+OnUnitActiveSec=2min
+AccuracySec=15s
+
+[Install]
+WantedBy=timers.target

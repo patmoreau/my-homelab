@@ -15,8 +15,21 @@
     - /data/transmission
     - /data/transmission/config
 
+# On the dedicated NVMe volume (mp3, see terraform/lxc-media.tf), not the NAS export. The
+# torrent scratch lives here so the in-progress writes never cross NFS.
+- name: Create the incomplete download directory
+  ansible.builtin.file:
+    path: /downloads/incomplete
+    state: directory
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: "0777"
+
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
 
 - name: Apply the RPC session settings
   ansible.builtin.include_tasks: session.yaml
+
+- name: Deploy the RPC watchdog
+  ansible.builtin.include_tasks: watchdog.yaml

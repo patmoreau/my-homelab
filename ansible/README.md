@@ -183,6 +183,25 @@ file right after a run can still show the old one; `session-get` is the truth.
 
 Raising the caps is a defaults change (`roles/transmission/defaults/main.yaml`), in KB/s.
 
+**Incomplete downloads live on local NVMe, not the NAS.** `/downloads/incomplete` is the
+`media-downloads` LVM volume (see `terraform/README.md`); only the finished file is written
+to `/media/downloads/complete` on the export. This is not a tuning preference. Transmission's
+disk thread blocked in an NFS commit on a `.part` file — `nfs_wb_folio -> __nfs_commit_inode`,
+thread in `D` state — and because the main loop wants the same mutex, the daemon held its
+listening socket and stopped calling `accept()`. `ss` showed 45 connections queued on
+`0.0.0.0:9091` while `systemctl is-active` said `active`, `podman ps` said `Up 37 hours`, and
+the log was empty. The cost of the split is that completion copies across mounts instead of
+renaming within one.
+
+**`transmission-rpc-check` is the watchdog for what is left.** A oneshot timer every 2
+minutes makes a real `session-get` through the published host port and restarts the service
+after three consecutive failures, with a 30-minute cooldown so a NAS outage cannot turn into
+a restart loop. Going through the host port rather than the container IP means it also
+catches a leaked netns hijacking the bridge address. A restart on podman 4.9 leaks a netns of
+its own, so the script drives `podman-orphan-check` twice afterwards rather than leaving the
+next outage to the reaper's own timer. Metrics: `transmission_rpc_up`,
+`transmission_rpc_consecutive_failures`, `transmission_rpc_restarts`.
+
 ## Radarr, Sonarr, Prowlarr → Transmission
 `radarr` runs on lxc-media next to Jellyfin and Transmission. Two things about it are not
 visible from the Quadlet unit alone:

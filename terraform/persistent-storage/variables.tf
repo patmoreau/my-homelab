@@ -33,12 +33,17 @@ variable "storage_volumes" {
     disk_name    = string
   }))
   default = {
-    "lxc-media"         = { vmid = 111, size = "10G", storage_name = "local-lvm", disk_name = "media-data" },
-    "lxc-essere"        = { vmid = 112, size = "10G", storage_name = "local-lvm", disk_name = "essere-data" },
-    "lxc-monitoring"    = { vmid = 113, size = "8G", storage_name = "local-lvm", disk_name = "monitoring-data" },
-    "lxc-vault"         = { vmid = 115, size = "2G", storage_name = "local-lvm", disk_name = "vault-data" },
-    "lxc-immich"        = { vmid = 116, size = "25G", storage_name = "local-lvm", disk_name = "immich-data" },
-    "lxc-homeassistant" = { vmid = 117, size = "10G", storage_name = "local-lvm", disk_name = "homeassistant-data" },
-    "lxc-holefeeder"    = { vmid = 119, size = "20G", storage_name = "local-lvm", disk_name = "holefeeder-data" },
+    "lxc-media" = { vmid = 111, size = "10G", storage_name = "local-lvm", disk_name = "media-data" },
+    # Torrent scratch, deliberately its own volume rather than more room on media-data:
+    # an in-flight season pack is ~90G and torrents expand to fill whatever they are
+    # given, so sharing with Radarr/Sonarr/Prowlarr state would put their databases one
+    # oversized download away from ENOSPC. Same lesson as monitoring-data vs Grafana.
+    "lxc-media-downloads" = { vmid = 111, size = "200G", storage_name = "local-lvm", disk_name = "media-downloads" },
+    "lxc-essere"          = { vmid = 112, size = "10G", storage_name = "local-lvm", disk_name = "essere-data" },
+    "lxc-monitoring"      = { vmid = 113, size = "8G", storage_name = "local-lvm", disk_name = "monitoring-data" },
+    "lxc-vault"           = { vmid = 115, size = "2G", storage_name = "local-lvm", disk_name = "vault-data" },
+    "lxc-immich"          = { vmid = 116, size = "25G", storage_name = "local-lvm", disk_name = "immich-data" },
+    "lxc-homeassistant"   = { vmid = 117, size = "10G", storage_name = "local-lvm", disk_name = "homeassistant-data" },
+    "lxc-holefeeder"      = { vmid = 119, size = "20G", storage_name = "local-lvm", disk_name = "holefeeder-data" },
   }
 }

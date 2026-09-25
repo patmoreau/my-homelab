@@ -1,0 +1,50 @@
+# `systemctl is-active` says nothing useful about this service: Transmission can hold its
+# listening socket while never calling accept(), so the unit reads active and the container
+# reads Up while every request hangs. The watchdog makes a real RPC call instead, and restarts
+# the service after three consecutive failures. See roles/transmission/files for the reasoning.
+- name: Ensure node_exporter textfile directory exists
+  ansible.builtin.file:
+    path: /var/lib/node_exporter/textfile
+    state: directory
+    mode: "0755"
+
+# Separate from transmission.env: that one is the container's environment and is read by the
+# container, this one is read by the probe on the host.
+- name: Create the RPC probe credentials file
+  ansible.builtin.template:
+    src: rpc-check.env.j2
+    dest: "{{ docker_compose_dir }}/transmission/rpc-check.env"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Deploy the RPC watchdog script
+  ansible.builtin.copy:
+    src: transmission-rpc-check.sh
+    dest: /usr/local/bin/transmission-rpc-check
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy the RPC watchdog service
+  ansible.builtin.template:
+    src: transmission-rpc-check.service.j2
+    dest: /etc/systemd/system/transmission-rpc-check.service
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy the RPC watchdog timer
+  ansible.builtin.template:
+    src: transmission-rpc-check.timer.j2
+    dest: /etc/systemd/system/transmission-rpc-check.timer
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure the RPC watchdog timer is enabled and running
+  ansible.builtin.systemd:
+    name: transmission-rpc-check.timer
+    enabled: true
+    state: started
+    daemon_reload: true

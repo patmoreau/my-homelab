@@ -38,6 +38,13 @@ module "media" {
     # Separate NFS export, so it stays its own mount; nests under /media to keep the path
     # stable for book-orbit. The mountpoint directory has to exist on the nas-media share.
     { host = "/mnt/pve/nas-books", mp = "/media/books" },
+    # Torrent scratch on local NVMe, not on the NAS. Transmission's random writes and piece
+    # hashing used to land on the nas-media export, where a stuck NFS COMMIT wedged its disk
+    # thread (nfs_wb_folio -> __nfs_commit_inode) and, through the mutex the main loop wants,
+    # took the whole RPC down: the daemon listened on 9091 and never accepted, for hours.
+    # Only the finished file is written to the NAS now, once, on completion. Its own volume
+    # rather than more room on /data, so a runaway download cannot ENOSPC the *arr databases.
+    { host = "/mnt/containers/lxc-media-downloads", mp = "/downloads" },
   ]
 
   nas_idmap = {
