@@ -13,7 +13,7 @@ Create the following shared folders in **Control Panel → Shared Folders → Cr
 | Folder       | Purpose                                  |
 | ------------ | ---------------------------------------- |
 | `nas-media`  | Jellyfin, Transmission, Book Orbit media |
-| `nas-books`  | Book library                             |
+| ~~`nas-books`~~ | Retired — the books tree was folded into `media/books` so it shares one mount with the downloads; see [nas-smr-write-performance.md](nas-smr-write-performance.md) and the BookOrbit notes in `ansible/README.md` |
 | `nas-photos` | Immich photo library                     |
 
 ## 2. NFS access

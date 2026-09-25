@@ -90,7 +90,7 @@ NFS shares are mounted on Proxmox and bind-mounted into LXC containers via Terra
 
 ```text
 { host = "/mnt/pve/nas-media", mp = "/media" }
-{ host = "/mnt/pve/nas-books", mp = "/media/books" }
+{ host = "/mnt/pve/nas-media", mp = "/media" }   # books live at /media/books inside it
 ```
 
 The NFS mount points on Proxmox (`/mnt/pve/nas-*`) must be configured in the Proxmox UI under Datacenter → Storage.

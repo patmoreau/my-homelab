@@ -27,6 +27,16 @@
     group: '{{ nas_pgid }}'
     mode: '0777'
 
+# On the books tree, so it shares a filesystem with the downloads and the libraries and an
+# import can hardlink instead of copying. /media/books is inside the nas-media export.
+- name: Create the Book Dock directory
+  ansible.builtin.file:
+    path: "/media/books/{{ bookorbit_book_dock_path | basename }}"
+    state: directory
+    owner: "{{ nas_puid }}"
+    group: "{{ nas_pgid }}"
+    mode: '0777'
+
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
 

@@ -300,13 +300,27 @@ path mapping is one-to-one.
 **Imports copy, they do not hardlink** (`bookorbit_use_hardlinks: false`). Unlike the *arr
 roles, no single mount can cover both ends here: the import destination is the Book Dock
 under `/data` (the host's `/mnt/containers/lxc-media`), the downloads are on the nas-media
-export, and the library is on a third one, nas-books. `link()` across them is `EXDEV`, so
+export, and the library is in the books tree. `link()` across them is `EXDEV`, so
 leaving hardlinks on would mean a failed attempt and a warning per file before the copy
 happens anyway. Books are small enough that the copy is a fine steady state; moving
 `BOOK_DOCK_PATH` onto nas-media is what would make hardlinks possible.
 
 Which indexers BookOrbit searches is a Prowlarr decision: the connection syncs whatever is
 enabled there, and `syncNewIndexers` keeps later additions coming.
+
+**The Book Dock sits in the books tree, and imports still copy once.** `BOOK_DOCK_PATH` is
+`/books/.dock`, a hidden sibling of the three library folders, so finalizing a book into its
+library is a `rename(2)`. The import into the dock is still a copy, and folding the books
+export into `nas-media` did **not** change that even though the LXC now has a single mount:
+the `book-orbit` container binds `/media/books` and `/media/downloads` separately, and
+`do_linkat` refuses a link across two mounts even when the superblock is the same. The
+container gets `EXDEV` where the LXC does not.
+
+The one-mount fix is not available, and the reason is worth knowing before anyone tries it:
+`books.library_folder_id` cascades on delete, and a library update deletes the old folder row
+before inserting the new one, so repointing a library at `/media/books/...` would drop every
+book row with it — reading progress, annotations, collections — and rescan them as new books.
+One copy per import is the floor. It used to be two, one of them onto the NAS.
 
 `bookorbit_request_destinations` (in `host_vars/lxc-media.yaml`) is the last rung of the
 library lookup: a request takes the library its requester named, else the instance default

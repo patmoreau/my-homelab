@@ -29,12 +29,27 @@ bookorbit_transmission_category: bookorbit
 bookorbit_download_remote_path: /downloads/complete
 bookorbit_download_local_path: /downloads/complete
 
-# Hardlink on import is off on purpose. The import lands in the Book Dock on /data (the
-# host's /mnt/containers/lxc-media), while the downloads are on the nas-media export and the
-# library on a third one, nas-books — link() across them is EXDEV, so every import would
-# try, fail and copy anyway, one warning per file. Books are small enough that the copy is a
-# workable steady state; flip this to true only if the dock moves onto nas-media.
+# Hardlink on import stays off, and folding the books export into nas-media did not change
+# that — which is worth spelling out, because the filesystem argument says it should have.
+# The LXC now has one mount and `ln /media/downloads/x /media/books/x` succeeds there. The
+# bookorbit container is the problem: it binds /media/books and /media/downloads separately,
+# and `do_linkat` refuses a link across two *mounts* even when the superblock is identical,
+# so the container gets EXDEV where the LXC does not.
+#
+# The obvious fix — one /media mount and library paths moved to /media/books/... — is not
+# available: books.library_folder_id cascades on delete, and a library update deletes the
+# old folder row before inserting the new one, so repointing a library drops every book row
+# with it (reading progress, annotations, collections) and rescans them in as new books.
+#
+# So an import copies once, and that is the floor. The dock below is placed to make the
+# *second* step free instead: dock and libraries share the books tree, so finalize is a
+# rename rather than a second copy. Before this it was two copies, one of them onto the NAS.
 bookorbit_use_hardlinks: false
+
+# The Book Dock, as the container sees it. Inside the books tree rather than on /data, so it
+# shares a *mount* with the libraries and finalize is a rename. Hidden and a sibling of the
+# library folders, so no library scan picks it up.
+bookorbit_book_dock_path: /books/.dock
 
 # Where a request lands when the requester named no library — the instance default per
 # medium (ebook, audiobook, comic). Empty means BookOrbit keeps whatever the UI last set,

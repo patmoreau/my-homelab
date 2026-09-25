@@ -35,9 +35,13 @@ module "media" {
     # move, in Filestash and anywhere else. Subdirectory paths are unchanged, so nothing
     # that consumes /media/<name> needs to know.
     { host = "/mnt/pve/nas-media", mp = "/media" },
-    # Separate NFS export, so it stays its own mount; nests under /media to keep the path
-    # stable for book-orbit. The mountpoint directory has to exist on the nas-media share.
-    { host = "/mnt/pve/nas-books", mp = "/media/books" },
+    # No separate books mount. nas-books was its own NFS export nested at /media/books, and
+    # although it lived on the same QNAP volume as nas-media (identical statfs), two mounts
+    # are two devices to the kernel: rename(2) and link(2) across them fail with EXDEV. That
+    # made every BookOrbit import from /media/downloads/complete into the library a copy, and
+    # blocked hardlinking outright. The books tree now sits inside the nas-media share at
+    # media/books, so the path inside the container is unchanged and everything is one
+    # filesystem again. See docs/nas-smr-write-performance.md for why extra copies matter here.
     # Torrent scratch on local NVMe, not on the NAS. Transmission's random writes and piece
     # hashing used to land on the nas-media export, where a stuck NFS COMMIT wedged its disk
     # thread (nfs_wb_folio -> __nfs_commit_inode) and, through the mutex the main loop wants,

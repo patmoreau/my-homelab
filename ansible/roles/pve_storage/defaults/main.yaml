@@ -3,7 +3,11 @@
 pve_nfs_server: 192.168.50.1
 pve_nfs_content: rootdir
 pve_nfs_stores:
-  - { name: nas-books, export: /books }
+# nas-books is deliberately absent. It was a second export nested at /media/books inside
+# lxc-media, and two mounts are two devices to the kernel, so rename(2) and link(2) between
+# the downloads and the book library failed with EXDEV. The books tree now lives inside the
+# nas-media share at media/books. The role only ever adds storages, so removing this entry
+# does not detach it: run `pvesm remove nas-books` on the host once.
   - { name: nas-media, export: /media }
   - { name: nas-photos, export: /photos }
   - { name: nas-backups, export: /backups }

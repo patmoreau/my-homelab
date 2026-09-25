@@ -132,7 +132,6 @@ Group `api-ro-users` (PVEAuditor) also present. All roles are **built-in** PVE r
 
 | Storage       | Export     | Mountpoint            | Content |
 | ------------- | ---------- | --------------------- | ------- |
-| `nas-books`   | `/books`   | `/mnt/pve/nas-books`  | rootdir |
 | `nas-media`   | `/media`   | `/mnt/pve/nas-media`  | rootdir |
 | `nas-photos`  | `/photos`  | `/mnt/pve/nas-photos` | rootdir |
 | `nas-backups` | `/backups` | `/mnt/pve/nas-backups`| rootdir |

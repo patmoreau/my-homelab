@@ -111,7 +111,6 @@ NFS shares from the NAS are mounted on the Proxmox host under `/mnt/pve/` and bi
 | Host path (Proxmox)            | Container mount point | Used by                        |
 | ------------------------------ | --------------------- | ------------------------------ |
 | `/mnt/pve/nas-media`           | `/media`              | Jellyfin, Transmission, Radarr, Sonarr, Prowlarr, Filestash |
-| `/mnt/pve/nas-books`           | `/media/books`        | Book Orbit (read/write)        |
 | `/mnt/pve/nas-photos`          | `/photos`             | Immich (read/write)            |
 | `/mnt/containers/lxc-*`        | `/data`               | All LXCs (persistent app data) |
 
@@ -121,6 +120,13 @@ inside that mount. Binding each subdirectory separately — as this used to — 
 of them its own mount inside the container, so `rename(2)` between them failed with
 `EXDEV` / `Invalid cross-device link` even though they share a single QNAP filesystem. That
 broke all cross-directory moves, e.g. `downloads` → `kids` in Filestash and any
-Transmission → Jellyfin workflow. `nas-books` is a different NFS export, so it stays its own
-mount, nested at `/media/books` (the mountpoint directory must exist on the `nas-media`
-share).
+Transmission → Jellyfin workflow. The book library used to be a second export (`nas-books`)
+nested at `/media/books`, which hit exactly that trap — `link(2)` from `downloads` into the
+book library failed with `EXDEV` despite both living on the same QNAP volume. It was folded
+into the `nas-media` share as a plain `books/` directory, so the container path is unchanged
+and the whole tree is one mount again.
+
+> Two bind mounts are two mounts even when the superblock is identical: `do_linkat` compares
+> the mounts, not just the filesystem. This still bites the `book-orbit` container, which
+> binds `/media/books` and `/media/downloads` separately — see the BookOrbit notes in
+> `ansible/README.md`.

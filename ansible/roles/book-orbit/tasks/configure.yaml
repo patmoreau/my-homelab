@@ -128,6 +128,32 @@
 # The destination defaults live in app_settings, and the medium each one keys off is the
 # only thing known about a request before its file exists — so this is the rung that keeps
 # a request from being held purely for having no library to go to.
+# Creating the row is guarded by the GET above, which also means a later change to the
+# defaults would never reach a client that already exists. Hardlinking in particular flipped
+# from false to true once the books export was folded into nas-media, so it is reconciled
+# here rather than left to whoever remembers to edit it in the UI. An omitted password keeps
+# the stored one and omitted mappings keep the stored ones, so this patch is narrow.
+- name: Reconcile the download client settings
+  vars:
+    bookorbit_client: >-
+      {{ (bookorbit_download_clients.json.clients | selectattr('name', 'equalto', bookorbit_transmission_name) | list | first)
+         | default({}, true) }}
+  ansible.builtin.uri:
+    url: "{{ bookorbit_api_url }}/admin/download-clients/{{ bookorbit_client.id }}"
+    method: PUT
+    headers:
+      Authorization: "Bearer {{ bookorbit_login.json.accessToken }}"
+    body_format: json
+    body:
+      useHardlinks: "{{ bookorbit_use_hardlinks | bool }}"
+      category: "{{ bookorbit_transmission_category }}"
+    status_code: [200, 201]
+  when:
+    - bookorbit_client.id is defined
+    - bookorbit_client.useHardlinks != (bookorbit_use_hardlinks | bool)
+  changed_when: true
+  no_log: true
+
 - name: Read the libraries
   ansible.builtin.uri:
     url: "{{ bookorbit_api_url }}/libraries"
