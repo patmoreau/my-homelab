@@ -2,6 +2,10 @@
 
 One-time configuration on the QNAP. For UID mapping and NFS permissions on the Proxmox/LXC side, see [lxc_nfs_uid_mapping.md](lxc_nfs_uid_mapping.md).
 
+> **Write performance:** two of the four array members are SMR, which caps sustained
+> writes at 5–12 MB/s and can stall NFS commits outright. See
+> [`nas-smr-write-performance.md`](nas-smr-write-performance.md).
+
 ## 1. Shared folders
 
 Create the following shared folders in **Control Panel → Shared Folders → Create**:

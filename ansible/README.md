@@ -191,7 +191,13 @@ thread in `D` state — and because the main loop wants the same mutex, the daem
 listening socket and stopped calling `accept()`. `ss` showed 45 connections queued on
 `0.0.0.0:9091` while `systemctl is-active` said `active`, `podman ps` said `Up 37 hours`, and
 the log was empty. The cost of the split is that completion copies across mounts instead of
-renaming within one.
+renaming within one — but that trade is favourable here, because it turns random piece
+writes into one sequential write per finished file.
+
+The underlying cause is the NAS, not Transmission: two of the four disks in its RAID5 array
+are SMR (`WD40EFAX`), so sustained writes run at 5–12 MB/s while reads run at 251 MB/s. See
+[`docs/nas-smr-write-performance.md`](../docs/nas-smr-write-performance.md) — read it before
+debugging anything that hangs on `/media`.
 
 **`transmission-rpc-check` is the watchdog for what is left.** A oneshot timer every 2
 minutes makes a real `session-get` through the published host port and restarts the service
