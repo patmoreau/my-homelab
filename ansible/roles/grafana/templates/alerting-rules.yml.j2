@@ -250,7 +250,7 @@ groups:
         annotations:
           summary: {% raw %}'A leaked netns is holding a live container IP on {{ $labels.instance }}'{% endraw %}
 
-          description: {% raw %}'{{ printf "%.0f" $values.A.Value }} container IP(s) on {{ $labels.instance }} resolve to a dead network namespace, so those services refuse connections despite the containers being healthy. Compare `bridge fdb show br podman0` against the running containers MACs, then `ip link delete <orphan veth> && ip neigh flush dev podman0`. See the Static IPs notes in ansible/README.md.'{% endraw %}
+          description: {% raw %}'{{ printf "%.0f" $values.A.Value }} container IP(s) on {{ $labels.instance }} resolve to a dead network namespace, so those services refuse connections despite the containers being healthy. podman-orphan-check deletes a leak it has seen twice, so this normally clears itself inside ~10 minutes — still firing after that means the reaper could not remove the veth. Check `journalctl -t podman-orphan-check`, then `ip link delete <orphan veth> && ip neigh flush dev podman0` by hand. See the Static IPs notes in ansible/README.md.'{% endraw %}
 
         data:
           - refId: A

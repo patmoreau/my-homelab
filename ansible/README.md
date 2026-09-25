@@ -322,8 +322,8 @@ LXC namespace (pulls fail with `EACCES`; containers can't `listen()`).
   in the 0644 unit). See `homepage`, `grafana`. Upstreams that only publish a rolling
   `:latest` are pinned as `name:latest@sha256:...` — the same `customManager` captures the
   digest and bumps that instead. See `filestash`.
-- **Static IPs.** Published-port containers pin `IP=10.88.0.x` (cadvisor `.240`, others `.241+`
-  per host). netavark can leave a stale port-DNAT rule pointing at a dead IP on recreate → 502;
+- **Static IPs.** Published-port containers pin `IP=10.88.0.x` (`.241+` per host; cadvisor
+  gave up its `.240` and moved to `Network=host`, see below). netavark can leave a stale port-DNAT rule pointing at a dead IP on recreate → 502;
   a fixed IP keeps the rule valid. `essere_postgres`'s `.241` is load-bearing beyond that —
   `umami_db_host` reaches it by address across the bridge.
 - **The pin has a failure mode of its own.** Podman 4.9 can also leak the recreated
@@ -334,22 +334,48 @@ LXC namespace (pulls fail with `EACCES`; containers can't `listen()`).
   microseconds, and `tcpdump` inside the container's netns sees no packets at all. Confirm by
   comparing `bridge fdb show br podman0` against the live containers' MACs, then
   `ip link delete <orphan veth> && ip neigh flush dev podman0`. `podman-orphan-check` (below)
-  watches for this.
+  now **deletes** such a leak rather than only counting it — counting it turned out to be the
+  smaller half of the job. One ansible run recreated cadvisor on all nine hosts, every one
+  leaked, and the metric reported it faithfully for a day while cAdvisor was unreachable
+  everywhere and Grafana re-notified about it every few hours.
 - **When published ports fail anyway, use `Network=host`.** A pinned IP does not always save
   it: `pve_exporter` reached a state where the DNAT rule was present and pointed at the right
   address, container-to-container traffic to that address worked, and yet the host could not
   reach it — so every Prometheus scrape was refused for days. Each restart appended another
   stale jump rule rather than rebuilding the set. Host networking sidesteps the DNAT hop and
   the veth entirely, so neither leak above can occur, and is what `node_exporter`,
-  `pve_exporter` and `homepage` now use. Prefer it for any service reached only through a
-  published host port; keep the bridge for containers something addresses by container IP.
+  `pve_exporter`, `homepage` and `cadvisor` now use. Prefer it for any service reached only
+  through a published host port; keep the bridge for containers something addresses by
+  container IP.
+- **Two things bite when a container leaves the bridge.** Moving cadvisor to host networking
+  surfaced both. First, netavark's hostport DNAT rules for the old published port *stay*, so
+  the host keeps redirecting `:9338` to a bridge address nothing answers on — and because
+  those rules live in `table ip nat`, IPv6 to the same port still works while IPv4 times out,
+  which reads like an application bug rather than a firewall one. `podman-orphan-check` now
+  reaps a DNAT rule whose port no live container publishes. Second, cAdvisor binds v6-only
+  when given no listen address; the published port used to hide that (conmon listened on
+  `0.0.0.0` and forwarded inward), so the unit passes `-listen_ip=0.0.0.0` explicitly.
 - **`podman-orphan-check`.** Installed by the `podman` role on every Podman host, run by a
-  systemd timer every 5 minutes. Writes `podman_orphan_veths` and `podman_arp_hijacked_ips`
-  to `/var/lib/node_exporter/textfile`, which `node_exporter` scrapes via
-  `--collector.textfile.directory`. A non-zero `podman_arp_hijacked_ips` is the actionable
-  one: a live container's IP is resolving to a dead netns and that service is already down,
-  and it raises the `podman-netns-leak-hijack` alert. `podman_orphan_veths` is left
-  unalerted on purpose — inert leaks exist on several hosts and would be pure noise.
+  systemd timer every 5 minutes. It **reaps as well as reports**: an orphan veth on `podman0`
+  that no live container claims is deleted (followed by `ip neigh flush dev podman0`), and a
+  netavark hostport DNAT rule whose port no live container publishes is deleted too. A live
+  container does not need restarting afterwards — the address resolves to it again as soon as
+  the corpse is gone.
+
+  **Two strikes before deleting anything.** A container that is mid-start already has its veth
+  on the bridge but is not yet in `podman ps`, and reaping that one would break the container
+  being started. So a candidate is recorded in `/var/lib/podman-orphan-check/orphans.prev` on
+  first sighting and only removed if it is still unclaimed on the next run — one timer
+  interval of extra downtime on a real leak, in exchange for no chance of shooting a healthy
+  container. Candidates are keyed by ifindex + name + MAC, since the kernel reuses an ifindex.
+  Every deletion is logged to the journal under `podman-orphan-check`.
+
+  Writes `podman_orphan_veths`, `podman_orphan_veths_reaped`, `podman_stale_hostport_dnat`,
+  `podman_stale_hostport_dnat_reaped` and `podman_arp_hijacked_ips` to
+  `/var/lib/node_exporter/textfile`, which `node_exporter` scrapes via
+  `--collector.textfile.directory`. A non-zero `podman_arp_hijacked_ips` is still the
+  actionable one — it raises `podman-netns-leak-hijack` — but it should now clear itself
+  within ~10 minutes; still firing after that means the reaper could not delete the veth.
 - **Multi-container apps → netns-share.** No aardvark DNS and no Quadlet `.pod` on podman 4.9,
   so a DB/owner container publishes all the ports and the others join it with
   `Network=container:<owner>` and talk over `127.0.0.1`. See `vaultwarden`, `book-orbit`,

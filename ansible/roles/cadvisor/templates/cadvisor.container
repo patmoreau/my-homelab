@@ -7,10 +7,19 @@ ContainerName=cadvisor
 # mirror, frozen at v0.55.1, and Renovate cannot look it up any more ("no-result"), so
 # cadvisor silently stopped getting update PRs. Same version, canonical registry.
 Image=ghcr.io/google/cadvisor:v0.60.6
-# Static IP (see homepage.container) so a recreate reuses the same address and avoids
-# stale netavark port-DNAT rules.
-IP=10.88.0.240
-PublishPort=9338:8080
+# Host networking, not a published port on the bridge. The pinned IP this used to carry
+# kept the port-DNAT rule valid across a recreate, but it also meant a leaked netns kept
+# answering ARP for that exact address — which is how one ansible run left cAdvisor
+# unreachable on all nine hosts for a day while every container stayed healthy. Nothing
+# addresses cAdvisor by container IP (Prometheus scrapes the host port), so there is no
+# reason for it to be on the bridge at all: no veth, no netns to leak, no DNAT hop.
+# See "When published ports fail anyway, use Network=host" in ansible/README.md.
+Network=host
+# The image defaults to 8080, which host networking would put straight on the host.
+# -listen_ip is not optional here: given no address cAdvisor binds v6-only, which the
+# published port used to hide (conmon listened on 0.0.0.0 and forwarded inward). Exposed
+# directly, [::1]:9338 answers and 127.0.0.1:9338 is refused, so every scrape fails.
+Exec=-logtostderr -port=9338 -listen_ip=0.0.0.0
 # Reads container metrics from cgroups (works for Podman). The Docker-specific
 # /var/lib/docker mount is dropped (limited image-name labels), and /var/run is NOT
 # bind-mounted read-only because Podman needs to write /run/.containerenv. The Podman
