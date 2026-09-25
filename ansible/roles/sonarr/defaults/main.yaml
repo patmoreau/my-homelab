@@ -67,3 +67,14 @@ sonarr_custom_formats:
 # login form. With the LAN listed, a browser on the LAN is local again whether it goes
 # direct or through Traefik, while anything arriving from outside still has to log in.
 sonarr_trusted_networks: "192.168.8.0/24"
+
+# Folder name carries the provider id, so Jellyfin never has to guess which title this is.
+# Jellyfin parses `[imdbid-tt…]`, `[tmdbid-…]` and `[tvdbid-…]` out of a folder name and
+# matches on it directly instead of falling back to fuzzy title+year matching, which is what
+# gets remakes, same-year namesakes and regional variants wrong. The *arr apps own this
+# because they are what creates the folder; Jellyfin owns everything shown inside it.
+#
+# Only the folder format is templated. File renaming stays off (renameMovies /
+# renameEpisodes), so release filenames are left alone — turning that on would rewrite every
+# file in the library for no matching benefit, since Jellyfin reads the id from the folder.
+sonarr_series_folder_format: "{Series TitleYear} [tvdbid-{TvdbId}]"

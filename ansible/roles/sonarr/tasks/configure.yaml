@@ -257,3 +257,25 @@
   loop_control:
     label: "{{ item.name }}"
   changed_when: true
+
+# Naming lives in Sonarr's DB, so the v3 API is the only way to set it. Sent as a whole
+# object because the endpoint replaces the record; every other field is read back first so a
+# value changed in the UI is preserved rather than reset to a default spelled out here.
+- name: Read the naming config
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/config/naming"
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+  register: sonarr_naming
+
+- name: Set the series folder format
+  ansible.builtin.uri:
+    url: "{{ sonarr_api_url }}/config/naming"
+    method: PUT
+    headers:
+      X-Api-Key: "{{ vault_sonarr_api_key }}"
+    body_format: json
+    body: "{{ sonarr_naming.json | combine({'seriesFolderFormat': sonarr_series_folder_format}) }}"
+    status_code: [200, 202]
+  when: sonarr_naming.json.seriesFolderFormat != sonarr_series_folder_format
+  changed_when: true

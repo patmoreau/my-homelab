@@ -271,3 +271,25 @@
   when: "'Jellyfin' not in (radarr_notifications.json | map(attribute='name') | list)"
   changed_when: true
   no_log: true
+
+# Naming lives in Radarr's DB, so the v3 API is the only way to set it. Sent as a whole
+# object because the endpoint replaces the record; every other field is read back first so a
+# value changed in the UI is preserved rather than reset to a default spelled out here.
+- name: Read the naming config
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/config/naming"
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+  register: radarr_naming
+
+- name: Set the movie folder format
+  ansible.builtin.uri:
+    url: "{{ radarr_api_url }}/config/naming"
+    method: PUT
+    headers:
+      X-Api-Key: "{{ vault_radarr_api_key }}"
+    body_format: json
+    body: "{{ radarr_naming.json | combine({'movieFolderFormat': radarr_movie_folder_format}) }}"
+    status_code: [200, 202]
+  when: radarr_naming.json.movieFolderFormat != radarr_movie_folder_format
+  changed_when: true

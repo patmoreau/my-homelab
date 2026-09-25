@@ -245,6 +245,35 @@ film's, so 210 MB/min lands at ~12 GB for an hour-long 4K episode.
 `prowlarr_applications` is a list; adding a third consumer is an entry in it, not new
 tasks.
 
+### Who owns metadata
+
+Radarr and Sonarr own **identification and layout** — which TMDb/TVDb entry a release is, and
+what the folder is called. Jellyfin owns **everything a viewer sees**: title, overview,
+artwork, cast, ordering, fetched from its own providers and kept in its own database. It
+matches by path, so its accuracy is downstream of what the *arr apps wrote. Wrong poster or
+description is a Jellyfin fix (*Identify* / refresh); wrong film matched entirely, or wrong
+episode numbering, is an *arr fix followed by a rescan.
+
+Both apps therefore write the provider id into the folder name —
+`{Movie CleanTitle} ({Release Year}) [imdbid-{ImdbId}]` and
+`{Series TitleYear} [tvdbid-{TvdbId}]`, set over the API in each role's `configure.yaml`.
+Jellyfin parses those tags and matches on the id instead of guessing from title and year,
+which is what gets remakes, same-year namesakes and regional variants wrong.
+
+**File renaming stays off** (`renameMovies` / `renameEpisodes` are both `false`), so release
+filenames are left alone. Jellyfin reads the id from the folder, so renaming every file would
+churn the library for no matching benefit. Do not enable the `.nfo` metadata writers either:
+with Jellyfin fetching its own metadata, that is two sources of truth and the visible result
+is metadata reverting after a refresh.
+
+Retrofitting the tags onto an existing library is a `PUT` to `/api/v3/movie/editor` (or
+`series/editor`) with `moveFiles: true` and `rootFolderPath` set to **each item's current
+root** — passing one root for everything would relocate films between `movies`, `kids` and
+`holidays` rather than renaming them in place. Two things that turned out fine and are worth
+knowing before doing it again: Jellyfin's item ids are path-derived so they all change, but
+user data survives because it re-matches on the provider id (15 watched films, 15 after), and
+the renames do not break the hardlinks to the seeding torrents (19/19 still `links=2`).
+
 Radarr keeps three root folders — `/media/movies`, `/media/holidays` and `/media/kids`. The split exists
 because Jellyfin serves each as its own library, and a Radarr root folder is just a
 destination, so the separation costs nothing but the second entry. Pick the root folder in
