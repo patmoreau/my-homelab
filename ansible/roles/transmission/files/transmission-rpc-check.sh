@@ -21,6 +21,7 @@ state_dir=/var/lib/transmission-rpc-check
 fail_file="$state_dir/failures"
 last_restart_file="$state_dir/last_restart"
 restarts_file="$state_dir/restarts"
+nfs_file="$state_dir/nfs_written"
 
 # Three strikes before acting: a single missed probe is a busy daemon or a slow NFS round trip,
 # not a wedge, and restarting on one would interrupt downloads for nothing.
@@ -29,10 +30,39 @@ threshold=3
 # minutes fixes nothing and only shreds the resume state.
 cooldown=1800
 
+# A wedged daemon and a busy one look identical from the RPC: both stop answering. Transmission
+# blocks its whole event loop behind the NFS commit while it copies a finished torrent onto the
+# NAS, and on an array that writes at 5-12 MB/s (two members are SMR — see
+# docs/nas-smr-write-performance.md) an 8 GB film keeps it unresponsive for many minutes.
+#
+# Restarting then is worse than doing nothing: it kills the copy in flight and leaves a truncated
+# file on the NAS, and the next attempt stalls in exactly the same place. That happened three
+# times in one evening before this check existed — 22:08, 23:50 and 00:38 — each one destroying
+# ~8 GB of transfer.
+#
+# So progress is the discriminator. If the NFS mount has taken bytes since the previous probe the
+# daemon is working, not wedged, and no number of failed probes justifies a restart.
+#
+# Bytes alone do not cover everything, though: a thread parked in the NFS commit path can sit
+# with no new writes for minutes and still be making progress the counter cannot see. That state
+# is visible directly — an uninterruptible (D) thread whose wchan is in NFS, which is exactly what
+# the original wedge looked like (nfs_wb_folio -> __nfs_commit_inode). It is deliberately NOT a
+# veto: the wedge that started all this sat in precisely that state for hours and a restart was
+# the only thing that cleared it. So being blocked in NFS raises the bar rather than removing it.
+blocked_threshold=10
+
 mkdir -p "$out_dir" "$state_dir"
 
 url="http://127.0.0.1:${TRANSMISSION_RPC_PORT:-9091}/transmission/rpc"
 failures=$(cat "$fail_file" 2>/dev/null || echo 0)
+
+# Server-side write bytes for the NAS mount. Field order on the `bytes:` line is
+# read write directread directwrite serverread serverwrite — easy to misread, and reading the
+# wrong column here would mean the gate never opens.
+nfs_written=$(awk '/mounted on \/media / {m=1} m && /^\tbytes:/ {print $7; exit}' /proc/self/mountstats 2>/dev/null)
+nfs_written=${nfs_written:-0}
+nfs_prev=$(cat "$nfs_file" 2>/dev/null || echo 0)
+echo "$nfs_written" > "$nfs_file"
 restarts=$(cat "$restarts_file" 2>/dev/null || echo 0)
 restarted=0
 
@@ -47,10 +77,35 @@ if [ "$code" = "409" ] || [ "$code" = "200" ] || [ "$code" = "401" ]; then
 else
   up=0
   failures=$((failures + 1))
-  logger -t transmission-rpc-check "RPC probe failed (HTTP ${code:-none}), consecutive failures: $failures"
+  logger -t transmission-rpc-check "RPC probe failed (HTTP ${code:-none}), consecutive failures: $failures/$effective_threshold${nfs_blocked:+ (blocked in NFS: $nfs_blocked)}"
 fi
 
-if [ "$up" -eq 0 ] && [ "$failures" -ge "$threshold" ]; then
+# Any thread in uninterruptible sleep inside NFS means the kernel is waiting on the NAS, not that
+# the daemon has deadlocked in userspace.
+nfs_blocked=0
+tpid=$(pgrep -x transmission-da 2>/dev/null | head -1)
+if [ -n "$tpid" ]; then
+  for task in /proc/"$tpid"/task/*; do
+    [ -r "$task/stat" ] || continue
+    tstate=$(awk '{print $3}' "$task/stat" 2>/dev/null)
+    [ "$tstate" = "D" ] || continue
+    twchan=$(cat "$task/wchan" 2>/dev/null)
+    case "$twchan" in
+      *nfs*|*folio_wait*|*wait_on_commit*|*rpc_wait*) nfs_blocked=1 ;;
+    esac
+  done
+fi
+
+if [ "$nfs_blocked" -eq 1 ]; then
+  effective_threshold=$blocked_threshold
+else
+  effective_threshold=$threshold
+fi
+
+if [ "$up" -eq 0 ] && [ "$failures" -ge "$effective_threshold" ] && [ "$nfs_written" -gt "$nfs_prev" ]; then
+  logger -t transmission-rpc-check "RPC down after $failures probes but the NAS took $(( (nfs_written - nfs_prev) / 1048576 ))MB since the last one - copying, not wedged, leaving it alone"
+  failures=0
+elif [ "$up" -eq 0 ] && [ "$failures" -ge "$effective_threshold" ]; then
   now=$(date +%s)
   last=$(cat "$last_restart_file" 2>/dev/null || echo 0)
   if [ $((now - last)) -ge "$cooldown" ]; then
@@ -91,6 +146,12 @@ transmission_rpc_restarts $restarts
 # HELP transmission_rpc_restarted_now 1 when this run restarted the service.
 # TYPE transmission_rpc_restarted_now gauge
 transmission_rpc_restarted_now $restarted
+# HELP transmission_nfs_blocked A transmission thread is in uninterruptible sleep inside NFS.
+# TYPE transmission_nfs_blocked gauge
+transmission_nfs_blocked $nfs_blocked
+# HELP transmission_nfs_written_bytes Server-side bytes written to the NAS mount, as the probe saw it.
+# TYPE transmission_nfs_written_bytes counter
+transmission_nfs_written_bytes $nfs_written
 METRICS
 chmod 0644 "$tmp"
 mv "$tmp" "$out"

@@ -215,6 +215,24 @@ are SMR (`WD40EFAX`), so sustained writes run at 5–12 MB/s while reads run at 
 [`docs/nas-smr-write-performance.md`](../docs/nas-smr-write-performance.md) — read it before
 debugging anything that hangs on `/media`.
 
+**A restart is the wrong answer while a copy is running.** The watchdog below learned this the
+hard way: Transmission blocks its whole event loop behind the NFS commit while moving a finished
+torrent onto the NAS, and at 5-12 MB/s (two array members are SMR) an 8 GB film keeps the RPC
+unresponsive for many minutes. That is indistinguishable from a wedge by probing alone, and
+restarting kills the copy in flight — it happened three times in one evening, 22:08, 23:50 and
+00:38, each abandoning ~8 GB and leaving a truncated file the next attempt could not resume.
+
+Two gates now separate "busy" from "broken":
+
+- **Write progress.** The probe reads server-side write bytes for the `/media` mount out of
+  `/proc/self/mountstats` and refuses to restart if the NAS has taken bytes since the last probe.
+  Seen working the next morning: *"RPC down after 3 probes but the NAS took 2291MB since the last
+  one - copying, not wedged, leaving it alone"*, twice in ten minutes.
+- **Blocked in NFS.** A thread in uninterruptible sleep whose `wchan` is in the NFS path means the
+  kernel is waiting on the NAS rather than the daemon having deadlocked. This raises the bar to 10
+  consecutive failures instead of vetoing the restart outright — the original wedge sat in exactly
+  that state (`nfs_wb_folio -> __nfs_commit_inode`) for hours, and only a restart cleared it.
+
 **`transmission-rpc-check` is the watchdog for what is left.** A oneshot timer every 2
 minutes makes a real `session-get` through the published host port and restarts the service
 after three consecutive failures, with a 30-minute cooldown so a NAS outage cannot turn into
