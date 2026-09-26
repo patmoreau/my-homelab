@@ -1,0 +1,18 @@
+---
+pve_node_exporter_port: 9100
+
+# Collector flags. Deliberately close to what the LXCs run so the dashboards line up, with
+# two differences that come from this being the hypervisor rather than a container:
+#
+#  - the filesystem exclusions drop the per-container bind mounts under /mnt/containers and
+#    the NFS exports under /mnt/pve. Their space is already reported by the guest that owns
+#    them, and /mnt/pve/* is the NAS, which answers statfs over the network — a stalled NFS
+#    server would otherwise hang the scrape rather than just miss a series.
+#  - the systemd collector is scoped to pve units. Collecting every unit on a Proxmox host is
+#    several hundred series, and Prometheus' retention budget here is tight (see the note in
+#    prometheus.container).
+pve_node_exporter_args: >-
+  --collector.systemd
+  --collector.systemd.unit-include=^(pve|pvedaemon|pveproxy|pvestatd|pve-firewall|pve-ha-lrm|pve-ha-crm|pve-lxc-data-volumes)[^.]*[.](service|timer)$
+  --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|run|var/lib/lxcfs)($|/)|^/mnt/(pve|containers)/
+  --collector.textfile.directory=/var/lib/prometheus/node-exporter

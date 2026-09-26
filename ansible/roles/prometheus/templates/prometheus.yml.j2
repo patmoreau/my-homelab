@@ -16,6 +16,13 @@ scrape_configs:
         labels:
           container_name: '{{ host }}'
 {% endfor %}
+      # The hypervisor, from the Debian package rather than a Quadlet unit (roles/
+      # pve_node_exporter). It is the only place the NAS link is visible: the NFS client for
+      # /mnt/pve/* lives on the host, so traffic to the NAS crosses vmbr1 here and never
+      # appears on a container's own interfaces.
+      - targets: ['{{ hostvars['pve-homelab']['ansible_host'] }}:{{ hostvars['pve-homelab'].get('pve_node_exporter_port', 9100) }}']
+        labels:
+          container_name: 'pve-homelab'
     relabel_configs:
       - source_labels: [container_name]
         target_label: instance

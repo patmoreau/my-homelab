@@ -563,6 +563,19 @@ These must be populated to deploy all services:
 
 ## Monitoring roles
 
+> **The hypervisor is monitored too, and that is not cosmetic.** `pve_node_exporter`
+> installs the Debian package on `pve-homelab` — not the Quadlet unit the LXCs use, because
+> there is no Podman on the host and running the hypervisor's monitoring inside a container
+> it manages is a dependency loop. It matters because **the NFS client for the NAS lives on
+> the host**: `/mnt/pve/*` is mounted there and bind-mounted into the guests, so every byte
+> to and from the NAS crosses `vmbr1` on the host and is invisible on a container's own
+> interfaces. A container reading 200 MB/s off the NAS shows `eth1 rx = 0`. Without the host
+> exporter there was no history for NAS throughput, host disk I/O or real host load, and two
+> separate performance investigations had to be run live against a fault instead of queried
+> after it. The collector flags exclude `/mnt/pve/*` from the filesystem collector on
+> purpose: a stalled NFS server would hang the scrape rather than merely miss a series.
+
+
 | Role | Host | Purpose |
 |------|------|---------|
 | `prometheus` | lxc-monitoring | Metrics collection |
@@ -1175,10 +1188,11 @@ inventory and roadmap):
 | ---- | --------------- |
 | `pve_repos` | Proxmox `pve-no-subscription` APT repo; removes the enterprise repo |
 | `pve_admin` | `terraform-admin` automation user + SSH key + single `NOPASSWD:ALL` sudoers file |
-| `pve_storage` | NFS storage stores (`nas-books/media/photos/backups`) via `pvesm` (idempotent) |
+| `pve_storage` | NFS storage stores (`nas-media/photos/backups`) via `pvesm` (idempotent) |
 | `pve_nas_idmap` | `/etc/subuid` + `/etc/subgid` entries for unprivileged-LXC UID/GID mapping |
 | `pve_tuning` | ZFS ARC cap (`zfs_arc_max`) + timezone |
 | `pve_api_access` | PVE `pveum` groups/users/tokens/ACLs (create-if-missing) |
+| `pve_node_exporter` | `prometheus-node-exporter` (Debian package) on the hypervisor itself |
 | `nut_server` | UPS monitoring (below) |
 
 Network (`/etc/network/interfaces`) and GRUB/IOMMU are **not** codified (lockout risk) —

@@ -11,4 +11,5 @@
     - pve_nas_idmap
     - pve_tuning
     - pve_api_access
+    - pve_node_exporter
     - nut_server

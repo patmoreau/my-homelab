@@ -1,0 +1,39 @@
+# The hypervisor was the one machine with no node_exporter, which left its NIC throughput,
+# disk I/O and real load unmonitored — and because the NFS client for the NAS lives here
+# rather than in the containers, that blind spot covered every byte to and from the NAS. Two
+# separate investigations had to be done live against a running fault for want of history.
+#
+# The Debian package rather than the Quadlet unit the LXCs use: there is no Podman on the
+# host, and running the hypervisor's own monitoring inside a container it manages is a
+# dependency loop nobody wants at 3am.
+- name: Install node_exporter
+  ansible.builtin.apt:
+    name: prometheus-node-exporter
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Ensure the textfile collector directory exists
+  ansible.builtin.file:
+    path: /var/lib/prometheus/node-exporter
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: "0755"
+
+- name: Configure the collector flags
+  ansible.builtin.copy:
+    content: |
+      # Managed by Ansible (roles/pve_node_exporter). Local edits are overwritten.
+      ARGS="{{ pve_node_exporter_args | trim }}"
+    dest: /etc/default/prometheus-node-exporter
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart node_exporter
+
+- name: Ensure node_exporter is enabled and running
+  ansible.builtin.systemd:
+    name: prometheus-node-exporter
+    enabled: true
+    state: started
