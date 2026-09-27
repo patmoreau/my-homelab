@@ -251,6 +251,146 @@
   changed_when: false
 
 # ---------------------------------------------------------------------------
+# Offsite S3 datastore
+# ---------------------------------------------------------------------------
+
+- name: List configured S3 endpoints
+  ansible.builtin.command:
+    cmd: proxmox-backup-manager s3 endpoint list --output-format json
+  register: pbs_s3_endpoints
+  changed_when: false
+
+- name: Create the R2 endpoint
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager s3 endpoint create {{ pbs_s3_endpoint_id }}
+      --endpoint {{ pbs_s3_endpoint_host }}
+      --region {{ pbs_s3_region }}
+      --access-key {{ vault_pbs_s3_access_key }}
+      --secret-key {{ vault_pbs_s3_secret_key }}
+      --path-style {{ pbs_s3_path_style | bool | lower }}
+      {% for quirk in pbs_s3_provider_quirks %}--provider-quirks {{ quirk }} {% endfor %}
+  when: "'\"id\":\"' ~ pbs_s3_endpoint_id ~ '\"' not in (pbs_s3_endpoints.stdout | regex_replace('\\s+', ''))"
+  changed_when: true
+  no_log: true
+
+- name: Enforce the R2 endpoint settings
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager s3 endpoint update {{ pbs_s3_endpoint_id }}
+      --endpoint {{ pbs_s3_endpoint_host }}
+      --region {{ pbs_s3_region }}
+      --access-key {{ vault_pbs_s3_access_key }}
+      --secret-key {{ vault_pbs_s3_secret_key }}
+      --path-style {{ pbs_s3_path_style | bool | lower }}
+  changed_when: false
+  no_log: true
+
+# Fails loudly here rather than halfway through the first sync if the credentials, endpoint
+# or addressing style are wrong.
+- name: Check the bucket is reachable
+  ansible.builtin.command:
+    cmd: proxmox-backup-manager s3 check {{ pbs_s3_endpoint_id }} {{ pbs_s3_bucket }}
+  register: pbs_s3_check
+  changed_when: false
+
+- name: Ensure the S3 datastore cache directory exists
+  ansible.builtin.file:
+    path: "{{ pbs_s3_cache_path }}/{{ pbs_s3_datastore_name }}"
+    state: directory
+    owner: backup
+    group: backup
+    mode: "0750"
+
+- name: List datastores
+  ansible.builtin.command:
+    cmd: proxmox-backup-manager datastore list --output-format json
+  register: pbs_datastores
+  changed_when: false
+
+# The positional path is the local cache, not the data: chunks live in the bucket. Backend
+# syntax is type=s3,client=<endpoint id>,bucket=<bucket> — `client` refers to the s3 endpoint
+# config created above.
+- name: Create the offsite S3 datastore
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager datastore create {{ pbs_s3_datastore_name }}
+      {{ pbs_s3_cache_path }}/{{ pbs_s3_datastore_name }}
+      --backend type=s3,client={{ pbs_s3_endpoint_id }},bucket={{ pbs_s3_bucket }}
+  when: "'\"name\":\"' ~ pbs_s3_datastore_name ~ '\"' not in (pbs_datastores.stdout | regex_replace('\\s+', ''))"
+  changed_when: true
+
+# Local-to-local sync: --store is the target, --remote-store the source, and omitting
+# --remote keeps both on this server. This is what actually puts the backups offsite; the
+# datastore above is only the destination.
+#
+# --encrypted-only: nothing unencrypted leaves the house. Snapshots predating client-side
+# encryption stay local and age out under the prune policy rather than being shipped to
+# Cloudflare in the clear.
+#
+# --remove-vanished false, deliberately: a snapshot pruned or deleted locally is NOT removed
+# from R2 by the sync. That costs some storage, and it is the point — a local wipe, whether
+# ransomware or a mistake, cannot propagate to the offsite copy through this job. R2 is pruned
+# on its own schedule instead (the prune job below).
+- name: List sync jobs
+  ansible.builtin.command:
+    cmd: proxmox-backup-manager sync-job list --output-format json
+  register: pbs_sync_jobs
+  changed_when: false
+
+- name: Create the offsite sync job
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager sync-job create {{ pbs_s3_datastore_name }}-sync
+      --store {{ pbs_s3_datastore_name }}
+      --remote-store {{ pbs_datastore_name }}
+      --schedule "{{ pbs_s3_sync_schedule }}"
+      --encrypted-only true
+      --remove-vanished false
+  when: "'\"id\":\"' ~ pbs_s3_datastore_name ~ '-sync\"' not in (pbs_sync_jobs.stdout | regex_replace('\\s+', ''))"
+  changed_when: true
+
+- name: Enforce the offsite sync schedule
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager sync-job update {{ pbs_s3_datastore_name }}-sync
+      --schedule "{{ pbs_s3_sync_schedule }}"
+  changed_when: false
+
+# Verification matters more on the copy nobody looks at than on the one nearby.
+# Its own listing rather than reusing pbs_verify_jobs: that is registered further down, in the
+# section covering the local datastore, so it does not exist yet at this point in the play.
+- name: List verify jobs before configuring the offsite one
+  ansible.builtin.command:
+    cmd: proxmox-backup-manager verify-job list --output-format json
+  register: pbs_s3_verify_jobs
+  changed_when: false
+
+- name: Create verify job for the offsite datastore
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager verify-job create {{ pbs_s3_datastore_name }}-verify
+      --store {{ pbs_s3_datastore_name }}
+      --schedule {{ pbs_s3_verify_schedule }}
+      --ignore-verified true
+      --outdated-after {{ pbs_verify_outdated_after }}
+  when: "'\"id\":\"' ~ pbs_s3_datastore_name ~ '-verify\"' not in (pbs_s3_verify_jobs.stdout | regex_replace('\\s+', ''))"
+  changed_when: true
+
+- name: Create prune job for the offsite datastore
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager prune-job create {{ pbs_s3_datastore_name }}-prune
+      --store {{ pbs_s3_datastore_name }}
+      --schedule {{ pbs_prune_schedule }}
+      --keep-last {{ pbs_prune_keep_last }}
+      --keep-daily {{ pbs_prune_keep_daily }}
+      --keep-weekly {{ pbs_prune_keep_weekly }}
+      --keep-monthly {{ pbs_prune_keep_monthly }}
+  when: "'\"id\":\"' ~ pbs_s3_datastore_name ~ '-prune\"' not in (pbs_prune_jobs.stdout | regex_replace('\\s+', ''))"
+  changed_when: true
+
+# ---------------------------------------------------------------------------
 # Datastore metrics
 # Nothing exported the datastore's size: node_exporter's filesystem collector reports the whole
 # 8.4T NFS share, not the 32G of chunks inside it, so there was no way to see growth or to
@@ -355,13 +495,31 @@
   changed_when: true
   no_log: true
 
-- name: Grant DatastoreBackup ACL to backup-client@pbs on nas-backups datastore
+# Both datastores, not just the local one. A new datastore grants nobody anything by
+# default, so the offsite copy was unreadable to the very account that would restore from it —
+# `permission check failed - missing Datastore.Audit|Datastore.Backup on /datastore/r2-offsite`.
+# Caught by actually attempting a restore rather than by the sync, which runs as root@pam.
+- name: Grant DatastoreBackup ACL to backup-client@pbs on each datastore
   ansible.builtin.command:
     cmd: >
-      proxmox-backup-manager acl update /datastore/nas-backups DatastoreBackup
+      proxmox-backup-manager acl update /datastore/{{ item }} DatastoreBackup
       --auth-id backup-client@pbs
+  loop:
+    - "{{ pbs_datastore_name }}"
+    - "{{ pbs_s3_datastore_name }}"
   changed_when: false
   # Idempotent: re-applying the same ACL is a no-op on PBS
+
+# DatastoreBackup only exposes groups the account owns, and the sync job runs as root@pam —
+# so everything in the offsite datastore is owned by root@pam and was invisible to
+# backup-client@pbs, which could write there but not list or restore. DatastoreReader grants
+# read of every group, which is what a restore from the offsite copy actually needs.
+- name: Grant DatastoreReader ACL to backup-client@pbs on the offsite datastore
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager acl update /datastore/{{ pbs_s3_datastore_name }} DatastoreReader
+      --auth-id backup-client@pbs
+  changed_when: false
 
 # ---------------------------------------------------------------------------
 # Expose TLS fingerprint as a host fact so proxmox-backup-client roles

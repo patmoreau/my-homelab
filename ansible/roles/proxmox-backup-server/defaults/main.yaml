@@ -6,3 +6,47 @@ pbs_datastore_path: /mnt/nas-backups/datastore
 # binary exporter pointed at /var/lib/node_exporter; that unit is retired by node_exporter_pkg,
 # which runs before this role in the play.
 pbs_textfile_dir: "{{ node_exporter_pkg_textfile_dir | default('/var/lib/prometheus/node-exporter') }}"
+
+# ---------------------------------------------------------------------------
+# Offsite datastore on Cloudflare R2
+# ---------------------------------------------------------------------------
+# A second datastore backed by S3, with a sync job pushing the local one into it. The local
+# datastore stays primary: PBS's S3 backend arrived in 4.0 as a technology preview, so it is
+# the second copy until a real restore has been done from it.
+#
+# R2 rather than B2 was chosen for one fewer vendor; at this size the price difference is a
+# few dollars a year. Standard storage class deliberately — Infrequent Access charges per-GB
+# retrieval, and the weekly verify job re-reads the whole store roughly monthly, so IA would
+# bill for the one habit that makes a backup trustworthy. IA's 30-day minimum duration also
+# collides with prune deleting chunks sooner than that.
+# At least 3 characters: PBS rejects shorter ids outright.
+pbs_s3_endpoint_id: cloudflare-r2
+pbs_s3_endpoint_host: 08f400aba65bac9e75f4d63eab29b769.r2.cloudflarestorage.com
+pbs_s3_region: auto
+pbs_s3_bucket: pbs-homelab
+pbs_s3_datastore_name: r2-offsite
+
+# R2 deviates from S3 in two ways PBS already knows about: it has no bulk DeleteObjects call,
+# and it handles the conditional If-None-Match header differently. Both are declared quirks
+# rather than something to discover during the first garbage collection.
+pbs_s3_provider_quirks:
+  - skip-if-none-match-header
+  - delete-objects-via-delete-object
+
+# Path-style addressing (account.r2.cloudflarestorage.com/bucket), which is how Cloudflare
+# presents the R2 S3 endpoint. Virtual-hosted style was tried first and `s3 check` answered
+# "bucket does not exist or no permission to access it" — the bucket-as-subdomain hostname
+# does not resolve for R2.
+pbs_s3_path_style: true
+
+# Plain systemd calendar syntax. "daily 04:00" is rejected — the sync job parser reads
+# "daily" and then expects a weekday, unlike gc-schedule and prune which accept the shorthand.
+pbs_s3_sync_schedule: '04:00'
+pbs_s3_verify_schedule: 'weekly'
+
+# Local cache for the S3 datastore. On the rootfs, which has ~5 GB free: PBS keeps index and
+# metadata here rather than chunks, so it should stay small — but that is an assumption about
+# a backend introduced in 4.0, not something verified over time. If it grows past a couple of
+# GB, lxc-pbs needs its own volume (it has none today; it is absent from storage_volumes in
+# terraform/persistent-storage) before the rootfs fills and takes PBS with it.
+pbs_s3_cache_path: /var/lib/proxmox-backup/s3-cache
