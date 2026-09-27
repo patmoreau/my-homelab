@@ -96,6 +96,20 @@
     group: root
     mode: '0600'
 
+# kdf "none": the key has no passphrase, because a passphrase-protected key cannot be used by
+# an unattended timer. The protection is file permissions plus the vault, and the consequence is
+# that this file IS the backups — lose it and every encrypted snapshot is unrecoverable, by
+# design. See docs/pbs-encryption-and-restore.md for the escrow rules.
+- name: Deploy the PBS encryption key
+  ansible.builtin.copy:
+    content: "{{ pbs_client_encryption_key }}"
+    dest: "{{ pbs_client_encryption_key_path }}"
+    owner: root
+    group: root
+    mode: '0600'
+  when: pbs_client_encryption_key | length > 0
+  no_log: true
+
 - name: Create PBS backup systemd service
   ansible.builtin.template:
     src: pbs-backup.service.j2

@@ -251,6 +251,40 @@
   changed_when: false
 
 # ---------------------------------------------------------------------------
+# Verification
+# Bit rot and truncated chunks are silent: the datastore reports a healthy snapshot list either
+# way, and the failure surfaces only during a restore. A verify job re-reads the chunks and
+# checks them against their digests on a schedule instead. Encrypted chunks verify the same way
+# — the digest covers the ciphertext, so no key is needed on the server.
+# ---------------------------------------------------------------------------
+
+- name: List existing PBS verify jobs
+  ansible.builtin.command:
+    cmd: proxmox-backup-manager verify-job list --output-format json
+  register: pbs_verify_jobs
+  changed_when: false
+
+- name: Create verify job for nas-backups datastore
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager verify-job create nas-backups-verify
+      --store nas-backups
+      --schedule {{ pbs_verify_schedule }}
+      --ignore-verified true
+      --outdated-after {{ pbs_verify_outdated_after }}
+  when: "'\"id\":\"nas-backups-verify\"' not in (pbs_verify_jobs.stdout | regex_replace('\\s+', ''))"
+  changed_when: true
+
+- name: Enforce settings on nas-backups verify job
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager verify-job update nas-backups-verify
+      --schedule {{ pbs_verify_schedule }}
+      --ignore-verified true
+      --outdated-after {{ pbs_verify_outdated_after }}
+  changed_when: false
+
+# ---------------------------------------------------------------------------
 # Backup client service account
 # A dedicated pbs-realm user (backup-client@pbs) is created with the
 # vault-managed password so any LXC container running proxmox-backup-client

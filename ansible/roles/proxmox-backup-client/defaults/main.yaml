@@ -1,0 +1,10 @@
+---
+# Client-side encryption. The chunks are encrypted inside the container before they are sent,
+# so the datastore on the NAS holds ciphertext and every copy made from it inherits that — the
+# Google Drive sync, a stolen NAS, any future second target. Encrypting at the HBS/QNAP layer
+# instead would protect only the cloud copy and would tie decryption to the vendor whose
+# hardware failure is the scenario being planned for.
+#
+# Set to an empty string to disable; the role then deploys no key and backs up in the clear.
+pbs_client_encryption_key: "{{ vault_pbs_encryption_key | default('') }}"
+pbs_client_encryption_key_path: /etc/proxmox-backup/encryption-key.json

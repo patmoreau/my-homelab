@@ -35,3 +35,11 @@ pbs_prune_keep_last: 7
 pbs_prune_keep_daily: 14
 pbs_prune_keep_weekly: 8
 pbs_prune_keep_monthly: 6
+
+# Verification re-reads the stored chunks and checks them against their digests, which is the
+# only thing that catches bit rot or a half-written chunk before a restore does. Nothing did
+# that until now: a datastore can look healthy for months and fail at the one moment it matters.
+# Weekly, skipping snapshots already verified in the last 30 days, so each run only covers what
+# is new or stale rather than re-reading the whole 27G every time.
+pbs_verify_schedule: 'weekly'
+pbs_verify_outdated_after: 30

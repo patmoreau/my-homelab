@@ -10,7 +10,14 @@ EnvironmentFile=/etc/proxmox-backup/pbs-client.env
 ExecStartPre=/usr/bin/test -d {{ pbs_backup_path | default('/data') }}
 
 # Backs up the directory mapped inside the LXC container to a pxar archive
+{% if pbs_client_encryption_key | length > 0 %}
+# --keyfile makes this an encrypted backup: chunks are encrypted here, before they leave the
+# container. Snapshots taken before this was enabled stay readable but do not dedup against the
+# encrypted ones, so the first encrypted run rewrites the whole archive.
+ExecStart=/usr/bin/proxmox-backup-client backup {{ pbs_backup_archive_name | default('data') }}.pxar:{{ pbs_backup_path | default('/data') }} --keyfile {{ pbs_client_encryption_key_path }}
+{% else %}
 ExecStart=/usr/bin/proxmox-backup-client backup {{ pbs_backup_archive_name | default('data') }}.pxar:{{ pbs_backup_path | default('/data') }}
+{% endif %}
 SyslogIdentifier=pbs-client
 
 [Install]
