@@ -1,0 +1,10 @@
+# Collector flags for the hypervisor. The filesystem exclusions drop the per-container bind
+# mounts under /mnt/containers (their space is reported by the guest that owns them) and the
+# NFS exports under /mnt/pve — those answer statfs over the network, so a stalled NAS would
+# hang the whole scrape rather than merely miss a series. The systemd collector is scoped to
+# pve units: collecting every unit on a Proxmox host is several hundred series, and
+# Prometheus' retention budget here is tight (see the note in prometheus.container).
+node_exporter_pkg_args: >-
+  --collector.systemd
+  --collector.systemd.unit-include=^(pve|pvedaemon|pveproxy|pvestatd|pve-firewall|pve-ha-lrm|pve-ha-crm|pve-lxc-data-volumes)[^.]*[.](service|timer)$
+  --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|run|var/lib/lxcfs)($|/)|^/mnt/(pve|containers)/

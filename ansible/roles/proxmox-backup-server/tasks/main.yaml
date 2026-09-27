@@ -258,6 +258,14 @@
 # du — see the script for why that matters on an array that is half SMR.
 # ---------------------------------------------------------------------------
 
+# The hand-installed exporter this host used to run read /var/lib/node_exporter; the packaged
+# one reads /var/lib/prometheus/node-exporter. A .prom left in the old path would go stale
+# rather than disappear, so it is removed explicitly.
+- name: Remove metrics from the retired textfile directory
+  ansible.builtin.file:
+    path: /var/lib/node_exporter/pbs_datastore.prom
+    state: absent
+
 - name: Deploy the datastore metrics script
   ansible.builtin.copy:
     src: pbs-datastore-metrics.sh

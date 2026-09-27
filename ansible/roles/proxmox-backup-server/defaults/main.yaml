@@ -2,9 +2,7 @@
 pbs_datastore_name: nas-backups
 pbs_datastore_path: /mnt/nas-backups/datastore
 
-# node_exporter on this host is a hand-installed binary unit (node_exporter.service), not the
-# Quadlet the other LXCs run nor the Debian package the hypervisor uses, and its textfile
-# collector points at /var/lib/node_exporter rather than the .../textfile subdirectory used
-# elsewhere. Matched here rather than "fixed", because moving it is a separate change with its
-# own risk; worth knowing that this host's exporter is not yet managed by Ansible at all.
-pbs_textfile_dir: /var/lib/node_exporter
+# Matches node_exporter_pkg's textfile directory. This host used to run a hand-installed
+# binary exporter pointed at /var/lib/node_exporter; that unit is retired by node_exporter_pkg,
+# which runs before this role in the play.
+pbs_textfile_dir: "{{ node_exporter_pkg_textfile_dir | default('/var/lib/prometheus/node-exporter') }}"

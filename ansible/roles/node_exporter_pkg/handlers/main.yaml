@@ -1,3 +1,7 @@
+- name: Reload systemd units
+  ansible.builtin.systemd:
+    daemon_reload: true
+
 - name: Restart node_exporter
   ansible.builtin.systemd:
     name: prometheus-node-exporter

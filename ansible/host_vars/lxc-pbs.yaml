@@ -1,0 +1,10 @@
+# lxc-pbs runs the Debian package rather than the Quadlet unit the other LXCs use: putting a
+# backup server's own monitoring inside a container that the same server backs up is a
+# dependency loop, and this host is excluded from the Podman provisioning plays anyway.
+#
+# /mnt/nas-backups is excluded from the filesystem collector for the same reason as /mnt/pve on
+# the hypervisor — it is the NAS over NFS, and a stalled server would hang the scrape.
+node_exporter_pkg_args: >-
+  --collector.systemd
+  --collector.systemd.unit-include=^(proxmox-backup|pbs-datastore-metrics|pbs-backup)[^.]*[.](service|timer)$
+  --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|run)($|/)|^/mnt/nas-backups($|/)

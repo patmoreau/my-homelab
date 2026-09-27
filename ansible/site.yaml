@@ -1,6 +1,10 @@
 - name: Deploy Proxmox Backup Server
   hosts: lxc-pbs
   roles:
+    # Not the Quadlet node_exporter the other LXCs get — lxc-pbs is excluded from the Podman
+    # provisioning plays, and its exporter was a hand-installed binary that no playbook knew
+    # about, so a rebuild would have lost it along with the datastore metrics.
+    - node_exporter_pkg
     - proxmox-backup-server
 
 - name: Provision all LXC

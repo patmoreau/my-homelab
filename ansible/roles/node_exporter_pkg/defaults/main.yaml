@@ -1,0 +1,21 @@
+---
+# node_exporter from the Debian package, for hosts that do not run the Quadlet unit the LXCs
+# use: the hypervisor (no Podman on it) and lxc-pbs (running the monitoring for a backup server
+# inside a container that same server backs up is a dependency loop).
+node_exporter_pkg_port: 9100
+node_exporter_pkg_textfile_dir: /var/lib/prometheus/node-exporter
+
+# Collector flags. Per-host overrides live in host_vars; this default is the conservative set.
+# The textfile directory is appended from the variable above so the two cannot drift.
+node_exporter_pkg_args: >-
+  --collector.systemd
+  --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|run|var/lib/lxcfs)($|/)
+
+# A hand-installed binary unit, if one is found, is stopped and removed before the package
+# starts — both bind :9100, so they cannot coexist. lxc-pbs had exactly this: a
+# /usr/local/bin/node_exporter with a hand-written node_exporter.service that no playbook knew
+# about, so a rebuild of that container would have silently lost its monitoring.
+node_exporter_pkg_retire_units:
+  - node_exporter.service
+node_exporter_pkg_retire_binaries:
+  - /usr/local/bin/node_exporter

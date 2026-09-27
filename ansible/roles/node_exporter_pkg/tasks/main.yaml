@@ -1,0 +1,66 @@
+# Retirement first: a hand-rolled unit and the packaged one both bind :9100, so the old one
+# has to be gone before the new one starts.
+- name: Check for hand-installed node_exporter units
+  ansible.builtin.stat:
+    path: "/etc/systemd/system/{{ item }}"
+  loop: "{{ node_exporter_pkg_retire_units }}"
+  register: node_exporter_pkg_legacy
+
+- name: Stop and disable hand-installed node_exporter units
+  ansible.builtin.systemd:
+    name: "{{ item.item }}"
+    state: stopped
+    enabled: false
+  loop: "{{ node_exporter_pkg_legacy.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: item.stat.exists
+
+- name: Remove hand-installed node_exporter units
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item.item }}"
+    state: absent
+  loop: "{{ node_exporter_pkg_legacy.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: item.stat.exists
+  notify: Reload systemd units
+
+- name: Remove hand-installed node_exporter binaries
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ node_exporter_pkg_retire_binaries }}"
+
+- name: Install node_exporter
+  ansible.builtin.apt:
+    name: prometheus-node-exporter
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Ensure the textfile collector directory exists
+  ansible.builtin.file:
+    path: "{{ node_exporter_pkg_textfile_dir }}"
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: "0755"
+
+- name: Configure the collector flags
+  ansible.builtin.copy:
+    content: |
+      # Managed by Ansible (roles/node_exporter_pkg). Local edits are overwritten.
+      ARGS="{{ node_exporter_pkg_args | trim }} --collector.textfile.directory={{ node_exporter_pkg_textfile_dir }}"
+    dest: /etc/default/prometheus-node-exporter
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart node_exporter
+
+- name: Ensure node_exporter is enabled and running
+  ansible.builtin.systemd:
+    name: prometheus-node-exporter
+    enabled: true
+    state: started
+    daemon_reload: true

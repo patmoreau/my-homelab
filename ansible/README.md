@@ -611,7 +611,7 @@ rebuild of that container would lose it.
 
 ## Monitoring roles
 
-> **The hypervisor is monitored too, and that is not cosmetic.** `pve_node_exporter`
+> **The hypervisor is monitored too, and that is not cosmetic.** `node_exporter_pkg`
 > installs the Debian package on `pve-homelab` — not the Quadlet unit the LXCs use, because
 > there is no Podman on the host and running the hypervisor's monitoring inside a container
 > it manages is a dependency loop. It matters because **the NFS client for the NAS lives on
@@ -1240,7 +1240,7 @@ inventory and roadmap):
 | `pve_nas_idmap` | `/etc/subuid` + `/etc/subgid` entries for unprivileged-LXC UID/GID mapping |
 | `pve_tuning` | ZFS ARC cap (`zfs_arc_max`) + timezone |
 | `pve_api_access` | PVE `pveum` groups/users/tokens/ACLs (create-if-missing) |
-| `pve_node_exporter` | `prometheus-node-exporter` (Debian package) on the hypervisor itself |
+| `node_exporter_pkg` | `prometheus-node-exporter` (Debian package) for hosts with no Quadlet runtime: the hypervisor and lxc-pbs. Retires any hand-installed binary unit it finds first — both bind :9100 |
 | `nut_server` | UPS monitoring (below) |
 
 Network (`/etc/network/interfaces`) and GRUB/IOMMU are **not** codified (lockout risk) —
