@@ -1,0 +1,10 @@
+[Unit]
+Description=Export PBS datastore size and snapshot counts as node_exporter metrics
+After=proxmox-backup.service
+
+[Service]
+Type=oneshot
+Environment=PBS_DATASTORE_PATH={{ pbs_datastore_path }}
+Environment=PBS_DATASTORE_NAME={{ pbs_datastore_name }}
+Environment=PBS_TEXTFILE_DIR={{ pbs_textfile_dir }}
+ExecStart=/usr/local/bin/pbs-datastore-metrics

@@ -580,6 +580,35 @@ These must be populated to deploy all services:
 | `vault_oauth2_proxy_cookie_secret`      | oauth2-proxy                         | Session cookie encryption key (`openssl rand -base64 32 \| tr -- '+/' '-_'`); rotating it logs everyone out |
 | `vault_umami_app_secret`                | umami                                | Umami session/JWT signing secret (`openssl rand -hex 32`); rotating it logs every Umami user out          |
 
+## PBS datastore metrics
+
+`pbs-datastore-metrics` (hourly timer on lxc-pbs) exports `pbs_datastore_ondisk_bytes`,
+`_original_bytes`, `_pending_removal_bytes`, `_chunks`, `_dedup_factor`, plus
+`pbs_datastore_snapshots` and `pbs_datastore_last_snapshot_timestamp_seconds` per backup id.
+Nothing reported datastore size before: node_exporter's filesystem collector sees the whole
+8.4T NFS share, not the 25 GiB of chunks inside it, so there was no way to watch growth or to
+notice a host that had quietly stopped backing up.
+
+The size figures are **parsed out of the nightly GC task log, not measured with `du`**. The
+datastore lives on an array that is half SMR, and walking 11k chunk files across 65k
+directories over NFS costs minutes of metadata round trips for a number PBS has already
+computed during its own GC pass. They therefore refresh daily; the snapshot counts refresh
+hourly, which is the half that catches a client going silent.
+
+Two traps this script exists to document, both of which produced zeroes before they were
+understood:
+
+- PBS escapes the datastore name in UPID filenames as `nas\x2dbackups`, with a **literal
+  backslash**. Piping those paths through `xargs` mangles them to `nasx2dbackups`, so `ls`
+  finds nothing. The pipeline uses a `read` loop instead.
+- Matching task logs on `garbage_collection` also matches PBS's `active` index file, which is
+  always the newest and never contains a summary. Match on `On-Disk usage:` instead.
+
+Note that node_exporter on lxc-pbs is a hand-installed binary unit (`node_exporter.service`,
+textfile dir `/var/lib/node_exporter`, no `/textfile` subdirectory) rather than the Quadlet the
+other LXCs run or the Debian package on the hypervisor. It is **not managed by Ansible** — a
+rebuild of that container would lose it.
+
 ## Monitoring roles
 
 > **The hypervisor is monitored too, and that is not cosmetic.** `pve_node_exporter`

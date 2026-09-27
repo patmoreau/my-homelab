@@ -251,6 +251,45 @@
   changed_when: false
 
 # ---------------------------------------------------------------------------
+# Datastore metrics
+# Nothing exported the datastore's size: node_exporter's filesystem collector reports the whole
+# 8.4T NFS share, not the 32G of chunks inside it, so there was no way to see growth or to
+# notice a host that had stopped backing up. Parsed out of the GC log rather than measured with
+# du — see the script for why that matters on an array that is half SMR.
+# ---------------------------------------------------------------------------
+
+- name: Deploy the datastore metrics script
+  ansible.builtin.copy:
+    src: pbs-datastore-metrics.sh
+    dest: /usr/local/bin/pbs-datastore-metrics
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy the datastore metrics service
+  ansible.builtin.template:
+    src: pbs-datastore-metrics.service.j2
+    dest: /etc/systemd/system/pbs-datastore-metrics.service
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy the datastore metrics timer
+  ansible.builtin.template:
+    src: pbs-datastore-metrics.timer.j2
+    dest: /etc/systemd/system/pbs-datastore-metrics.timer
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure the datastore metrics timer is enabled and running
+  ansible.builtin.systemd:
+    name: pbs-datastore-metrics.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
+# ---------------------------------------------------------------------------
 # Verification
 # Bit rot and truncated chunks are silent: the datastore reports a healthy snapshot list either
 # way, and the failure surfaces only during a restore. A verify job re-reads the chunks and

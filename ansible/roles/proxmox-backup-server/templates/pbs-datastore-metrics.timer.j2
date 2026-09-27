@@ -1,0 +1,13 @@
+[Unit]
+Description=Periodic PBS datastore metrics refresh
+
+[Timer]
+# Hourly. The GC-derived figures only change once a day, but the snapshot counts and
+# last-snapshot timestamps update every run, which is what catches a host that has quietly
+# stopped backing up.
+OnBootSec=10min
+OnUnitActiveSec=1h
+AccuracySec=5m
+
+[Install]
+WantedBy=timers.target
