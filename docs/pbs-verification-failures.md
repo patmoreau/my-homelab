@@ -140,3 +140,41 @@ reason to re-read the whole store weekly on SMR disks.
 Snapshots showing no verify state at all are simply newer than the last verify pass — last
 night's backups sync at 04:00, after the 00:00 verify window — and are picked up on the next
 run.
+
+## What an offsite verify actually costs, measured
+
+Since `r2-offsite-verify` runs with `--ignore-verified false`, every weekly run re-reads the
+whole datastore out of the bucket. Measured on 2026-09-28 by verifying one snapshot while
+watching `/proc/net/dev` and the cache directory:
+
+```
+target: host/lxc-media/2026-09-28T02:03:53Z
+verified 1673.48/1807.94 MiB in 126.44 seconds (0 errors)
+eth0 RX delta:            1777 MB
+s3-cache file delta:      +0 files, +0 bytes
+root fs free, before/after: 3.9 GB / 3.9 GB
+```
+
+Two conclusions:
+
+- **The reads are real.** RX matches the compressed payload, so verify pulls chunks from R2
+  rather than re-attesting a manifest or reading the local cache. Without that, running the
+  job against an S3 datastore would prove nothing about the bucket.
+- **Chunks are streamed, not cached.** The S3 chunk cache under the datastore `path`
+  (`/var/lib/proxmox-backup/s3-cache/r2-offsite`) does not grow during a verify, so a full
+  run does not need to fit the datastore on lxc-pbs's 7.8 GB root filesystem. No resize
+  needed.
+
+Cost per full run, at 5.13 GB / ~1837 chunks:
+
+| item | amount |
+| --- | --- |
+| egress | $0 — R2 does not charge egress |
+| Class B operations | ~1 GET per chunk, ~1900 per run |
+| monthly, weekly cadence | ~8200 ops against a 10,000,000/month free tier |
+| beyond free tier | ~$0.003/month at $0.36 per million |
+| wall time | ~6 min at the observed ~14 MB/s |
+
+The ops volume stays inside the free tier by three orders of magnitude, so cadence can be
+raised without a cost conversation. Wall time and NFS read load on the local side are the
+only real budget.
