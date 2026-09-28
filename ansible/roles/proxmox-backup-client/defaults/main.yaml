@@ -8,3 +8,11 @@
 # Set to an empty string to disable; the role then deploys no key and backs up in the clear.
 pbs_client_encryption_key: "{{ vault_pbs_encryption_key | default('') }}"
 pbs_client_encryption_key_path: /etc/proxmox-backup/encryption-key.json
+
+# Paths inside the backup root to leave out of the archive, written as a .pxarexclude file
+# that proxmox-backup-client honours while walking the tree. Empty means back up everything.
+#
+# This is for data that is large and regenerable rather than merely large: excluding it has to
+# be a statement that losing it costs nothing. See host_vars/lxc-monitoring.yaml for the one
+# case in this homelab.
+pbs_backup_excludes: []

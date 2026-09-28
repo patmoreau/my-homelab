@@ -110,6 +110,29 @@
   when: pbs_client_encryption_key | length > 0
   no_log: true
 
+# .pxarexclude sits in the backup root and is read by the client as it walks the tree, so the
+# exclusions live with the data rather than in the unit's command line. Removed when the list
+# is empty, so clearing the variable actually restores full backups instead of silently
+# leaving a stale file behind.
+- name: Write the backup exclusion list
+  ansible.builtin.copy:
+    content: |
+      # Managed by Ansible (roles/proxmox-backup-client). Local edits are overwritten.
+      {% for pattern in pbs_backup_excludes %}
+      {{ pattern }}
+      {% endfor %}
+    dest: "{{ pbs_backup_path | default('/data') }}/.pxarexclude"
+    owner: root
+    group: root
+    mode: "0644"
+  when: pbs_backup_excludes | length > 0
+
+- name: Remove the exclusion list when nothing is excluded
+  ansible.builtin.file:
+    path: "{{ pbs_backup_path | default('/data') }}/.pxarexclude"
+    state: absent
+  when: pbs_backup_excludes | length == 0
+
 - name: Create PBS backup systemd service
   ansible.builtin.template:
     src: pbs-backup.service.j2

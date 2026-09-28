@@ -4,3 +4,17 @@
 # data start fresh (Podman volumes can't read the old Docker named volumes); Grafana
 # dashboards/config persist via the /data/grafana host bind.
 container_runtime: podman
+
+# Prometheus' TSDB and Loki's chunks are excluded from the backup deliberately. They were 3.9G
+# and 52M of a 4.5G archive — 87% of the largest backup in the homelab, taking 385s a night and
+# writing 2.1 GiB compressed onto an array that sustains 9-12 MB/s.
+#
+# They are excluded because losing them costs nothing that matters. Grafana is provisioned from
+# this repo (dashboards, datasources, alerting rules, contact points), so a rebuilt monitoring
+# stack comes back complete; what it would not come back with is /data/grafana, which holds
+# anything created through the UI rather than in code, and that is still backed up. Prometheus
+# recreates its TSDB on first start and begins collecting immediately; the backlog is capped at
+# 5 GB by retention anyway.
+pbs_backup_excludes:
+  - prometheus
+  - loki
