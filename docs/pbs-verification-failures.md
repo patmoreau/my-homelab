@@ -112,3 +112,31 @@ policy — currently ~27 GB of chunks, so 100 GB would be comfortable.
 The cheaper interim position is the one that already exists: R2 holds an independently
 verified copy, and its verify job runs weekly. If the local datastore proves untrustworthy,
 the offsite copy is the authority rather than the backup of last resort.
+
+## Verify state on the offsite copy is inherited, and was misleading
+
+A snapshot's verification result lives in its manifest, and a sync copies the manifest — so
+snapshots in `r2-offsite` inherit whatever `nas-backups-verify` concluded about the local copy.
+Measured on 2026-09-28: of 8 stamped snapshots offsite, 7 carried a UPID from
+`nas-backups-verify` and only 1 from `r2-offsite-verify`, later syncs having overwritten the
+rest.
+
+Two consequences:
+
+- **The verify column for `r2-offsite` is not evidence the offsite copy was checked.** It can
+  read "ok" purely because the local copy passed. The authoritative signal is the
+  `r2-offsite-verify` task result.
+- **With `--ignore-verified true` the offsite job skipped that inherited work**, so chunks that
+  had never been read out of R2 could go unverified for up to `outdated-after` days while the
+  UI showed green. For the copy that exists to survive losing the datastore it inherits its
+  state from — in the same week that datastore produced 13 damaged snapshots — that is exactly
+  backwards.
+
+`r2-offsite-verify` therefore runs with `--ignore-verified false`: every run re-reads
+everything from the bucket. Egress is free on R2 and the reads sit well inside the free tier.
+The local job keeps `--ignore-verified true`, having no inherited state to be fooled by and no
+reason to re-read the whole store weekly on SMR disks.
+
+Snapshots showing no verify state at all are simply newer than the last verify pass — last
+night's backups sync at 04:00, after the 00:00 verify window — and are picked up on the next
+run.

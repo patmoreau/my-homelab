@@ -372,10 +372,21 @@
       proxmox-backup-manager verify-job create {{ pbs_s3_datastore_name }}-verify
       --store {{ pbs_s3_datastore_name }}
       --schedule {{ pbs_s3_verify_schedule }}
-      --ignore-verified true
+      --ignore-verified {{ pbs_s3_verify_ignore_verified | bool | lower }}
       --outdated-after {{ pbs_verify_outdated_after }}
   when: "'\"id\":\"' ~ pbs_s3_datastore_name ~ '-verify\"' not in (pbs_s3_verify_jobs.stdout | regex_replace('\\s+', ''))"
   changed_when: true
+
+# Create-if-missing alone would leave an existing job on whatever it was made with, which is
+# how this one sat on ignore-verified true after the default changed.
+- name: Enforce settings on the offsite verify job
+  ansible.builtin.command:
+    cmd: >
+      proxmox-backup-manager verify-job update {{ pbs_s3_datastore_name }}-verify
+      --schedule {{ pbs_s3_verify_schedule }}
+      --ignore-verified {{ pbs_s3_verify_ignore_verified | bool | lower }}
+      --outdated-after {{ pbs_verify_outdated_after }}
+  changed_when: false
 
 - name: Create prune job for the offsite datastore
   ansible.builtin.command:

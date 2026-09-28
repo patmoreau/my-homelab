@@ -50,3 +50,19 @@ pbs_s3_verify_schedule: 'weekly'
 # GB, lxc-pbs needs its own volume (it has none today; it is absent from storage_volumes in
 # terraform/persistent-storage) before the rootfs fills and takes PBS with it.
 pbs_s3_cache_path: /var/lib/proxmox-backup/s3-cache
+
+# The offsite verify job re-reads everything, every run, instead of skipping snapshots that
+# already look verified.
+#
+# Verify state lives in the snapshot manifest, and a sync copies the manifest — so offsite
+# snapshots inherit the *local* datastore's verification result. Observed on 2026-09-28: of 8
+# stamped snapshots in r2-offsite, 7 carried a UPID from nas-backups-verify and only 1 from
+# r2-offsite-verify, the later syncs having overwritten the rest. With ignore-verified true
+# those inherited stamps make the offsite job skip chunks it has never actually read out of
+# R2, for up to outdated-after days, while the UI shows green.
+#
+# That is the wrong trade for the copy whose entire purpose is surviving the loss of the one
+# it inherits its state from — especially with 13 damaged snapshots found locally the same
+# week. A full re-read costs a few GB of downloads weekly: egress is free on R2 and the object
+# reads sit far inside the free tier.
+pbs_s3_verify_ignore_verified: false
