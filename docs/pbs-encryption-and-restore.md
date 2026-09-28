@@ -89,6 +89,12 @@ sync taken while GC is rewriting the chunk store copies an inconsistent datastor
 
 ## Verification
 
+> Its first run, on 2026-09-28, failed: 13 snapshots dating back five months carry index files
+> whose size no longer matches their manifest. None are post-encryption and none reached the
+> offsite copy, which verified clean. See
+> [`pbs-verification-failures.md`](pbs-verification-failures.md) — the open question is whether
+> a PBS datastore on NFS is safe here at all.
+
 `nas-backups-verify` runs weekly, skipping snapshots verified in the last 30 days. It re-reads
 chunks and checks them against their digests, which is the only thing that catches bit rot
 before a restore does. Encrypted chunks verify normally — the digest covers the ciphertext, so
