@@ -6,7 +6,7 @@ module "media" {
   vm_id       = var.lxc_vm_ids["media"]
 
   cpu_cores        = 4
-  memory_dedicated = 2048
+  memory_dedicated = 6144
   memory_swap      = 1024
   disk_size        = 26
 
