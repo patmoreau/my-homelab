@@ -55,12 +55,15 @@
     state: directory
     mode: '0755'
 
-- name: Deploy Grafana alert automation
+- name: Deploy Ansible-managed automations
   ansible.builtin.template:
-    src: grafana-alerts.yaml.j2
-    dest: /data/config/automations_ansible/grafana-alerts.yaml
+    src: "{{ item }}.j2"
+    dest: "/data/config/automations_ansible/{{ item }}"
     mode: '0644'
-  register: homeassistant_grafana_alerts
+  loop:
+    - grafana-alerts.yaml
+    - ups-alerts.yaml
+  register: homeassistant_automations
 
 - name: Set whether Home Assistant needs a restart
   ansible.builtin.set_fact:
@@ -68,7 +71,7 @@
       {{ homeassistant_config.changed or homeassistant_hacs_install.changed
          or homeassistant_system_log_config.changed
          or homeassistant_automations_config.changed
-         or homeassistant_grafana_alerts.changed }}
+         or homeassistant_automations.changed }}
 
 - name: Restart Home Assistant to apply config
   ansible.builtin.systemd:

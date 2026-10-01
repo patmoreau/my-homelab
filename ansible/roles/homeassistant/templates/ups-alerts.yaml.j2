@@ -1,0 +1,46 @@
+- id: ups_power_alert
+  alias: UPS power alerts to phone
+  description: >-
+    Watches the raw NUT ups.status of the CyberPower UPS (OL = mains, OB = on
+    battery, LB = low battery) and alerts on going to battery, low battery and
+    mains coming back. Push to the phone plus a persistent notification, so
+    the alert stays in the app's Notifications panel.
+  mode: queued
+  max: 10
+  triggers:
+    - trigger: state
+      entity_id: sensor.cyberpower_code_d_etat
+  variables:
+{% raw %}
+    old: "{{ trigger.from_state.state.split() if trigger.from_state else [] }}"
+    new: "{{ trigger.to_state.state.split() if trigger.to_state else [] }}"
+    title: >-
+      {% if 'LB' in new %}UPS LOW BATTERY{% elif 'OB' in new %}UPS ON BATTERY{% else %}UPS back on mains{% endif %}
+    message: >-
+      Status {{ trigger.to_state.state }}, battery
+      {{ states('sensor.cyberpower_charge_de_la_batterie') }}%, runtime
+      {{ states('sensor.cyberpower_autonomie_de_la_batterie') }}
+      {{ state_attr('sensor.cyberpower_autonomie_de_la_batterie', 'unit_of_measurement') or '' }}
+  conditions:
+    # unavailable/unknown (NUT or HA restart) is not a power event
+    - condition: template
+      value_template: "{{ old | length > 0 and new | length > 0 and 'unavailable' not in old + new and 'unknown' not in old + new }}"
+    - condition: template
+      value_template: "{{ ('OB' in old) != ('OB' in new) or ('LB' in new and 'LB' not in old) }}"
+{% endraw %}
+  actions:
+    - action: {{ homeassistant_notify_service }}
+      data:
+        title: {% raw %}"{{ title }}"{% endraw %}
+
+        message: {% raw %}"{{ message }}"{% endraw %}
+
+        data:
+          tag: ups-power
+          push:
+            interruption-level: time-sensitive
+    - action: persistent_notification.create
+      data:
+        title: {% raw %}"{{ title }}"{% endraw %}
+
+        message: {% raw %}"{{ message }}"{% endraw %}

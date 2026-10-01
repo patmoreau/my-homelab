@@ -669,7 +669,8 @@ Delivery goes **Grafana webhook → Home Assistant → phone push**. The
 `automation ansible: !include_dir_merge_list` key so it never collides with the
 UI-managed `automations.yaml`. It notifies
 `homeassistant_notify_service` (`group_vars/all/main.yaml`) once per alert in the
-batch, for both firing and resolved. Each alert is also written as a
+batch, for both firing and resolved. The UPS power alerts (see `nut_server`) live in
+the same directory as `ups-alerts.yaml`. Each alert is also written as a
 `persistent_notification`, so it stays in the app's **Notifications** panel (bell)
 after the push is tapped, until dismissed — one entry per firing/resolved event.
 
@@ -1276,6 +1277,14 @@ Home Assistant NUT integration settings:
 | UPS name | `cyberpower`   |
 
 > If the Proxmox firewall is enabled, allow inbound TCP `3493` from the LAN.
+
+Power alerts: the `homeassistant` role provisions
+`/data/config/automations_ansible/ups-alerts.yaml`, which watches the raw status sensor
+`sensor.cyberpower_code_d_etat` (NUT `ups.status`: `OL` mains, `OB` on battery, `LB` low
+battery). It sends a time-sensitive push plus a persistent notification on **on
+battery**, **low battery** and **back on mains**; `unavailable`/`unknown` transitions (NUT
+or HA restarts) are ignored. Entity ids come from the UI-added integration, so re-adding
+it under another name breaks this automation.
 
 The **QNAP NAS** is a network UPS slave (secondary) on the same UPS. QTS's IP-only
 "Network UPS slave" mode is hardcoded to monitor a UPS named **`qnapups`** as user
