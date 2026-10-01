@@ -922,13 +922,18 @@ the Auth0 callback lands.
 
 | URL                        | Entrypoint  | Backend                    | UI    |
 | -------------------------- | ----------- | -------------------------- | ----- |
-| `router.moreaulab.ca`      | `websecure` | `http://192.168.8.1`       | Panel |
+| `router.moreaulab.ca`      | `websecure` | `https://192.168.8.1`      | Panel |
 | `router.moreaulab.ca:8443` | `luci`      | `https://192.168.8.1:8443` | LuCI  |
 
 LuCI is served over the router's self-signed cert, so the `router-luci` service sets
 `insecureSkipVerify`. The GL.iNet panel builds its "Advanced/LuCI" link as
 `https://<host>:8443`, so LuCI must be served on the matching `:8443` entrypoint for the
 link to resolve through Traefik.
+
+The panel service sets `passHostHeader: false`. Since the 2026-09-30 GL.iNet firmware
+update, the panel's nginx answers `403 Forbidden` to any Host header it does not
+recognise (`router.moreaulab.ca` included), so Traefik sends the router's IP instead.
+LuCI on `:8443` does not check the Host and keeps the default.
 
 ## Holefeeder (lxc-holefeeder)
 
@@ -1173,6 +1178,8 @@ config login
 	list read homepage
 EOF
 /etc/init.d/rpcd restart
+# keep the ACL file across firmware upgrades (it lives outside /etc)
+echo /usr/share/rpcd/acl.d/homepage.json >> /etc/sysupgrade.conf
 ```
 
 The account is read-only and limited to those four ubus calls. The passphrase — not the
@@ -1187,9 +1194,11 @@ curl -sk -X POST https://192.168.8.1:8443/ubus -H 'Content-Type: application/jso
   -d '{"jsonrpc":"2.0","id":1,"method":"call","params":["00000000000000000000000000000000","session","login",{"username":"homepage","password":"<passphrase>"}]}'
 ```
 
-> **A GL.iNet firmware upgrade wipes this.** `/usr/share/rpcd/acl.d/homepage.json` lives
-> outside `/etc`, so sysupgrade keeps the `config login` block but drops the ACL file. If
-> the widget goes blank after an upgrade, recreate the ACL file and restart `rpcd`.
+> **GL.iNet firmware upgrades.** `/usr/share/rpcd/acl.d/homepage.json` lives outside
+> `/etc`, so sysupgrade keeps the `config login` block but drops the ACL file unless it is
+> listed in `/etc/sysupgrade.conf` (added 2026-09-30, after the upgrade that day wiped
+> it). If the widget shows `401 Unauthorized` after an upgrade, check that the file and the
+> `sysupgrade.conf` entry are still there, recreate the file, and restart `rpcd`.
 
 ## Deploy playbook
 
