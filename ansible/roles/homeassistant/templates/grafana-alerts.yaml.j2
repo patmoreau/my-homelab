@@ -27,3 +27,12 @@
                 tag: {% raw %}"grafana-{{ repeat.item.labels.alertname }}-{{ repeat.item.labels.instance | default('') }}"{% endraw %}
 
                 url: {% raw %}"{{ repeat.item.generatorURL | default('') }}"{% endraw %}
+
+          # Push notifications vanish once tapped; the persistent copy stays in
+          # the app's Notifications panel until dismissed. No notification_id,
+          # so firing and resolved each get their own entry (history).
+          - action: persistent_notification.create
+            data:
+              title: {% raw %}"Grafana {{ repeat.item.status | upper }}: {{ repeat.item.labels.alertname }}"{% endraw %}
+
+              message: {% raw %}"{{ repeat.item.annotations.description | default(repeat.item.annotations.summary, true) | default(repeat.item.labels.instance, true) }}{% if repeat.item.generatorURL | default('') %}\n\n[Open in Grafana]({{ repeat.item.generatorURL }}){% endif %}"{% endraw %}

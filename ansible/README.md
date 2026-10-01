@@ -628,7 +628,7 @@ rebuild of that container would lose it.
 |------|------|---------|
 | `prometheus` | lxc-monitoring | Metrics collection |
 | `loki` | lxc-monitoring | Log aggregation |
-| `grafana` | lxc-monitoring | Dashboards (includes "Homelab Services Health" dashboard) |
+| `grafana` | lxc-monitoring | Dashboards (includes "Homelab Services Health" and "Alerts Overview"); alert state history pushed to Loki |
 | `pve_exporter` | lxc-monitoring | Proxmox metrics (port 9221, host networking) |
 | `blackbox_exporter` | lxc-monitoring | HTTP health probing for all services (port 9115) |
 | `umami` | lxc-essere | Cookieless web analytics for essere.ca (port 3001) |
@@ -669,7 +669,9 @@ Delivery goes **Grafana webhook → Home Assistant → phone push**. The
 `automation ansible: !include_dir_merge_list` key so it never collides with the
 UI-managed `automations.yaml`. It notifies
 `homeassistant_notify_service` (`group_vars/all/main.yaml`) once per alert in the
-batch, for both firing and resolved.
+batch, for both firing and resolved. Each alert is also written as a
+`persistent_notification`, so it stays in the app's **Notifications** panel (bell)
+after the push is tapped, until dismissed — one entry per firing/resolved event.
 
 To test the chain without waiting for a real alert, POST a Grafana-shaped body to
 the webhook:

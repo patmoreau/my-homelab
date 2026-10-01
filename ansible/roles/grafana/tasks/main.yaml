@@ -55,6 +55,7 @@
     - node-exporter-full.json
     - proxmox-cluster.json
     - homelab-services.json
+    - alerts-overview.json
 
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml
