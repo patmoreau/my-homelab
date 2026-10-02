@@ -77,10 +77,12 @@
 # otherwise fail deep inside the loop with a Jinja error about an empty sequence.
 - name: Check every requested indexer exists in the catalog
   ansible.builtin.assert:
-    that: prowlarr_indexers | difference(prowlarr_indexer_schema.json | map(attribute='name') | list) == []
+    that: (prowlarr_indexers + prowlarr_flaresolverr_indexers)
+          | difference(prowlarr_indexer_schema.json | map(attribute='name') | list) == []
     fail_msg: >-
       No Prowlarr definition named
-      {{ prowlarr_indexers | difference(prowlarr_indexer_schema.json | map(attribute='name') | list) | join(', ') }}
+      {{ (prowlarr_indexers + prowlarr_flaresolverr_indexers)
+         | difference(prowlarr_indexer_schema.json | map(attribute='name') | list) | join(', ') }}
       — check the spelling against Prowlarr's Add Indexer list.
 
 - name: Add the public indexers
@@ -94,5 +96,80 @@
               | combine({'enable': true, 'appProfileId': prowlarr_app_profile_id}) }}"
     status_code: [200, 201]
   loop: "{{ prowlarr_indexers }}"
+  when: item not in (prowlarr_indexers_current.json | map(attribute='name') | list)
+  changed_when: true
+
+# FlareSolverr is wired in as an indexer proxy, which Prowlarr applies by tag: only
+# indexers carrying the `flaresolverr` tag are fetched through it, the rest go direct.
+- name: Read the tags
+  ansible.builtin.uri:
+    url: "{{ prowlarr_api_url }}/tag"
+    headers:
+      X-Api-Key: "{{ vault_prowlarr_api_key }}"
+  register: prowlarr_tags_current
+
+- name: Create the flaresolverr tag
+  ansible.builtin.uri:
+    url: "{{ prowlarr_api_url }}/tag"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_prowlarr_api_key }}"
+    body_format: json
+    body:
+      label: flaresolverr
+    status_code: [200, 201]
+  register: prowlarr_tag_created
+  when: "'flaresolverr' not in (prowlarr_tags_current.json | map(attribute='label') | list)"
+  changed_when: true
+
+- name: Resolve the flaresolverr tag id
+  ansible.builtin.set_fact:
+    prowlarr_flaresolverr_tag_id: >-
+      {{ prowlarr_tag_created.json.id if prowlarr_tag_created is changed
+         else (prowlarr_tags_current.json | selectattr('label', 'equalto', 'flaresolverr') | first).id }}
+
+- name: Read the indexer proxies
+  ansible.builtin.uri:
+    url: "{{ prowlarr_api_url }}/indexerProxy"
+    headers:
+      X-Api-Key: "{{ vault_prowlarr_api_key }}"
+  register: prowlarr_proxies_current
+
+- name: Add FlareSolverr as an indexer proxy
+  ansible.builtin.uri:
+    url: "{{ prowlarr_api_url }}/indexerProxy"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_prowlarr_api_key }}"
+    body_format: json
+    body:
+      name: FlareSolverr
+      implementation: FlareSolverr
+      implementationName: FlareSolverr
+      configContract: FlareSolverrSettings
+      tags: "{{ [prowlarr_flaresolverr_tag_id | int] }}"
+      fields:
+        - name: host
+          value: "{{ prowlarr_flaresolverr_url }}"
+        # Seconds. A Cloudflare solve took 38-53 s in testing, so the 60 s default
+        # would time out intermittently.
+        - name: requestTimeout
+          value: 120
+    status_code: [200, 201]
+  when: "'FlareSolverr' not in (prowlarr_proxies_current.json | map(attribute='name') | list)"
+  changed_when: true
+
+- name: Add the Cloudflare-protected indexers
+  ansible.builtin.uri:
+    url: "{{ prowlarr_api_url }}/indexer?forceSave=true"
+    method: POST
+    headers:
+      X-Api-Key: "{{ vault_prowlarr_api_key }}"
+    body_format: json
+    body: "{{ prowlarr_indexer_schema.json | selectattr('name', 'equalto', item) | first
+              | combine({'enable': true, 'appProfileId': prowlarr_app_profile_id,
+                         'tags': [prowlarr_flaresolverr_tag_id | int]}) }}"
+    status_code: [200, 201]
+  loop: "{{ prowlarr_flaresolverr_indexers }}"
   when: item not in (prowlarr_indexers_current.json | map(attribute='name') | list)
   changed_when: true

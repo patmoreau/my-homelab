@@ -42,14 +42,24 @@ prowlarr_allowed_hosts: "*.moreaulab.ca,{{ ansible_host }},10.88.0.247"
 
 # Indexers Prowlarr enables, by the exact name its definition catalog uses (Prowlarr ships
 # ~630 definitions; enabling one is what creates an indexer). These four are public, need
-# no account, and work without FlareSolverr — 1337x and friends sit behind Cloudflare and
-# would need that extra service before their Test passes. Prowlarr pushes whatever is
+# no account, and work without FlareSolverr; Cloudflare-protected ones go in
+# prowlarr_flaresolverr_indexers instead. Prowlarr pushes whatever is
 # enabled here into Radarr on its own, through the fullSync app link above.
 prowlarr_indexers:
   - YTS
   - The Pirate Bay
   - TorrentDownload
   - Knaben
+
+# Indexers behind Cloudflare's bot challenge. Added like the list above, but tagged
+# `flaresolverr`, which routes them through the FlareSolverr indexer proxy below. Saved with
+# forceSave: Prowlarr tests an indexer on add, and a Cloudflare change that FlareSolverr has
+# not caught up with yet should not fail the whole media play.
+prowlarr_flaresolverr_indexers:
+  - 1337x
+
+# The flaresolverr role's container, by its pinned bridge address (no published port).
+prowlarr_flaresolverr_url: "http://10.88.0.249:8191/"
 
 # "Standard" — the app profile every fresh Prowlarr creates, and the only one here.
 prowlarr_app_profile_id: 1

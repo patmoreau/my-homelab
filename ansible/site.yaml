@@ -39,6 +39,8 @@
     - transmission
     - radarr
     - sonarr
+    # Before prowlarr: prowlarr registers it as its indexer proxy.
+    - flaresolverr
     # After prowlarr: book-orbit registers it as an indexer source over the API, and that
     # call is refused until prowlarr's AllowedHosts carries the bridge address it arrives on.
     - prowlarr

@@ -1,0 +1,42 @@
+- name: Create directory
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}/flaresolverr"
+    state: directory
+    mode: "0755"
+
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create flaresolverr env file
+  ansible.builtin.template:
+    src: flaresolverr.env.j2
+    dest: "{{ docker_compose_dir }}/flaresolverr/flaresolverr.env"
+    mode: "0644"
+  register: flaresolverr_env
+
+- name: Deploy flaresolverr Quadlet unit
+  ansible.builtin.template:
+    src: flaresolverr.container
+    dest: /etc/containers/systemd/flaresolverr.container
+    mode: "0644"
+  register: flaresolverr_quadlet
+
+- name: Start flaresolverr
+  ansible.builtin.systemd:
+    name: flaresolverr.service
+    state: "{{ 'restarted' if (flaresolverr_quadlet.changed or flaresolverr_env.changed) else 'started' }}"
+    daemon_reload: true
+
+# Prowlarr tests the proxy when the prowlarr role registers it, and Chromium takes a few
+# seconds to come up after a (re)start.
+- name: Wait for FlareSolverr to answer
+  ansible.builtin.uri:
+    url: http://10.88.0.249:8191/
+    status_code: 200
+  register: flaresolverr_ready
+  retries: 30
+  delay: 2
+  until: flaresolverr_ready is succeeded

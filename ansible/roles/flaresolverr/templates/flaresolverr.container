@@ -1,0 +1,19 @@
+[Unit]
+Description=FlareSolverr
+# Prowlarr's indexer proxy: indexers tagged `flaresolverr` in Prowlarr are fetched through
+# this headless Chromium, which clears the Cloudflare challenge in front of sites like 1337x.
+
+[Container]
+ContainerName=flaresolverr
+Image=ghcr.io/flaresolverr/flaresolverr:v3.5.2
+# No published port: only Prowlarr calls it, across the bridge, by this pinned address
+# (prowlarr_flaresolverr_url). Its outbound traffic leaves through lxc-media like the rest
+# of the stack, so the router's VPN policy covers it.
+IP=10.88.0.249
+EnvironmentFile=/opt/docker/flaresolverr/flaresolverr.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

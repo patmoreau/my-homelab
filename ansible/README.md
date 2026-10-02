@@ -286,6 +286,25 @@ film's, so 210 MB/min lands at ~12 GB for an hour-long 4K episode.
 `prowlarr_applications` is a list; adding a third consumer is an entry in it, not new
 tasks.
 
+`flaresolverr` runs [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) on
+lxc-media for indexers behind Cloudflare's bot challenge (1337x answers *"blocked by
+CloudFlare Protection"* without it). It is a headless Chromium with no published port,
+pinned to `10.88.0.249:8191`; its traffic leaves through lxc-media, so the router's VPN
+policy covers it. The `prowlarr` role registers it as an **indexer proxy** applied by tag:
+it creates a `flaresolverr` tag, adds the proxy with that tag, and adds every indexer in
+`prowlarr_flaresolverr_indexers` (currently `1337x`) carrying it. Untagged indexers keep
+going direct.
+
+- A solve takes 40-55 s, so the proxy's `requestTimeout` is 120 s, not the 60 s default.
+  The role only creates the proxy when missing; to change the timeout on an existing one,
+  edit it in Prowlarr (Settings → Indexers) or delete it and re-run.
+- Those indexers are added with `forceSave=true`. Prowlarr tests an indexer on add, and
+  FlareSolverr periodically breaks when Cloudflare changes its challenge until an upstream
+  release catches up. A failing test then shows in Prowlarr instead of failing the play.
+  Renovate bumps the image tag.
+- To route another site through it, add its catalog name to
+  `prowlarr_flaresolverr_indexers`, or tag the indexer `flaresolverr` in the UI.
+
 ### Who owns metadata
 
 Radarr and Sonarr own **identification and layout** — which TMDb/TVDb entry a release is, and
