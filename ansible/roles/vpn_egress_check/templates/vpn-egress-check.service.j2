@@ -5,4 +5,4 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/vpn-egress-check {{ vpn_egress_expected_asn }} {{ vpn_egress_home_asn }} {{ vpn_egress_lookup_url }}
+ExecStart=/usr/local/bin/vpn-egress-check {{ vpn_egress_side }} {{ vpn_egress_lookup_url }}

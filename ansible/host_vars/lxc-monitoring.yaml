@@ -18,3 +18,7 @@ container_runtime: podman
 pbs_backup_excludes:
   - prometheus
   - loki
+
+# lxc-monitoring is outside the router's VPN policy, so its exit address is the home ISP
+# address — the reference lxc-media's exit is compared against (roles/vpn_egress_check).
+vpn_egress_side: baseline

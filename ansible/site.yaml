@@ -64,6 +64,8 @@
     - grafana
     - pve_exporter
     - blackbox_exporter
+    # Baseline side of the VPN leak check: its exit is the home ISP address.
+    - vpn_egress_check
     - proxmox-backup-client
 
 - name: Deploy Tools

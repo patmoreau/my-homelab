@@ -1,15 +1,11 @@
 ---
-# The VPN exit the router's per-MAC policy routes this host through. Checked as a
-# substring of ipinfo.io's `org` field, which reads like "AS147049 PacketHub S.A.".
-vpn_egress_expected_asn: AS147049
-
-# The home ISP. Seeing this ASN is the actionable signal: the tunnel is down and traffic
-# — torrent peer traffic included — is leaving on the real address. Kept as its own
-# metric rather than inferred from "not the expected ASN", so a lookup that comes back
-# with something unexpected but not the ISP does not read as a leak.
-vpn_egress_home_asn: AS5769
+# Which side of the comparison this host is. `protected` hosts are routed through the VPN
+# by the router's per-MAC policy; a `baseline` host is deliberately outside it, so its exit
+# address is the home ISP address. The Grafana rule raises a leak when a protected host
+# reports the same exit address as the baseline. Set `baseline` in host_vars.
+vpn_egress_side: protected
 
 # Where the exit address is looked up. Unauthenticated ipinfo.io allows ~1000 requests a
-# day; the timer below uses 144 of them.
+# day per source address; the timer below uses 144 of them on each host.
 vpn_egress_lookup_url: https://ipinfo.io/json
 vpn_egress_interval: 10min

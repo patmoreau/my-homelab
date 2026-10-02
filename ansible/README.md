@@ -97,23 +97,30 @@ every key not listed above survives.
 
 lxc-media's traffic is routed through a VPN by a **per-MAC policy on the router**
 (`bc:24:11:ae:0d:d9`, pinned in `terraform/lxc-media.tf`), not by anything on the host.
-That means there is no kill switch: if the tunnel drops, every service on the LXC falls
-back to the home ISP address and keeps running — torrent peer traffic included — with
-nothing in any log to say so.
+The router's kill switch blocks traffic when the tunnel drops; this check is the backup in
+case it ever does not, because then every service on the LXC would fall back to the home
+ISP address and keep running — torrent peer traffic included — with nothing in any log to
+say so.
 
-The `vpn_egress_check` role closes the visibility gap, not the leak. A timer asks
-ipinfo.io every 10 minutes which address the traffic arrives from and writes three gauges
-through the node_exporter textfile collector:
+The `vpn_egress_check` role runs on two hosts. A timer asks ipinfo.io every 10 minutes
+which address the traffic arrives from and writes the answer through the node_exporter
+textfile collector:
+
+| Host | `vpn_egress_side` | Why |
+| ---- | ----------------- | --- |
+| lxc-media | `protected` (role default) | Routed through the VPN |
+| lxc-monitoring | `baseline` (host_vars) | Outside the VPN policy, so it leaves on the home ISP address |
 
 | Metric | Meaning |
 | ------ | ------- |
-| `vpn_egress_on_home_asn` | 1 = traffic is on the home ISP. The actionable one; raises `vpn-egress-isp-leak` (critical) after 5m |
-| `vpn_egress_on_expected_asn` | 1 = traffic is on the VPN's ASN |
-| `vpn_egress_check_success` | 0 = the lookup itself failed; raises `vpn-egress-check-stale` (warning) after 45m, because a leak with the lookup blocked would otherwise read as no alert |
+| `vpn_egress_ip_info{side,ip}` | The exit address, as a label. Absent when the lookup failed |
+| `vpn_egress_check_success{side}` | 0 = the lookup itself failed |
 
-`vpn_egress_home_asn` is matched explicitly rather than inferred from "not the expected
-ASN", so an unfamiliar-but-not-ISP answer (a VPN exit node moving, say) does not page as
-a leak. Both ASNs are role defaults — change them there if the provider or ISP changes.
+A leak is lxc-media leaving on **the same address as the baseline**: `vpn-egress-isp-leak`
+(critical) fires after 5m. Nothing is hardcoded, so a VPN exit rotation, a new home IP or
+a new ISP needs no change. A failing lookup on either side raises `vpn-egress-check-stale`
+(warning) after 45m — with the kill switch working, that is also what a dropped tunnel
+looks like, since lxc-media's lookup cannot get out at all.
 
 Verifying by hand:
 
