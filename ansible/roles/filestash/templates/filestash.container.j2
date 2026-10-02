@@ -5,7 +5,7 @@ Description=Filestash
 ContainerName=filestash
 # machines/filestash only publishes a rolling :latest, so the tag is pinned to a digest
 # and Renovate bumps the digest (see the Quadlet customManager in renovate.json).
-Image=machines/filestash:latest@sha256:308f0d62101198df9c4e9f3b375ed42cfe965e3a8538484cdae4d771b30058cc
+Image=machines/filestash:latest@sha256:5aad26e1b0607a2def4fabe86399c34cfe7d1aef56bb79dd65d76d32c35f62e0
 # The image runs as its own "filestash" user (1000:1000); override it so files written to
 # the NAS mount keep the same ownership Filebrowser used. /app/filestash is mode 0730
 # filestash:filestash, so the overridden uid can only exec it as a member of gid 1000 —
