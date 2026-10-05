@@ -110,12 +110,13 @@ Raising `disk_size` and re-applying is an **in-place** change (`pct resize` + on
 `resize2fs`) — the plan shows `~ update in-place`, not a replacement, so the container
 keeps running. Lowering it is rejected by Proxmox.
 
-**lxc-media is 26 GiB** (was 16). The rootfs holds the Podman image store *and* Jellyfin's
+**lxc-media is 100 GiB** (was 16, then 26). The rootfs holds the Podman image store *and* Jellyfin's
 `/config/{cache,log,transcodes}` bind mounts, and HLS transcode scratch is unbounded: any
 mkv whose video or audio codec the client cannot direct-play is transcoded, and the
 segments accumulate for the whole session. With only ~2 GiB free the rootfs hit ENOSPC
-about 15 minutes into a movie and Jellyfin returned `FFmpeg exited with code 187`. Keep
-several times the size of a full transcode free here.
+about 15 minutes into a movie and Jellyfin returned `FFmpeg exited with code 187`. A 4K
+remux streams the whole file into scratch (~30 GB+), so keep several times that free —
+sizing the disk is the only bound, Jellyfin's throttling/segment deletion stay off.
 
 ## Workflow
 

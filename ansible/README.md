@@ -85,13 +85,12 @@ AV1 Profile0 — notably **not** VC1, which Jellyfin's stock list includes. A 4K
 1080p H264 transcode runs at ~9x realtime on the iGPU.
 
 ### Jellyfin transcode scratch
-The `jellyfin` role patches four keys in `/data/jellyfin/encoding.xml` in place —
-`EnableThrottling`, `ThrottleDelaySeconds`, `EnableSegmentDeletion`, `SegmentKeepSeconds`
-(see `roles/jellyfin/defaults/main.yaml`). Jellyfin ships all of them off/unused, so a
-transcoded session grows `/config/transcodes` for its entire runtime and never reclaims
-anything; a single 4K transcode can outgrow the whole rootfs. The file is patched, not
-templated, because Jellyfin rewrites it whenever Playback settings are saved in the UI —
-every key not listed above survives.
+Throttling and segment deletion stay at Jellyfin's stock defaults (both off). They were
+turned on once to bound `/config/transcodes`, and broke resume-after-pause on the TV
+clients: ffmpeg sat paused or segments the client still wanted were gone, and Jellyfin
+restarted the stream every few seconds. Transcode scratch is bounded by disk size instead
+(lxc-media rootfs, see `terraform/README.md`); Jellyfin deletes a session's segments when
+playback stops.
 
 ## VPN egress check on lxc-media
 
