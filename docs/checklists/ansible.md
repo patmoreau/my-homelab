@@ -1,11 +1,6 @@
----
-description: Checklist for creating, modifying, or removing an Ansible role / playbook
-argument-hint: "[task, e.g. 'add role for foo']"
----
+# Ansible — Role and Playbook Checklist
 
-Follow this checklist for the requested Ansible role / playbook change: $ARGUMENTS
-
-# Ansible — Role and Playbook Instructions
+Follow this checklist when creating, modifying, or removing an Ansible role or playbook.
 
 ## README & Lint Rules
 

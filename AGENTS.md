@@ -1,7 +1,8 @@
-# my-homelab — Claude Instructions
+# my-homelab — Agent Instructions
 
-Canonical instructions for this repository. Everything shared lives here (always loaded);
-the detailed per-lane checklists are slash commands — see **Commands** below.
+Canonical instructions for any coding agent working in this repository. Everything shared
+lives here (always loaded); the detailed per-lane checklists live in `docs/checklists/` —
+see **Checklists** below.
 
 ## Project Overview
 
@@ -47,17 +48,18 @@ Host-level how-tos (GPU passthrough, VLANs, NFS mapping, the Proxmox host setup)
 > `ansible/.ansible-lint` — only skip/exclude genuinely opinionated rules or non-Ansible
 > files, never to silence a real issue.
 
-## Commands
+## Checklists
 
-The full step-by-step checklists are slash commands — run the matching one before working
-in that lane:
+The full step-by-step checklists are on-demand. Read and follow the matching one before
+working in that lane:
 
-- **`/terraform`** — create / modify / remove an LXC container (Terraform).
-- **`/ansible`** — create / modify / remove an Ansible role, plus vault, inventory, and
-  host variables.
+- **`docs/checklists/terraform.md`** — create / modify / remove an LXC container (Terraform).
+- **`docs/checklists/ansible.md`** — create / modify / remove an Ansible role, plus vault,
+  inventory, and host variables.
 
 ## Repository Instruction Layout
 
-- `AGENTS.md` (this file) — canonical, always-loaded instructions.
+- `AGENTS.md` (this file) — canonical, always-loaded instructions for all agents.
+- `CLAUDE.md` — one-line import of `AGENTS.md` so Claude Code loads the same file.
 - `docs/checklists/{terraform,ansible}.md` — the detailed on-demand checklists.
 - `docs/` — host-level how-to references.

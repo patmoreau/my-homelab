@@ -1,11 +1,6 @@
----
-description: Checklist for creating, modifying, or removing an LXC container (Terraform)
-argument-hint: "[task, e.g. 'create lxc-foo']"
----
+# Terraform — LXC Container Checklist
 
-Follow this checklist for the requested Terraform / LXC container change: $ARGUMENTS
-
-# Terraform — LXC Container Instructions
+Follow this checklist when creating, modifying, or removing an LXC container.
 
 ## README Update Rule
 
