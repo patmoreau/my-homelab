@@ -521,6 +521,12 @@ LXC namespace (pulls fail with `EACCES`; containers can't `listen()`).
   `essere` and `holefeeder` pull from GHCR on a rolling `:latest` tag with
   `io.containers.autoupdate=registry` and update via `sudo podman auto-update` from their
   own self-hosted runner.
+- **Quadlet containers start from a fresh image (`--rm`).** Runtime filesystem changes do not
+  persist (Docker's container layer did). Anything a container mutates at runtime must be baked
+  into the image or done in a pre-start init hook. Home Assistant hit this: `pip` upgraded `cffi`
+  on every start and raced the compiled `_cffi_backend.so` ("Version mismatch"). Fix:
+  `roles/homeassistant/files/10-fix-cffi` runs as an lscr `custom-cont-init.d` script before HA
+  loads integrations.
 
 See the full convention in `docs/checklists/ansible.md`.
 

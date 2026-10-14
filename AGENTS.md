@@ -48,6 +48,15 @@ Host-level how-tos (GPU passthrough, VLANs, NFS mapping, the Proxmox host setup)
 > `ansible/.ansible-lint` — only skip/exclude genuinely opinionated rules or non-Ansible
 > files, never to silence a real issue.
 
+## Working Agreements
+
+- **Trunk-based:** commit directly to `main`. Do not create a feature branch unless the user
+  explicitly asks for one.
+- **Detection is not remediation:** a check for a known, mechanical fault must also repair
+  it, with a two-strike guard so transients are never acted on. Keep alert-only for faults
+  that need human judgement. When reporting a fix, say whether the fault was only detected
+  or also remediated.
+
 ## Checklists
 
 The full step-by-step checklists are on-demand. Read and follow the matching one before
