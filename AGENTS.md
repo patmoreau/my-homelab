@@ -70,5 +70,7 @@ working in that lane:
 
 - `AGENTS.md` (this file) — canonical, always-loaded instructions for all agents.
 - `CLAUDE.md` — one-line import of `AGENTS.md` so Claude Code loads the same file.
+- `.claude/` — Claude Code only: settings, and `/terraform` and `/ansible` slash commands that
+  point at the checklists. Other agents do not need it.
 - `docs/checklists/{terraform,ansible}.md` — the detailed on-demand checklists.
 - `docs/` — host-level how-to references.
