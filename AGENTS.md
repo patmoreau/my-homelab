@@ -58,6 +58,6 @@ in that lane:
 
 ## Repository Instruction Layout
 
-- `CLAUDE.md` (this file) — canonical, always-loaded instructions.
-- `.claude/commands/{terraform,ansible}.md` — the detailed on-demand checklists.
+- `AGENTS.md` (this file) — canonical, always-loaded instructions.
+- `docs/checklists/{terraform,ansible}.md` — the detailed on-demand checklists.
 - `docs/` — host-level how-to references.

@@ -522,7 +522,7 @@ LXC namespace (pulls fail with `EACCES`; containers can't `listen()`).
   `io.containers.autoupdate=registry` and update via `sudo podman auto-update` from their
   own self-hosted runner.
 
-Run the `/ansible` slash command (see `.claude/commands/ansible.md`) for the full convention.
+See the full convention in `docs/checklists/ansible.md`.
 
 ## Vault workflow
 

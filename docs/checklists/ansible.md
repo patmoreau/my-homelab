@@ -9,8 +9,8 @@ Follow this checklist for the requested Ansible role / playbook change: $ARGUMEN
 
 ## README & Lint Rules
 
-> See the canonical [README Update Rule](../../CLAUDE.md#readme-update-rule-always-apply)
-> and [Ansible Linting rule](../../CLAUDE.md#ansible-linting-always-apply) in `CLAUDE.md`.
+> See the canonical [README Update Rule](../../AGENTS.md#readme-update-rule-always-apply)
+> and [Ansible Linting rule](../../AGENTS.md#ansible-linting-always-apply) in `AGENTS.md`.
 > For Ansible: update `ansible/README.md` when adding a role, host, or vault secret, and
 > run `cd ansible && ansible-lint` (0 failures) before committing.
 

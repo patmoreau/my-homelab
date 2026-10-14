@@ -9,7 +9,7 @@ Follow this checklist for the requested Terraform / LXC container change: $ARGUM
 
 ## README Update Rule
 
-> See the canonical [README Update Rule](../../CLAUDE.md#readme-update-rule-always-apply).
+> See the canonical [README Update Rule](../../AGENTS.md#readme-update-rule-always-apply).
 > For Terraform: update `terraform/README.md` when adding or removing a container, or
 > changing a Terraform variable or module.
 
