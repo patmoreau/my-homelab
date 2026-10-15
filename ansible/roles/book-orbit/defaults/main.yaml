@@ -52,7 +52,7 @@ bookorbit_use_hardlinks: false
 bookorbit_book_dock_path: /books/.dock
 
 # Where a request lands when the requester named no library — the instance default per
-# medium (ebook, audiobook, comic). Empty means BookOrbit keeps whatever the UI last set,
+# medium (ebook, audiobook). Empty means BookOrbit keeps whatever the UI last set,
 # and with nothing set an import whose requester named no library is held for review
 # instead of filed.
 #

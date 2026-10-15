@@ -26,6 +26,3 @@ bookorbit_request_destinations:
   audiobook:
     library: Audiobooks
     folder: /books/audiobooks
-  comic:
-    library: Bandes dessinées
-    folder: /books/comics
