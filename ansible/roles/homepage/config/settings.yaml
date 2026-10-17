@@ -45,8 +45,6 @@ layout:
     style: row
     columns: 2
     tab: Daily
-  AI:
-    tab: Daily
   Finance:
     tab: Daily
   Productivity:
@@ -85,6 +83,8 @@ layout:
     columns: 4
     tab: Dev
   Developer:
+    tab: Dev
+  AI:
     tab: Dev
 
 # Tiles in a row share a height instead of each sizing to its own content.

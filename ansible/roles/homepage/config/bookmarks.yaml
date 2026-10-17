@@ -15,6 +15,9 @@
         - abbr: CG
           href: https://chat.openai.com/
           icon: sh-chatgpt
+    - Skills:
+        - abbr: sk
+          href: https://www.skills.sh/
 
 - Finance:
     - Intuit QuickBooks:
@@ -61,6 +64,18 @@
         - abbr: GH
           href: https://github.com/
           icon: sh-github
+    - Execute Program:
+        - abbr: EP
+          href: https://www.executeprogram.com/
+    - Conventional Commits:
+        - abbr: CC
+          href: https://www.conventionalcommits.org/
+    - Refactoring Guru:
+        - abbr: RG
+          href: https://refactoring.guru/
+    - State Of Dev 2026:
+        - abbr: SD
+          href: https://2026.stateofdevs.com/en-US/ai/
 
 - Social:
     - Reddit:
