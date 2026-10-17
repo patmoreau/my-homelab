@@ -37,3 +37,7 @@ homepage_background_images:
 # cycle. The block is derived from the wall clock, not from page load, so every browser
 # showing the dashboard agrees on which image is current.
 homepage_background_rotate_hours: 3
+
+# Repo whose open Renovate PRs `custom.js` counts into the tab title. Public, so the
+# GitHub search API needs no token from the browser.
+homepage_renovate_repo: 'patmoreau/my-homelab'

@@ -56,3 +56,38 @@
   // can land on a dashboard nobody has touched.
   setInterval(apply, 60 * 1000);
 })();
+
+// Renovate badge: the open Renovate PR count goes into the tab title as "(N) Title", so it
+// shows from any other tab. Polls GitHub's search API, which sends CORS headers and needs no
+// token for a public repo. Unauthenticated search allows roughly 10 requests a minute, so one
+// poll every 10 minutes sits far inside that.
+(() => {
+  const REPO = '{{ homepage_renovate_repo }}';
+  const POLL_MS = 10 * 60 * 1000;
+  const QUERY = encodeURIComponent(`repo:${REPO} is:pr is:open author:app/renovate`);
+  const COUNT_PREFIX = /^\(\d+\)\s*/;
+
+  // Read once at load, before any badge is written, so the base title never keeps a stale count.
+  const baseTitle = document.title.replace(COUNT_PREFIX, '');
+
+  const apply = (count) => {
+    document.title = count > 0 ? `(${count}) ${baseTitle}` : baseTitle;
+  };
+
+  const poll = async () => {
+    try {
+      const res = await fetch(`https://api.github.com/search/issues?q=${QUERY}&per_page=1`, {
+        headers: { Accept: 'application/vnd.github+json' },
+      });
+      // Rate limit or outage: keep the last title rather than flashing a zero.
+      if (!res.ok) return;
+      const { total_count } = await res.json();
+      apply(total_count);
+    } catch {
+      // Network failure: same as above.
+    }
+  };
+
+  poll();
+  setInterval(poll, POLL_MS);
+})();
