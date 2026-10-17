@@ -1,6 +1,7 @@
 const express = require("express");
 const ServiceManager = require("./services/ServiceManager");
 const QnapWatcher = require("./services/qnap/QnapWatcher");
+const RenovateWatcher = require("./services/renovate/RenovateWatcher");
 const { registry } = require("./metrics");
 
 const app = express();
@@ -14,6 +15,9 @@ const serviceManager = new ServiceManager();
 const qnapWatcher = new QnapWatcher();
 serviceManager.register(qnapWatcher);
 
+const renovateWatcher = new RenovateWatcher();
+serviceManager.register(renovateWatcher);
+
 // Start Services
 serviceManager.startAll();
 
@@ -21,6 +25,13 @@ serviceManager.startAll();
 app.get("/api/qnap", (req, res) => {
   const status = qnapWatcher.getStatus();
   res.json(status);
+});
+
+// The homepage reads this from its own origin, so the browser needs CORS to allow it.
+// Read-only counts, so only the one origin is allowed.
+app.get("/api/renovate", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "https://home.moreaulab.ca");
+  res.json(renovateWatcher.getStatus());
 });
 
 app.get("/metrics", async (req, res) => {

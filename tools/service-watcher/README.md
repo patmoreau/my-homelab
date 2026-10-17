@@ -26,10 +26,23 @@ command="if grep -qE 'check|resync|repair|recovery|reshape' /proc/mdstat; then g
 
 ## API
 
-| Endpoint        | Description                |
-| --------------- | -------------------------- |
-| `GET /api/qnap` | Current QNAP state as JSON |
-| `GET /metrics`  | Prometheus metrics         |
+| Endpoint            | Description                                           |
+| ------------------- | ----------------------------------------------------- |
+| `GET /api/qnap`     | Current QNAP state as JSON                            |
+| `GET /api/renovate` | Open PRs, Renovate PRs and Renovate approvals as JSON |
+| `GET /metrics`      | Prometheus metrics                                    |
+
+### Renovate counts
+
+`/api/renovate` polls GitHub every 10 minutes (three requests) and returns:
+
+| Field       | Meaning                                                              |
+| ----------- | -------------------------------------------------------------------- |
+| `open`      | Open PRs in the repo                                                 |
+| `renovate`  | Open PRs authored by Renovate                                        |
+| `approvals` | Unchecked Renovate Dependency Dashboard items waiting on a click     |
+
+`null` until the first poll succeeds. The repo defaults to `patmoreau/my-homelab` and the dashboard issue to `1`; override with `RENOVATE_REPO` and `RENOVATE_DASHBOARD_ISSUE`. The public API needs no token.
 
 ## Key metrics
 

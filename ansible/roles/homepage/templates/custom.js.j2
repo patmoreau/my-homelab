@@ -57,54 +57,79 @@
   setInterval(apply, 60 * 1000);
 })();
 
-// PR badge: the tab title carries three counts, "(open · renovate · approvals) Title", so the
-// state shows from any other tab. Open is every open PR, renovate is the subset opened by
-// Renovate, approvals is the Renovate Dependency Dashboard items still waiting on a click.
-// Zeros stay in place so each position always means the same thing.
-//
-// Polls GitHub's API, which sends CORS headers and needs no token for a public repo.
-// Unauthenticated search allows roughly 10 requests a minute, so one poll every 10 minutes
-// (three requests) sits far inside that.
+// PR badge: open PRs, Renovate PRs and Renovate approvals, from service-watcher's
+// /api/renovate (see tools/service-watcher). Shown two ways: a labelled pill in the header
+// row, and "(open · renovate · approvals) Title" in the tab title so it reads from any other
+// tab. Zeros stay in place so each position always means the same thing.
 (() => {
-  const REPO = '{{ homepage_renovate_repo }}';
-  const DASHBOARD_ISSUE = {{ homepage_renovate_dashboard_issue }};
+  const STATUS_URL = '{{ homepage_renovate_status_url }}';
   const POLL_MS = 10 * 60 * 1000;
-  const SEARCH = 'https://api.github.com/search/issues?per_page=1&q=';
-  const HEADERS = { Accept: 'application/vnd.github+json' };
   const COUNT_PREFIX = /^\(\d+ · \d+ · \d+\)\s*/;
+  const PILL_ID = 'renovate-badge';
 
-  // Read once at load, before any badge is written, so the base title never keeps a stale count.
-  const baseTitle = document.title.replace(COUNT_PREFIX, '');
+  let counts = null; // { open, renovate, approvals } once the first poll lands
 
-  // Renovate's dashboard checkboxes that need a click carry an unschedule-branch or
-  // approve-branch marker. The "create all" line has neither, so it stays out of the count.
-  const APPROVAL_LINE = /^ - \[ \] <!-- (?:unschedule|approve)-branch=/gm;
-
-  const apply = (open, renovate, approvals) => {
-    const any = open + renovate + approvals > 0;
-    document.title = any ? `(${open} · ${renovate} · ${approvals}) ${baseTitle}` : baseTitle;
+  const values = () => {
+    if (!counts) return null;
+    const list = [counts.open, counts.renovate, counts.approvals];
+    return list.every((n) => typeof n === 'number') ? list : null;
   };
 
-  const getJson = async (url) => {
-    const res = await fetch(url, { headers: HEADERS });
-    if (!res.ok) throw new Error(`${res.status} from ${url}`);
-    return res.json();
+  // Homepage's Next.js head manager rewrites document.title on re-render, which drops the
+  // count. So the count is re-applied on top of whatever name is current.
+  const syncTitle = () => {
+    const name = document.title.replace(COUNT_PREFIX, '');
+    const list = values();
+    const want = list && list.some((n) => n > 0) ? `(${list.join(' · ')}) ${name}` : name;
+    if (document.title !== want) document.title = want;
   };
+
+  // Homepage re-renders the header row, which drops anything injected into it. So the pill
+  // is checked on every change and put back when it is missing.
+  const syncPill = () => {
+    const row = document.getElementById('information-widgets');
+    const list = values();
+    if (!row || !list) return;
+
+    let pill = document.getElementById(PILL_ID);
+    if (!pill) {
+      pill = document.createElement('div');
+      pill.id = PILL_ID;
+      pill.style.cssText =
+        'align-self:center;margin:0.5rem;padding:0.4rem 0.8rem;border-radius:0.5rem;' +
+        'font-size:0.9rem;background:rgb(var(--bg-color) / 0.6);';
+      row.prepend(pill);
+    }
+    const text = `PRs ${list[0]} · Renovate ${list[1]} · Approvals ${list[2]}`;
+    if (pill.textContent !== text) pill.textContent = text;
+  };
+
+  // Writes are guarded by comparison, so the observer's own changes settle instead of looping.
+  const refresh = () => {
+    syncTitle();
+    syncPill();
+  };
+
+  new MutationObserver(refresh).observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  });
 
   const poll = async () => {
     try {
-      const [open, renovate, dashboard] = await Promise.all([
-        getJson(`${SEARCH}${encodeURIComponent(`repo:${REPO} is:pr is:open`)}`),
-        getJson(`${SEARCH}${encodeURIComponent(`repo:${REPO} is:pr is:open author:app/renovate`)}`),
-        getJson(`https://api.github.com/repos/${REPO}/issues/${DASHBOARD_ISSUE}`),
-      ]);
-      const approvals = (dashboard.body.match(APPROVAL_LINE) || []).length;
-      apply(open.total_count, renovate.total_count, approvals);
+      const res = await fetch(STATUS_URL);
+      // Service-watcher unreachable or erroring: keep the last counts rather than flashing zeros.
+      if (!res.ok) return;
+      const { open, renovate, approvals } = await res.json();
+      counts = { open, renovate, approvals };
+      refresh();
     } catch {
-      // Rate limit, outage, or network failure: keep the last title rather than flashing zeros.
+      // Network failure: same as above.
     }
   };
 
+  refresh();
   poll();
   setInterval(poll, POLL_MS);
 })();

@@ -38,10 +38,6 @@ homepage_background_images:
 # showing the dashboard agrees on which image is current.
 homepage_background_rotate_hours: 3
 
-# Repo whose PRs `custom.js` counts into the tab title. Public, so the GitHub API needs
-# no token from the browser.
-homepage_renovate_repo: 'patmoreau/my-homelab'
-
-# Renovate's Dependency Dashboard issue. `custom.js` counts its unchecked approval
-# checkboxes as the "approvals" figure.
-homepage_renovate_dashboard_issue: 1
+# Where `custom.js` reads the open PR, Renovate PR and approval counts for the header pill
+# and tab title. Served by service-watcher, which polls GitHub.
+homepage_renovate_status_url: 'https://service-watcher.moreaulab.ca/api/renovate'
