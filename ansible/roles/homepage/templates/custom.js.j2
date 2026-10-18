@@ -95,10 +95,11 @@
     if (!pill) {
       pill = document.createElement('div');
       pill.id = PILL_ID;
+      // Full-width flex item appended after the widgets, so it wraps onto its own line
+      // under weather, search and time.
       pill.style.cssText =
-        'align-self:center;margin:0.5rem;padding:0.4rem 0.8rem;border-radius:0.5rem;' +
-        'font-size:0.9rem;background:rgb(var(--bg-color) / 0.6);';
-      row.prepend(pill);
+        'flex-basis:100%;text-align:center;margin-top:0.25rem;font-size:0.85rem;opacity:0.85;';
+      row.append(pill);
     }
     const text = `PRs ${list[0]} · Renovate ${list[1]} · Approvals ${list[2]}`;
     if (pill.textContent !== text) pill.textContent = text;
