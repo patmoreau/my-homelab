@@ -20,6 +20,7 @@ oauth2_proxy_port: 4180
 oauth2_proxy_issuer_url: 'https://dev-vx1jio3owhaqdmqa.ca.auth0.com/'
 # Where a completed sign-out lands. Must be in the Auth0 app's Allowed Logout URLs.
 oauth2_proxy_logout_return_url: 'https://home.moreaulab.ca'
+grafana_domain: 'grafana.moreaulab.ca'
 proxmox_domain: 'pve.moreaulab.ca'
 proxmox_node: 'homelab'
 
