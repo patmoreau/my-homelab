@@ -348,6 +348,15 @@
               value: '{state}°C'
             - template: "{{ states.switch|selectattr('state','equalto','on')|list|length }}"
               label: switches on
+    - Matter Hub:
+        icon: mdi-hub
+        href: https://matter.moreaulab.ca
+        # Monitored on the LAN: the public URL sits behind Auth0, which answers 302.
+        siteMonitor: http://192.168.8.47:8482
+        description: matter.moreaulab.ca
+        proxmoxNode: homelab
+        proxmoxVMID: 117
+        proxmoxType: lxc
 
 - Apps:
     - Essere:
