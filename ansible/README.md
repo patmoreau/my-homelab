@@ -866,8 +866,8 @@ router behind that answers `502` forever.
 ### Auth0 SSO (`oauth2-proxy`)
 
 The `oauth2-proxy` role runs on `lxc-gateway` alongside Traefik and is the login for
-`*.moreaulab.ca`. **Currently applied to `home.moreaulab.ca` and `grafana.moreaulab.ca`
-only** — gating a further service is one line (`middlewares: [oauth2-auth@file]`) on its
+`*.moreaulab.ca`. **Currently applied to `home.moreaulab.ca`, `grafana.moreaulab.ca` and
+`matter.moreaulab.ca`** — gating a further service is one line (`middlewares: [oauth2-auth@file]`) on its
 router in `conf.d/`.
 
 Flow: Traefik's `oauth2-auth@file` chain calls oauth2-proxy over `forwardAuth`; an
@@ -1244,7 +1244,8 @@ or Supervised, and this HA runs as a plain container, so the add-on cannot be in
   No new vault secret.
 - Pinned to `2.0.58` to match the add-on. Renovate bumps it through the `.container` template.
 - mDNS is pinned to `eth0` (main LAN) so the IoT VLAN interface is not advertised.
-- Web UI on `http://lxc-homeassistant:8482`. Pairing: scan the Matter QR code from the bridge
+- Web UI at `https://matter.moreaulab.ca` (Traefik `conf.d/matter.yaml`, behind Auth0 SSO), also
+  `http://lxc-homeassistant:8482` on the LAN. Pairing: scan the Matter QR code from the bridge
   page in Google Home or Alexa. Alexa only pairs on UDP `5540`.
 - Paired fabrics live in `/data/matter-hub` on the LXC.
 

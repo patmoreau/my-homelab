@@ -102,6 +102,7 @@ The following services are configured in this homelab:
 | **Proxmox VE**      | [pve.moreaulab.ca](https://pve.moreaulab.ca)                         | Hypervisor web UI                                                     |
 | **Router**          | [router.moreaulab.ca](https://router.moreaulab.ca)                   | GL.iNet Flint 2 panel (LuCI on `:8443`)                               |
 | **Home Assistant**  | [ha.moreaulab.ca](https://ha.moreaulab.ca)                           | Home automation platform                                              |
+| **Matter Hub**      | [matter.moreaulab.ca](https://matter.moreaulab.ca)                   | Matter bridge for Google Home and Alexa (SSO)                         |
 | **PBS**             | [pbs.moreaulab.ca](https://pbs.moreaulab.ca)                         | Enterprise backup solution for Proxmox                                |
 
 ### Volumes & Mounts

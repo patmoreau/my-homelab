@@ -14,6 +14,7 @@ traefik_conf_files:
   - homepage.yaml
   - immich.yaml
   - jellyfin.yaml
+  - matter.yaml
   - nas.yaml
   - pbs.yaml
   - pve.yaml

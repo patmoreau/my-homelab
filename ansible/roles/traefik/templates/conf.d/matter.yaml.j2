@@ -1,0 +1,19 @@
+http:
+  routers:
+    # Matter Hub web UI (config, pairing, diagnostics). Controllers pair over Matter
+    # directly on the LAN, not through this router, so the Auth0 gate only affects the UI.
+    matter:
+      rule: "Host(`matter.moreaulab.ca`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - oauth2-auth@file
+      tls:
+        certResolver: cloudflare
+      service: matter
+
+  services:
+    matter:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-homeassistant']['ansible_host'] }}:8482"
