@@ -1,0 +1,18 @@
+[Unit]
+Description=Home Assistant Matter Hub
+After=homeassistant.service
+
+[Container]
+ContainerName=homeassistant-matter-hub
+Image=ghcr.io/riddix/home-assistant-matter-hub:2.0.58
+# Host networking so Matter mDNS discovery and the Alexa/Google pairing ports (UDP 5540)
+# work, same as the Home Assistant container. The bridge reaches HA on the loopback.
+Network=host
+EnvironmentFile=/opt/docker/homeassistant/matter-hub.env
+Volume=/data/matter-hub:/data
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

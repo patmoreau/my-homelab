@@ -1232,6 +1232,22 @@ curl -sk -X POST https://192.168.8.1:8443/ubus -H 'Content-Type: application/jso
 > it). If the widget shows `401 Unauthorized` after an upgrade, check that the file and the
 > `sysupgrade.conf` entry are still there, recreate the file, and restart `rpcd`.
 
+## Home Assistant Matter Hub (lxc-homeassistant)
+
+Publishes Home Assistant entities to Matter controllers (Google Home, Alexa, Apple Home). It is
+the standalone image of the [Home-Assistant-Matter-Hub add-on](https://github.com/RiDDiX/home-assistant-addons)
+(`ghcr.io/riddix/home-assistant-matter-hub`). The add-on store only exists on Home Assistant OS
+or Supervised, and this HA runs as a plain container, so the add-on cannot be installed here.
+
+- Quadlet `homeassistant-matter-hub.service` in the `homeassistant` role, host networking.
+- Reuses `vault_homeassistant_api_key` (a long-lived HA token) as `HAMH_HOME_ASSISTANT_ACCESS_TOKEN`.
+  No new vault secret.
+- Pinned to `2.0.58` to match the add-on. Renovate bumps it through the `.container` template.
+- mDNS is pinned to `eth0` (main LAN) so the IoT VLAN interface is not advertised.
+- Web UI on `http://lxc-homeassistant:8482`. Pairing: scan the Matter QR code from the bridge
+  page in Google Home or Alexa. Alexa only pairs on UDP `5540`.
+- Paired fabrics live in `/data/matter-hub` on the LXC.
+
 ## Deploy playbook
 
 ### Ping all hosts
