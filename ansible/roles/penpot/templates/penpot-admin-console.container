@@ -1,0 +1,17 @@
+[Unit]
+Description=Penpot admin console
+After=penpot-postgres.service
+Requires=penpot-postgres.service
+BindsTo=penpot-postgres.service
+
+[Container]
+ContainerName=penpot-admin-console
+Image=penpotapp/admin-console:2.18.3
+Network=container:penpot-postgres
+EnvironmentFile=/opt/docker/penpot/penpot.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

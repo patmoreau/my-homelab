@@ -600,6 +600,9 @@ These must be populated to deploy all services:
 | `vault_holefeeder_postgres_password`    | holefeeder                           | PostgreSQL superuser password                                                                            |
 | `vault_holefeeder_postgres_app_password`         | holefeeder                           | Holefeeder app DB user password (also used by the API + PowerSync)                                       |
 | `vault_holefeeder_powersync_admin_token`| holefeeder                           | PowerSync service admin token                                                                            |
+| `vault_mail_api_key`                    | essere, penpot                       | Resend API key. Used as the SMTP password (`smtp.resend.com`) by essere and penpot                       |
+| `vault_penpot_postgres_password`        | penpot                               | Penpot PostgreSQL password (`POSTGRES_PASSWORD` and `PENPOT_DATABASE_PASSWORD`)                          |
+| `vault_penpot_secret_key`               | penpot                               | `PENPOT_SECRET_KEY`. Derives session and invitation keys. Keep it stable once users exist                |
 | `vault_nut_admin_password`              | nut_server                           | NUT `upsmon` primary password — local monitor that shuts the Proxmox host down on low battery            |
 | `vault_nut_monitor_password`            | nut_server                           | NUT `homeassistant` read-only password — used by the Home Assistant NUT integration                      |
 | `vault_oauth2_proxy_client_id`          | oauth2-proxy                         | Client ID of the Auth0 *Regular Web Application* fronting the homelab                                     |
@@ -961,6 +964,34 @@ The panel service sets `passHostHeader: false`. Since the 2026-09-30 GL.iNet fir
 update, the panel's nginx answers `403 Forbidden` to any Host header it does not
 recognise (`router.moreaulab.ca` included), so Traefik sends the router's IP instead.
 LuCI on `:8443` does not check the Host and keeps the default.
+
+## Penpot (lxc-penpot)
+
+Penpot 2.18.3 (`penpotapp/*`), pinned, with `postgres:15` and `valkey/valkey:8.1` to match
+the local POC. Reachable on the LAN and over Tailscale only: `penpot.moreaulab.ca` has no
+hostname in the Cloudflare tunnel, and its Traefik router has no `oauth2-auth` middleware, since
+Penpot has its own login.
+
+- **Layout.** Quadlet units under `roles/penpot/templates/`. Like `immich`, `penpot-postgres`
+  owns the shared network namespace and publishes the frontend's `:8080` as host `:9001`. The
+  other containers reach each other on `127.0.0.1`. The env file is `penpot.env.j2`, mode `0600`.
+- **Signup is invite-only.** `disable-registration` is in `PENPOT_FLAGS`. Invites go out by
+  email through Resend, using `vault_mail_api_key` (the same key as essere, sender
+  `penpot@moreaulab.ca`).
+- **MCP.** `penpot-mcp` (`penpotapp/mcp`, ports 4401/4402) runs in the shared netns, with the
+  `enable-mcp` flag on. The frontend proxies `/mcp/stream`, `/mcp/sse`, and `/mcp/ws` to it. The
+  stock nginx MCP config resolves `penpot-mcp` through DNS, which the netns doesn't have, so
+  `files/penpot-mcp-locations.conf` replaces it with loopback upstreams. Clients connect with the
+  URL from Settings → Integrations → MCP Server (the key in the URL expires; regenerate it there).
+- **Backups.** `penpot-backup.timer` runs at 03:15 daily. It writes
+  `penpot-db-<date>.sql.gz` and `penpot-assets-<date>.tar.gz` into `/data/penpot/backups`,
+  keeps 7 days locally, and the PBS job includes them. `/data` is `backup = true` for this LXC,
+  the one exception to the default `backup=0` (see `terraform/README.md`).
+- **First-run.** Registration is off, so create the first user with the backend's CLI
+  (`enable-prepl-server` is on): `podman exec -it penpot-backend python3 manage.py create-profile`.
+  Then invite the rest from the UI.
+- **Migrating the POC.** Export `holefeeder-mobile` from `localhost:9001` as `.penpot` and import
+  it from the dashboard. Both sides are 2.18.x, so the file format matches.
 
 ## Holefeeder (lxc-holefeeder)
 

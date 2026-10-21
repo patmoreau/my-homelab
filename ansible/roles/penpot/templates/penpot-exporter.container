@@ -1,0 +1,20 @@
+[Unit]
+Description=Penpot exporter (headless Chromium)
+After=penpot-postgres.service penpot-valkey.service
+Requires=penpot-postgres.service penpot-valkey.service
+BindsTo=penpot-postgres.service
+
+[Container]
+ContainerName=penpot-exporter
+Image=penpotapp/exporter:2.18.3
+Network=container:penpot-postgres
+# Chromium renders exports through /dev/shm, which is 64 MB by default and crashes large
+# documents.
+ShmSize=512m
+EnvironmentFile=/opt/docker/penpot/penpot.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

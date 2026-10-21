@@ -1,0 +1,8 @@
+[Unit]
+Description=Penpot database and assets backup
+Wants=network-online.target
+After=network-online.target penpot-postgres.service
+
+[Service]
+Type=oneshot
+ExecStart={{ docker_compose_dir }}/penpot/penpot-backup.sh

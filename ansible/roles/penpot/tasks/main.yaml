@@ -1,0 +1,24 @@
+- name: Create directory
+  ansible.builtin.file:
+    path: '{{ docker_compose_dir }}/penpot'
+    state: directory
+    mode: '0755'
+
+# Same 0777 as immich's data dirs: the Penpot containers run as their own UIDs and the
+# host-side ownership is not worth tracking per image.
+- name: Create data directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: directory
+    mode: '0777'
+  loop:
+    - /data/penpot
+    - /data/penpot/postgres
+    - /data/penpot/assets
+    - /data/penpot/backups
+
+- name: Deploy via Podman Quadlet
+  ansible.builtin.include_tasks: podman.yaml
+
+- name: Install nightly backup timer
+  ansible.builtin.include_tasks: backup.yaml

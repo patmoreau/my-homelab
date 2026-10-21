@@ -24,6 +24,7 @@ Infrastructure-as-code for a Proxmox-based home server. LXC containers are provi
 | lxc-immich        | 192.168.8.46 | Immich photo management                                      |
 | lxc-homeassistant | 192.168.8.47 | Home automation (eth2: IoT network 192.168.10.x via VLAN 10) |
 | lxc-pbs           | 192.168.8.48 | Proxmox Backup Server (Debian 13)                            |
+| lxc-penpot        | 192.168.8.50 | Penpot design tool (LAN/Tailscale only)                      |
 
 ## Quick start
 
@@ -92,6 +93,7 @@ The following services are configured in this homelab:
 | **Sonarr**          | [sonarr.moreaulab.ca](https://sonarr.moreaulab.ca)                   | Series library manager; sends downloads to Transmission               |
 | **Prowlarr**        | [prowlarr.moreaulab.ca](https://prowlarr.moreaulab.ca)               | Indexer manager; syncs its indexer list into Radarr and Sonarr        |
 | **Immich**          | [immich.moreaulab.ca](https://immich.moreaulab.ca)                   | Self-hosted photo and video management                                |
+| **Penpot**          | [penpot.moreaulab.ca](https://penpot.moreaulab.ca)                   | Design tool, LAN/Tailscale only, invite-only                          |
 | **Vaultwarden**     | [vault.moreaulab.ca](https://vault.moreaulab.ca)                     | Bitwarden-compatible password manager (exposed via Cloudflare tunnel) |
 | **Grafana**         | [grafana.moreaulab.ca](https://grafana.moreaulab.ca)                 | Metrics and log dashboards (Prometheus + Loki)                        |
 | **Prometheus**      | [prometheus.moreaulab.ca](https://prometheus.moreaulab.ca)           | Metrics collection and alerting                                       |

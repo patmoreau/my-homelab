@@ -1,0 +1,49 @@
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create penpot env file
+  ansible.builtin.template:
+    src: penpot.env.j2
+    dest: "{{ docker_compose_dir }}/penpot/penpot.env"
+    mode: "0600"
+  register: penpot_env
+
+- name: Deploy penpot MCP nginx locations for the frontend
+  ansible.builtin.copy:
+    src: penpot-mcp-locations.conf
+    dest: "{{ docker_compose_dir }}/penpot/mcp-locations.conf"
+    mode: "0644"
+
+- name: Deploy penpot Quadlet units
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "/etc/containers/systemd/{{ item | regex_replace('\\.j2$', '') }}"
+    mode: "0644"
+  loop:
+    - penpot-postgres.container
+    - penpot-valkey.container
+    - penpot-backend.container
+    - penpot-exporter.container
+    - penpot-admin-console.container
+    - penpot-mcp.container
+    - penpot-frontend.container
+  register: penpot_quadlet
+
+# The Postgres unit owns the network namespace, so it has to be up before the rest. The
+# frontend port is published from it, the same way immich publishes from its database unit.
+- name: Start penpot services in order
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: "{{ 'restarted' if (penpot_quadlet.changed or penpot_env.changed) else 'started' }}"
+    daemon_reload: true
+  loop:
+    - penpot-postgres.service
+    - penpot-valkey.service
+    - penpot-backend.service
+    - penpot-exporter.service
+    - penpot-admin-console.service
+    - penpot-mcp.service
+    - penpot-frontend.service

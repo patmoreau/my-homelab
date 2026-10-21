@@ -1,0 +1,21 @@
+[Unit]
+Description=Penpot backend
+After=penpot-postgres.service penpot-valkey.service
+Requires=penpot-postgres.service penpot-valkey.service
+BindsTo=penpot-postgres.service
+
+[Container]
+ContainerName=penpot-backend
+Image=penpotapp/backend:2.18.3
+Network=container:penpot-postgres
+Volume=/data/penpot/assets:/opt/data/objects
+EnvironmentFile=/opt/docker/penpot/penpot.env
+# Only these two point at the admin console. Set per unit, not in the shared env file,
+# because the console itself refuses a URI that does not end at its own /admin-console path.
+Environment=PENPOT_ADMIN_CONSOLE_URI=http://127.0.0.1:3000
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

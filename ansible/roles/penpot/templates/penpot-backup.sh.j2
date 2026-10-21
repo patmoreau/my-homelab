@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Managed by Ansible (penpot role). Dumps the database and archives the uploaded assets.
+set -euo pipefail
+
+dest=/data/penpot/backups
+stamp=$(date +%F)
+
+podman exec penpot-postgres pg_dump -U penpot penpot | gzip > "$dest/penpot-db-$stamp.sql.gz"
+tar czf "$dest/penpot-assets-$stamp.tar.gz" -C /data/penpot assets
+find "$dest" -name 'penpot-*' -mtime +7 -delete

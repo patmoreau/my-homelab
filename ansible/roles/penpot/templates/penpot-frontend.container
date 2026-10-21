@@ -1,0 +1,23 @@
+[Unit]
+Description=Penpot frontend
+After=penpot-postgres.service penpot-backend.service penpot-exporter.service penpot-admin-console.service penpot-mcp.service
+Requires=penpot-postgres.service penpot-backend.service penpot-exporter.service penpot-admin-console.service penpot-mcp.service
+BindsTo=penpot-postgres.service
+
+[Container]
+ContainerName=penpot-frontend
+Image=penpotapp/frontend:2.18.3
+Network=container:penpot-postgres
+# Stock MCP proxy config points at the hostname penpot-mcp, which does not resolve in the shared
+# netns. This swaps in a copy that targets loopback.
+Volume=/opt/docker/penpot/mcp-locations.conf:/etc/nginx/overrides/server.d/mcp-locations.conf:ro
+EnvironmentFile=/opt/docker/penpot/penpot.env
+# Only these two point at the admin console. Set per unit, not in the shared env file,
+# because the console itself refuses a URI that does not end at its own /admin-console path.
+Environment=PENPOT_ADMIN_CONSOLE_URI=http://127.0.0.1:3000
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

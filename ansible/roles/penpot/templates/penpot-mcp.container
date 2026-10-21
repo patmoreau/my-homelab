@@ -1,0 +1,19 @@
+[Unit]
+Description=Penpot MCP server
+After=penpot-postgres.service
+Requires=penpot-postgres.service
+BindsTo=penpot-postgres.service
+
+[Container]
+ContainerName=penpot-mcp
+Image=penpotapp/mcp:2.18.3
+# Frontend proxies /mcp/stream and /mcp/ws here (ports 4401 and 4402 in the shared netns).
+Network=container:penpot-postgres
+Environment=PENPOT_MCP_SERVER_HOST=0.0.0.0
+EnvironmentFile=/opt/docker/penpot/penpot.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

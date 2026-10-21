@@ -102,6 +102,7 @@ Both modules need a `terraform.tfvars`. Key values to set:
 | lxc-homeassistant | 117   | 192.168.8.47 | Home automation                                      |
 | lxc-pbs           | 118   | 192.168.8.48 | Proxmox Backup Server + NAS mount (/mnt/nas-backups) |
 | lxc-holefeeder    | 119   | 192.168.8.49 | Holefeeder (API, Angular, Postgres, PowerSync)       |
+| lxc-penpot        | 120   | 192.168.8.50 | Penpot design tool (LAN/Tailscale only)              |
 
 ### Rootfs sizing
 
@@ -147,7 +148,8 @@ terraform apply
 defines one ext4 LVM volume per LXC, mounted on the Proxmox host at
 `/mnt/containers/lxc-<name>` and bind-mounted into the container as `/data`. The
 mounts are created with `backup=0`, so **`/data` is excluded from PBS backups** —
-put only reproducible data there.
+put only reproducible data there. The exception is `lxc-penpot`: its mount passes
+`backup = true`, because Penpot's Postgres data and uploaded assets are not reproducible.
 
 | Volume            | Size | Holds                                     |
 | ----------------- | ---- | ----------------------------------------- |

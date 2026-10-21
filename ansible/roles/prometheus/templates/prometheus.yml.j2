@@ -78,6 +78,9 @@ scrape_configs:
       - targets: ['http://{{ hostvars["lxc-immich"]["ansible_host"] }}:2283/api/server/ping']
         labels:
           service: 'immich'
+      - targets: ['http://{{ hostvars["lxc-penpot"]["ansible_host"] }}:9001']
+        labels:
+          service: 'penpot'
       - targets: ['http://{{ hostvars["lxc-homeassistant"]["ansible_host"] }}:8123']
         labels:
           service: 'homeassistant'

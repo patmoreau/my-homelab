@@ -8,14 +8,14 @@
     - proxmox-backup-server
 
 - name: Provision all LXC
-  hosts: lxc:!lxc-pbs:!lxc-tools:!lxc-monitoring:!lxc-vault:!lxc-media:!lxc-immich:!lxc-homeassistant:!lxc-gateway:!lxc-essere:!lxc-holefeeder
+  hosts: lxc:!lxc-pbs:!lxc-tools:!lxc-monitoring:!lxc-vault:!lxc-media:!lxc-immich:!lxc-homeassistant:!lxc-gateway:!lxc-essere:!lxc-holefeeder:!lxc-penpot
   roles:
     - journald
     - node_exporter
     - cadvisor
 
 - name: Provision Podman LXC
-  hosts: lxc-tools:lxc-monitoring:lxc-vault:lxc-media:lxc-immich:lxc-homeassistant:lxc-gateway:lxc-essere:lxc-holefeeder
+  hosts: lxc-tools:lxc-monitoring:lxc-vault:lxc-media:lxc-immich:lxc-homeassistant:lxc-gateway:lxc-essere:lxc-holefeeder:lxc-penpot
   roles:
     - journald
     - podman
@@ -84,6 +84,12 @@
   hosts: lxc-immich
   roles:
     - immich
+    - proxmox-backup-client
+
+- name: Deploy Penpot
+  hosts: lxc-penpot
+  roles:
+    - penpot
     - proxmox-backup-client
 
 - name: Deploy Holefeeder

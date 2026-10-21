@@ -1,0 +1,17 @@
+# LAN and Tailscale only. No oauth2-auth middleware (Penpot has its own login), and no
+# hostname in the Cloudflare tunnel, so this is never reachable from the public internet.
+http:
+  routers:
+    penpot:
+      rule: "Host(`penpot.moreaulab.ca`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+      service: penpot
+
+  services:
+    penpot:
+      loadBalancer:
+        servers:
+          - url: "http://{{ hostvars['lxc-penpot']['ansible_host'] }}:9001"

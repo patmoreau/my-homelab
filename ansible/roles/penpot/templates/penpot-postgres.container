@@ -1,0 +1,20 @@
+[Unit]
+Description=Penpot PostgreSQL
+
+[Container]
+ContainerName=penpot-postgres
+Image=postgres:15
+# Owns the shared netns for the other Penpot containers. Publishes the frontend's :8080
+# (the container's own port) on the host as :9001, which Traefik on lxc-gateway targets.
+IP=10.88.0.241
+PublishPort=9001:8080
+Volume=/data/penpot/postgres:/var/lib/postgresql/data
+EnvironmentFile=/opt/docker/penpot/penpot.env
+
+[Service]
+# Podman refuses to replace this container while a dependent still holds its netns.
+ExecStartPre=-/usr/bin/podman rm -f penpot-valkey penpot-backend penpot-exporter penpot-admin-console penpot-mcp penpot-frontend
+Restart=always
+
+[Install]
+WantedBy=default.target

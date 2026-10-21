@@ -1,0 +1,18 @@
+[Unit]
+Description=Penpot Valkey
+After=penpot-postgres.service
+Requires=penpot-postgres.service
+BindsTo=penpot-postgres.service
+
+[Container]
+ContainerName=penpot-valkey
+Image=valkey/valkey:8.1
+# Same memory cap and eviction policy as the upstream compose file.
+Network=container:penpot-postgres
+Exec=valkey-server --maxmemory 128mb --maxmemory-policy volatile-lfu
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

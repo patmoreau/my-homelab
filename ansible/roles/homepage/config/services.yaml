@@ -324,6 +324,17 @@
             - state: tailscale_metrics.tailscale_byte_received
             - state: tailscale_metrics.tailscale_byte_sent
 
+- Design:
+    - Penpot:
+        icon: penpot.png
+        href: https://penpot.moreaulab.ca
+        # Tailnet/LAN only, so monitored on the LAN address, not the public URL.
+        siteMonitor: http://192.168.8.50:9001
+        description: penpot.moreaulab.ca
+        proxmoxNode: homelab
+        proxmoxVMID: 120
+        proxmoxType: lxc
+
 - Smart Home:
     - Home Assistant:
         icon: sh-home-assistant.png

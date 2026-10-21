@@ -17,6 +17,7 @@ traefik_conf_files:
   - matter.yaml
   - nas.yaml
   - pbs.yaml
+  - penpot.yaml
   - pve.yaml
   - prometheus.yaml
   - prowlarr.yaml

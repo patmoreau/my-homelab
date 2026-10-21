@@ -80,6 +80,7 @@ variable "lxc_vm_ids" {
     homeassistant = 117
     pbs           = 118
     holefeeder    = 119
+    penpot        = 120
   }
 }
 
@@ -97,6 +98,7 @@ variable "lxc_ips" {
     homeassistant = 47
     pbs           = 48
     holefeeder    = 49
+    penpot        = 50
   }
 }
 
@@ -114,5 +116,6 @@ variable "lxc_ips_eth1" {
     homeassistant = 17
     pbs           = 18
     holefeeder    = 19
+    penpot        = 20
   }
 }

@@ -45,5 +45,6 @@ variable "storage_volumes" {
     "lxc-immich"          = { vmid = 116, size = "25G", storage_name = "local-lvm", disk_name = "immich-data" },
     "lxc-homeassistant"   = { vmid = 117, size = "10G", storage_name = "local-lvm", disk_name = "homeassistant-data" },
     "lxc-holefeeder"      = { vmid = 119, size = "20G", storage_name = "local-lvm", disk_name = "holefeeder-data" },
+    "lxc-penpot"          = { vmid = 120, size = "32G", storage_name = "local-lvm", disk_name = "penpot-data" },
   }
 }
