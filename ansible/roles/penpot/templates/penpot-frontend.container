@@ -11,6 +11,9 @@ Network=container:penpot-postgres
 # Stock MCP proxy config points at the hostname penpot-mcp, which does not resolve in the shared
 # netns. This swaps in a copy that targets loopback.
 Volume=/opt/docker/penpot/mcp-locations.conf:/etc/nginx/overrides/server.d/mcp-locations.conf:ro
+# nginx serves /assets/by-id straight from disk and only proxies to the backend on a miss, so the
+# frontend needs the same assets directory the backend writes to.
+Volume=/data/penpot/assets:/opt/data/assets
 EnvironmentFile=/opt/docker/penpot/penpot.env
 # Only these two point at the admin console. Set per unit, not in the shared env file,
 # because the console itself refuses a URI that does not end at its own /admin-console path.
