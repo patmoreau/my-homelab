@@ -11,7 +11,6 @@
   hosts: lxc:!lxc-pbs:!lxc-tools:!lxc-monitoring:!lxc-vault:!lxc-media:!lxc-immich:!lxc-homeassistant:!lxc-gateway:!lxc-essere:!lxc-holefeeder
   roles:
     - journald
-    - docker
     - node_exporter
     - cadvisor
 

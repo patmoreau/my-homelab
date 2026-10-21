@@ -65,18 +65,17 @@ lxc.idmap: g 101 100101 65435
 
 Restart the container after editing.
 
-## 4. Docker Compose: set PUID/PGID
+## 4. Quadlet containers: set PUID/PGID
 
-NFS shares are bind-mounted into the LXC at paths like `/media/movies`. Docker containers reference those paths. Set `PUID` and `PGID` to match the QNAP service account:
+NFS shares are bind-mounted into the LXC at paths like `/media/movies`. Containers reference those paths. Set `PUID` and `PGID` to match the QNAP service account. They go in the service's env file (`<name>.env.j2`, referenced by `EnvironmentFile=` in its `.container` unit), fed from `nas_puid` / `nas_pgid`:
 
 > Bind-mount an **export**, not its subdirectories. One `mp` per subdirectory makes each
 > one a separate mount inside the container, and `rename(2)` across separate mounts fails
 > with `EXDEV` even when they sit on the same remote filesystem.
 
-```yaml
-environment:
-  - PUID=3000
-  - PGID=100
+```ini
+PUID=3000
+PGID=100
 ```
 
 These values are set per-host in Ansible:

@@ -420,17 +420,13 @@ accounts for that, so it does not report changed on every run.
 
 ## Container runtime — every LXC runs rootful Podman
 
-**All LXCs run rootful Podman + Quadlet.** The `container_runtime` var still defaults to
-`docker` in `group_vars/all/main.yaml`, but every host overrides it to `podman` in its
-`host_vars/lxc-<name>.yaml`. The Docker path (the `docker` role and each service role's
-`tasks/docker.yaml` + `docker-compose.yaml`) is kept as a dormant, reversible fallback but
-is not used anywhere. Only `essere` and `holefeeder` were ever built by their own CI; both
-now build/publish with Podman too.
+**All LXCs run rootful Podman + Quadlet.** There is no Docker runtime or Docker Compose path:
+no service role has a `docker-compose.yaml` or `tasks/docker.yaml`, and the `docker` role was
+removed. Only `essere` and `holefeeder` were ever built by their own CI; both now
+build/publish with Podman too.
 
-Service roles dispatch from `tasks/main.yaml` to `tasks/docker.yaml` (Compose) or
-`tasks/podman.yaml` (Quadlet) based on `container_runtime`. On the Podman path each service
-renders **Quadlet** units to `/etc/containers/systemd/` and starts them as systemd services
-(`<name>.service`).
+Service roles render **Quadlet** units to `/etc/containers/systemd/` from their
+`tasks/podman.yaml` and start them as systemd services (`<name>.service`).
 
 ### The `podman` role (replaces `docker` on Podman hosts)
 Installs Podman + `podman-docker`; enables the rootful Docker-compatible API socket
@@ -680,7 +676,6 @@ so it cannot fill:
 | Loki log data | `roles/loki/config/loki-config.yaml` (`compactor` + `limits_config`) | 30 days (720 h), compactor deletes expired chunks |
 | Container stdout logs | Podman → systemd journal | Quadlet containers log to `journald`; capped by the host journald limits |
 | Unused Podman images & build cache | `roles/podman` `podman-prune.timer` | Weekly `podman system prune -af` (Sun 03:30, every LXC — all hosts run Podman) |
-| Unused Docker images & build cache (dormant) | `roles/docker` `docker-prune.timer` | Weekly `docker image prune -a` + `docker builder prune` — only if a host is ever reverted to the Docker path |
 
 ### Alerting
 
@@ -945,7 +940,7 @@ the Auth0 callback lands.
 | `luci`      | `:8443` | Flint 2 router's LuCI interface (`router.moreaulab.ca:8443`) |
 | dashboard   | `:8080` | Traefik API/dashboard                                        |
 
-> Changing entrypoints (`traefik.yaml`) or published ports (`docker-compose.yaml`)
+> Changing entrypoints (`traefik.yaml`) or published ports (`traefik.container`'s `PublishPort=`)
 > requires recreating the container — the file provider only hot-reloads `conf.d/`.
 
 ### Router (Flint 2) routing

@@ -13,7 +13,7 @@ Follow this checklist when creating, modifying, or removing an Ansible role or p
 
 | Variable                | Value              | Notes                                            |
 | ----------------------- | ------------------ | ------------------------------------------------ |
-| `docker_compose_dir`    | `/opt/docker`      | Base dir for all Docker Compose projects         |
+| `docker_compose_dir`    | `/opt/docker`      | Base dir for per-service config and env files    |
 | `ansible_user`          | `root`             | Ansible connects as root                         |
 | `timezone`              | `America/Montreal` |                                                  |
 | `nas_puid` / `nas_pgid` | `0` / `0`          | Group default; override per host in `host_vars/` |
@@ -26,22 +26,22 @@ Follow this checklist when creating, modifying, or removing an Ansible role or p
 ansible/roles/<name>/
   tasks/
     main.yaml
-  templates/            # only if role uses Docker Compose or config files
-    docker-compose.yaml            # plain YAML (no .j2) — Renovate reads image tags here
-    docker-compose.override.yaml.j2  # OPTIONAL — only when a value needs Jinja2
+  templates/            # only if role has config or env files
+    <name>.container               # Quadlet unit — Renovate bumps Image= here
+    <name>.env.j2                  # OPTIONAL — secrets/per-host values, rendered by Ansible
+    <name>.container.j2            # OPTIONAL — only when the unit needs Jinja2
 ```
 
-> **Important — Renovate compatibility:** the base compose file must be plain
-> `docker-compose.yaml` (no `.j2` extension) and contain no Jinja2, so Renovate's
-> docker-compose manager can find and bump the `image:` tags. Put any Jinja2-templated
-> values (host lookups, per-host vars, `{{ ... }}`) in a separate
-> `docker-compose.override.yaml.j2`, which Docker Compose auto-merges at `up` time.
-> Prefer plain docker `${ENV}` interpolation (via a templated `.env`) over Jinja2 where
-> possible — that keeps everything in the base file.
+> **Important — Renovate compatibility:** the `Image=` line must be in a plain `.container`
+> (or `.container.j2`) file under `ansible/roles/*/templates/`. `renovate.json` has a
+> `customManager` that matches `Image=<name>:<tag>` there. Keep secrets out of the unit:
+> put them in a `<name>.env.j2` rendered to `{{ docker_compose_dir }}/<name>/<name>.env`
+> and reference it with `EnvironmentFile=`, so the unit can stay plain and mode `0644`.
 
-### Step 2 — Write `tasks/main.yaml`
+### Step 2 — Write `tasks/main.yaml` and `tasks/podman.yaml`
 
-Follow the standard Docker Compose pattern used by all existing roles:
+`tasks/main.yaml` creates the directories and config files, then includes the Quadlet
+tasks. Follow the pattern used by `homepage` and the other roles:
 
 ```yaml
 - name: Create directory
@@ -50,65 +50,75 @@ Follow the standard Docker Compose pattern used by all existing roles:
     state: directory
     mode: "0755"
 
-- name: Copy docker-compose.yaml
-  ansible.builtin.template:
-    src: docker-compose.yaml
-    dest: "{{ docker_compose_dir }}/<name>/docker-compose.yaml"
-    mode: "0644"
+# Add tasks for additional config files or directories here, before the include.
 
-# OPTIONAL — only if the role needs a Jinja2 override (see Step 3)
-- name: Copy docker-compose.override.yaml
-  ansible.builtin.template:
-    src: docker-compose.override.yaml.j2
-    dest: "{{ docker_compose_dir }}/<name>/docker-compose.override.yaml"
-    mode: "0644"
-
-- name: Start
-  community.docker.docker_compose_v2:
-    project_src: "{{ docker_compose_dir }}/<name>"
-    state: present
+- name: Deploy via Podman Quadlet
+  ansible.builtin.include_tasks: podman.yaml
 ```
 
-Add tasks for additional config files or directories **before** the `Start` task.
-
-### Step 3 — Write `templates/docker-compose.yaml` (plain, Renovate-managed)
-
-Keep it plain YAML — **no Jinja2** — so Renovate can bump the `image:` tags. Use docker
-`${ENV}` interpolation (fed by a templated `.env`) for secrets/per-host values:
+`tasks/podman.yaml` renders the env file and the unit, then starts the service. It must
+restart (not just start) when either changes:
 
 ```yaml
-services:
-  <name>:
-    image: <image>:<tag>
-    container_name: <name>
-    restart: unless-stopped
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    volumes:
-      - /opt/docker/<name>/config:/config
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.<name>.rule=Host(`<name>.moreaulab.ca`)"
+- name: Ensure Quadlet directory exists
+  ansible.builtin.file:
+    path: /etc/containers/systemd
+    state: directory
+    mode: "0755"
+
+- name: Create <name> env file
+  ansible.builtin.template:
+    src: <name>.env.j2
+    dest: "{{ docker_compose_dir }}/<name>/<name>.env"
+    mode: "0600"
+  register: <name>_env
+
+- name: Deploy <name> Quadlet unit
+  ansible.builtin.template:
+    src: <name>.container
+    dest: /etc/containers/systemd/<name>.container
+    mode: "0644"
+  register: <name>_quadlet
+
+- name: Start <name>
+  ansible.builtin.systemd:
+    name: <name>.service
+    state: "{{ 'restarted' if (<name>_quadlet.changed or <name>_env.changed) else 'started' }}"
+    daemon_reload: true
 ```
 
-**Only if a value genuinely needs Jinja2** (host lookups like
-`{{ hostvars[...] }}`, per-host group IDs, etc.), add
-`templates/docker-compose.override.yaml.j2` containing *only* the templated keys, and wire
-up the optional override task from Step 2. Keep every `image:` line in the plain base file
-so Renovate still sees it. Compose auto-merges the override; because the base omits the
-templated key entirely, the merge yields exactly the override's value. Example
-(`immich` / `traefik` follow this pattern):
+Multi-container apps (a database plus an app, for example) follow the same shape with one
+unit per container. Use `Requires=`/`After=` in the unit, and `Network=container:<owner>`
+when a container shares another's netns. See `vaultwarden` and `immich`.
 
-```yaml
-services:
-  <service>:
-    group_add:
-      - "{{ some_gid }}"
+### Step 3 — Write `templates/<name>.container` (plain, Renovate-managed)
+
+Keep it plain — **no Jinja2** — so Renovate can bump `Image=`. Secrets and per-host values
+come from the `EnvironmentFile=`:
+
+```ini
+[Unit]
+Description=<Name>
+
+[Container]
+ContainerName=<name>
+Image=<image>:<tag>
+Volume=/opt/docker/<name>/config:/config
+EnvironmentFile=/opt/docker/<name>/<name>.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
 ```
 
-Reference vault secrets in the `.env` template as `${VAR}` fed from `{{ vault_<name> }}`.
+**Only if a value genuinely needs Jinja2** (host lookups, per-host group IDs such as a
+render GID), put it in `templates/<name>.container.j2`. Keep the `Image=` line there too so
+Renovate still matches it. Quadlet on podman 4.9 has no `GroupAdd=`, so pass it through
+`PodmanArgs=--group-add <gid>`. See `immich`.
+
+Reference vault secrets in the `<name>.env.j2` template as `{{ vault_<name>_<field> }}`.
 
 ### Step 4 — Add the role to `ansible/site.yaml`
 

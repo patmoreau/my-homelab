@@ -3,7 +3,6 @@
 # network is a Quadlet .network unit (roles/common_monitoring). Prometheus TSDB and Loki
 # data start fresh (Podman volumes can't read the old Docker named volumes); Grafana
 # dashboards/config persist via the /data/grafana host bind.
-container_runtime: podman
 
 # Prometheus' TSDB and Loki's chunks are excluded from the backup deliberately. They were 3.9G
 # and 52M of a 4.5G archive — 87% of the largest backup in the homelab, taking 385s a night and

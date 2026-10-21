@@ -2,7 +2,6 @@
 # (postgres owns it, publishes 8055 + 3000); Directus reaches the DB over 127.0.0.1.
 # The essere-app image comes from ghcr on a rolling tag and updates via `podman
 # auto-update`, run by the essere CI deploy job on the self-hosted runner below.
-container_runtime: podman
 
 # Self-hosted GitHub Actions runner for patmoreau/essere.
 github_runner_repo: essere

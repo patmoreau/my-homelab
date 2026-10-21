@@ -17,7 +17,7 @@
     state: absent
 
 # Unlike Docker, Podman does not assume Docker Hub for short image names. Default the
-# search to docker.io so the same short `image:` names used in the Compose files resolve.
+# search to docker.io so the same short `image:` names used in the Quadlet units resolve.
 - name: Default unqualified image search to Docker Hub
   ansible.builtin.copy:
     dest: /etc/containers/registries.conf.d/00-unqualified-search.conf

@@ -11,8 +11,8 @@ A Proxmox-based home server, managed as code in three lanes:
 - **Terraform** (`terraform/`) — provisions unprivileged LXC containers on Proxmox via the
   `bpg/proxmox` provider.
 - **Ansible** (`ansible/`) — configures services inside the LXCs (`site.yaml`) and the
-  Proxmox host itself (`proxmox.yaml`). Services are Docker Compose stacks deployed by
-  roles (Immich, Jellyfin, Vaultwarden, monitoring, …).
+  Proxmox host itself (`proxmox.yaml`). Services are rootful Podman containers managed by
+  systemd Quadlet units, deployed by roles (Immich, Jellyfin, Vaultwarden, monitoring, …).
 - **Tools** (`tools/`) — custom Node.js utilities (e.g. `service-watcher`).
 
 Host-level how-tos (GPU passthrough, VLANs, NFS mapping, the Proxmox host setup) live in
@@ -24,8 +24,10 @@ Host-level how-tos (GPU passthrough, VLANs, NFS mapping, the Proxmox host setup)
 - Networks: primary `192.168.8.x` (eth0/vmbr0); secondary `192.168.50.x` (eth1/vmbr1).
 - Ansible connects to LXCs as `root` with `~/.ssh/terraform_homelab`. The **Proxmox host**
   (`pve-homelab`) is the exception — it connects as `terraform-admin` with `become`.
-- Docker services live under `/opt/docker/<service>/` on each LXC, started with
-  `community.docker.docker_compose_v2`.
+- Podman is the only container runtime in the LXCs (no Docker, no Docker Compose). Each
+  container is a Quadlet `.container` unit in `/etc/containers/systemd/`, templated by the
+  role and started through systemd. Service config and env files live under
+  `/opt/docker/<service>/` on each LXC.
 - Secrets live in alphabetical order in `ansible/group_vars/all/vault.yaml` (gitignored plaintext), committed
   only in encrypted form as `vault.yaml.vault`.
 

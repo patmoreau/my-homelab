@@ -72,10 +72,12 @@ ssh -i ~/.ssh/terraform_homelab terraform-admin@192.168.8.10 "
 
 After reboot, `vfio-pci` will claim the GPU and `/dev/dri` will no longer exist on the host.
 
-### 4. Disable GPU in Immich docker-compose
+### 4. Disable GPU in Immich Quadlet units
 
-Remove the `devices` and `group_add` and `environment` GPU entries from
-`ansible/roles/immich/templates/docker-compose.yaml.j2`, then run:
+Remove the `AddDevice=/dev/dri/renderD128` and `PodmanArgs=--group-add …` lines from
+`ansible/roles/immich/templates/immich-server.container.j2` and
+`immich-machine-learning.container.j2`, and remove `IMMICH_MACHINE_LEARNING_GPU_TYPE` and `DEVICE_NAME` from
+`ansible/roles/immich/templates/immich.env.j2`, then run:
 
 ```bash
 cd ansible && ansible-playbook -i inventory/hosts.yaml site.yaml --limit lxc-immich
@@ -104,6 +106,6 @@ dynamic "hostpci" {
   `pve-firmware` (they conflict). The Proxmox-bundled firmware (`pve-firmware`) already
   includes Phoenix3 firmware files (`gc_11_5_*.bin`, `dcn_3_1_*.bin`) — no extra package needed.
 - The render group GID on this host is **993**. If it changes after a reinstall, update
-  `group_add` in the Immich docker-compose template.
+  `immich_render_gid` (used in the Immich Quadlet units' `PodmanArgs=--group-add`).
 - LXC containers are **unprivileged** — the `/dev/dri` devices appear as owned by
   `nobody:nogroup` inside the container, but are accessible via the `render` group.
