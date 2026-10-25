@@ -86,6 +86,8 @@ layout:
     tab: Dev
   AI:
     tab: Dev
+  Design:
+    tab: Dev
 
 # Tiles in a row share a height instead of each sizing to its own content.
 useEqualHeights: true
