@@ -6,7 +6,7 @@ BindsTo=penpot-postgres.service
 
 [Container]
 ContainerName=penpot-frontend
-Image=penpotapp/frontend:2.18.3
+Image=penpotapp/frontend:2.18.4
 Network=container:penpot-postgres
 # Stock MCP proxy config points at the hostname penpot-mcp, which does not resolve in the shared
 # netns. This swaps in a copy that targets loopback.
