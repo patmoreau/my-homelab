@@ -6,7 +6,7 @@ BindsTo=penpot-postgres.service
 
 [Container]
 ContainerName=penpot-exporter
-Image=penpotapp/exporter:2.18.3
+Image=penpotapp/exporter:2.18.4
 Network=container:penpot-postgres
 # Chromium renders exports through /dev/shm, which is 64 MB by default and crashes large
 # documents.
