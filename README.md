@@ -92,7 +92,7 @@ The following services are configured in this homelab:
 | **Radarr**          | [radarr.moreaulab.ca](https://radarr.moreaulab.ca)                   | Movie library manager; sends downloads to Transmission                |
 | **Sonarr**          | [sonarr.moreaulab.ca](https://sonarr.moreaulab.ca)                   | Series library manager; sends downloads to Transmission               |
 | **Prowlarr**        | [prowlarr.moreaulab.ca](https://prowlarr.moreaulab.ca)               | Indexer manager; syncs its indexer list into Radarr and Sonarr        |
-| **Immich**          | [immich.moreaulab.ca](https://immich.moreaulab.ca)                   | Self-hosted photo and video management                                |
+| **Immich**          | [photos.moreaulab.ca](https://photos.moreaulab.ca)                   | Self-hosted photo and video management                                |
 | **Penpot**          | [penpot.moreaulab.ca](https://penpot.moreaulab.ca)                   | Design tool, LAN/Tailscale only, invite-only                          |
 | **Vaultwarden**     | [vault.moreaulab.ca](https://vault.moreaulab.ca)                     | Bitwarden-compatible password manager (exposed via Cloudflare tunnel) |
 | **Grafana**         | [grafana.moreaulab.ca](https://grafana.moreaulab.ca)                 | Metrics and log dashboards (Prometheus + Loki)                        |

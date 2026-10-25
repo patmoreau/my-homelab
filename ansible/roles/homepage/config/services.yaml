@@ -75,15 +75,15 @@
 
     - Immich:
         icon: immich.png
-        href: https://immich.moreaulab.ca
-        siteMonitor: https://immich.moreaulab.ca
+        href: https://photos.moreaulab.ca
+        siteMonitor: https://photos.moreaulab.ca
         description: Photo & Video Backup
         proxmoxNode: homelab
         proxmoxVMID: 116
         proxmoxType: lxc
         widget:
           type: immich
-          url: https://immich.moreaulab.ca
+          url: https://photos.moreaulab.ca
           key: {{HOMEPAGE_VAR_IMMICH_API_KEY}}
           fields: ['photos', 'videos', 'storage']
           version: 2
