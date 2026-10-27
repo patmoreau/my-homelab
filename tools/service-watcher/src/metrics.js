@@ -1,4 +1,4 @@
-const client = require("prom-client");
+const client = require("@prometheus-io/client");
 
 const registry = new client.Registry();
 client.collectDefaultMetrics({ register: registry });
