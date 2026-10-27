@@ -6,7 +6,7 @@ BindsTo=penpot-postgres.service
 
 [Container]
 ContainerName=penpot-admin-console
-Image=penpotapp/admin-console:2.18.4
+Image=penpotapp/admin-console:2.18.5
 Network=container:penpot-postgres
 EnvironmentFile=/opt/docker/penpot/penpot.env
 

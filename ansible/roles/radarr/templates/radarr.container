@@ -6,7 +6,7 @@ After=transmission.service
 
 [Container]
 ContainerName=radarr
-Image=lscr.io/linuxserver/radarr:6.4.4.10685-ls323
+Image=lscr.io/linuxserver/radarr:6.4.4.10685-ls324
 IP=10.88.0.246
 PublishPort=7878:7878
 EnvironmentFile=/opt/docker/radarr/radarr.env

@@ -3,7 +3,7 @@ Description=Prometheus PVE exporter
 
 [Container]
 ContainerName=pve_exporter
-Image=prompve/prometheus-pve-exporter:3.10.1
+Image=prompve/prometheus-pve-exporter:3.10.2
 # Host networking rather than IP= + PublishPort=. The published-port path for this
 # container stopped working: netavark kept the DNAT rule (correctly pointing at
 # 10.88.0.244) but the host could not reach that address, while container-to-container
