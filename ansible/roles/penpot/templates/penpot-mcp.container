@@ -6,7 +6,7 @@ BindsTo=penpot-postgres.service
 
 [Container]
 ContainerName=penpot-mcp
-Image=penpotapp/mcp:2.18.4
+Image=penpotapp/mcp:2.18.5
 # Frontend proxies /mcp/stream and /mcp/ws here (ports 4401 and 4402 in the shared netns).
 Network=container:penpot-postgres
 Environment=PENPOT_MCP_SERVER_HOST=0.0.0.0
