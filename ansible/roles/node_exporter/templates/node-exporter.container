@@ -24,7 +24,10 @@ Volume=/var/lib/node_exporter/textfile:/var/lib/node_exporter/textfile:ro
 # as an escape sequence, and on an unknown one Quadlet drops the *entire* Exec= line
 # without an error — the container then starts with no flags at all, silently losing the
 # --path.* options too. Keep this line backslash-free.
-Exec=--path.procfs=/host/proc --path.rootfs=/rootfs --path.sysfs=/host/sys --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/) --collector.systemd --collector.systemd.unit-include=^pbs-backup[.](service|timer)$$ --collector.textfile.directory=/var/lib/node_exporter/textfile
+#
+# /run/user is excluded: logind session tmpfs, and Podman netns bind mounts under it show up
+# twice in mountinfo, which makes the filesystem collector emit duplicate series.
+Exec=--path.procfs=/host/proc --path.rootfs=/rootfs --path.sysfs=/host/sys --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|run/user)($$|/) --collector.systemd --collector.systemd.unit-include=^pbs-backup[.](service|timer)$$ --collector.textfile.directory=/var/lib/node_exporter/textfile
 
 [Service]
 Restart=always
