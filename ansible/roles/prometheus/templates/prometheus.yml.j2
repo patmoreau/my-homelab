@@ -177,8 +177,8 @@ scrape_configs:
         labels:
           service: 'essere-admin-public'
       # *.moreaulab.ca resolves to Traefik inside the house (split DNS), so a probe of those
-      # never touches the tunnel. drifterapps.app resolves to Cloudflare, so this one is the
-      # in-house check that cloudflared is carrying traffic.
+      # never touches the tunnel. essere.ca and drifterapps.app resolve to Cloudflare, so
+      # every target in this job goes through cloudflared.
       - targets: ['https://holefeeder.drifterapps.app/gateway/healthz']
         labels:
           service: 'holefeeder-public'

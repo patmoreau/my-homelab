@@ -765,7 +765,7 @@ A second job, `blackbox_public`, probes the **public** URLs instead of container
 |---------|-----------------|
 | Essere site | `https://essere.ca` |
 | Essere admin | `https://admin.essere.ca` |
-| Holefeeder (tunnel check) | `https://holefeeder.drifterapps.app/gateway/healthz` |
+| Holefeeder | `https://holefeeder.drifterapps.app/gateway/healthz` |
 
 The split matters. The internal job only proves a container is listening; it stays green
 when the Cloudflare tunnel, a Traefik router, or the TLS cert is what actually broke. Only
@@ -773,8 +773,10 @@ when the Cloudflare tunnel, a Traefik router, or the TLS cert is what actually b
 alert is scoped to that job.
 
 `*.moreaulab.ca` resolves to Traefik inside the house (split DNS), so a public probe of a
-moreaulab.ca host never crosses the tunnel. `drifterapps.app` resolves to Cloudflare, which
-makes the Holefeeder probe the in-house check that cloudflared is carrying traffic.
+moreaulab.ca host never crosses the tunnel. `essere.ca` and `drifterapps.app` resolve to
+Cloudflare, so every probe in this job goes through cloudflared; together they are the
+in-house check that the tunnel is carrying traffic. `photos.moreaulab.ca` and the other
+moreaulab.ca tunnel hostnames cannot be checked from inside the house this way.
 
 ## Site analytics (Umami)
 
