@@ -11,3 +11,7 @@ pve_nfs_stores:
   - { name: nas-media, export: /media }
   - { name: nas-photos, export: /photos }
   - { name: nas-backups, export: /backups }
+
+# Seconds pve-guests waits at boot for every store above to be mounted before starting
+# guests regardless (roles/pve_storage/templates/pve-wait-nas-storage.sh.j2).
+pve_nas_wait_timeout: 300

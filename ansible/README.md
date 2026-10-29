@@ -1322,7 +1322,7 @@ inventory and roadmap):
 | ---- | --------------- |
 | `pve_repos` | Proxmox `pve-no-subscription` APT repo; removes the enterprise repo |
 | `pve_admin` | `terraform-admin` automation user + SSH key + single `NOPASSWD:ALL` sudoers file |
-| `pve_storage` | NFS storage stores (`nas-media/photos/backups`) via `pvesm` (idempotent) |
+| `pve_storage` | NFS storage stores (`nas-media/photos/backups`) via `pvesm` (idempotent); `pve-guests` drop-in holds guest autostart until the stores are mounted (`pve_nas_wait_timeout`, default 300s) |
 | `pve_nas_idmap` | `/etc/subuid` + `/etc/subgid` entries for unprivileged-LXC UID/GID mapping |
 | `pve_tuning` | ZFS ARC cap (`zfs_arc_max`) + timezone |
 | `pve_api_access` | PVE `pveum` groups/users/tokens/ACLs (create-if-missing) |

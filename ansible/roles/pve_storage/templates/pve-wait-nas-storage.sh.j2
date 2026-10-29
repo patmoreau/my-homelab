@@ -1,0 +1,21 @@
+#!/bin/sh
+# Hold back guest autostart until the NAS NFS stores are mounted. Containers bind-mount
+# /mnt/pve/<store>; started before pvestatd mounts it, they see an empty directory, so
+# Quadlets fail on missing volume paths and hit systemd's restart limit. Gives up after
+# the timeout and lets the guests boot anyway, so a dead NAS never blocks the gateway.
+timeout={{ pve_nas_wait_timeout }}
+elapsed=0
+while [ "$elapsed" -lt "$timeout" ]; do
+  missing=""
+{% for store in pve_nfs_stores %}
+  mountpoint -q /mnt/pve/{{ store.name }} || missing="$missing {{ store.name }}"
+{% endfor %}
+  if [ -z "$missing" ]; then
+    echo "NAS storage mounted after ${elapsed}s"
+    exit 0
+  fi
+  sleep 5
+  elapsed=$((elapsed + 5))
+done
+echo "NAS storage still missing after ${timeout}s:${missing}; starting guests anyway"
+exit 0

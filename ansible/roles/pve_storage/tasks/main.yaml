@@ -17,3 +17,24 @@
   when: item.name not in pve_storage_status.stdout
   register: pve_storage_add
   changed_when: pve_storage_add is not skipped
+
+# pve-guests starts the containers before pvestatd has mounted the NFS stores, so guests
+# bind-mount empty directories. Make guest autostart wait for the mounts (capped).
+- name: Install NAS storage wait script
+  ansible.builtin.template:
+    src: pve-wait-nas-storage.sh.j2
+    dest: /usr/local/sbin/pve-wait-nas-storage
+    mode: "0755"
+
+- name: Create pve-guests drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/pve-guests.service.d
+    state: directory
+    mode: "0755"
+
+- name: Make guest autostart wait for NAS storage
+  ansible.builtin.template:
+    src: wait-nas-storage.conf.j2
+    dest: /etc/systemd/system/pve-guests.service.d/wait-nas-storage.conf
+    mode: "0644"
+  notify: Reload systemd
