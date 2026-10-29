@@ -7,172 +7,83 @@
   "id": null,
   "links": [],
   "panels": [
-    {
-      "collapsed": false,
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
-      "id": 1,
-      "title": "Service Status",
-      "type": "row"
-    },
+    {"collapsed": false, "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}, "id": 1, "title": "Service Status", "type": "row"},
     {
       "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "description": "Number of HTTP probes currently failing, internal and public.",
       "fieldConfig": {
         "defaults": {
           "color": {"mode": "thresholds"},
-          "links": [{"title": "Drill into Vaultwarden", "url": "/d/homelab-services-health?var-service=vaultwarden", "targetBlank": false}],
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]},
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 10, "w": 4, "x": 0, "y": 1},
+      "id": 20,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "Prometheus"},
+          "expr": "count(probe_success{job=~\"blackbox|blackbox_public\"} == 0) or vector(0)",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Services Down",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "description": "One tile per blackbox probe. A new probe in prometheus.yml.j2 shows up here on its own.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "links": [
+            {
+              "title": "Drill into ${__field.labels.service}",
+              "url": "/d/homelab-services-health?var-service=${__field.labels.service}",
+              "targetBlank": false
+            }
+          ],
           "mappings": [{"type": "value", "options": {"0": {"color": "red", "index": 0, "text": "DOWN"}, "1": {"color": "green", "index": 1, "text": "UP"}}}],
           "noValue": "N/A",
           "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
         },
         "overrides": []
       },
-      "gridPos": {"h": 5, "w": 6, "x": 0, "y": 1},
-      "id": 2,
-      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "Prometheus"}, "expr": "probe_success{job=\"blackbox\", service=\"vaultwarden\"}", "refId": "A"}],
-      "title": "Vaultwarden",
-      "type": "stat"
-    },
-    {
-      "datasource": {"type": "prometheus", "uid": "Prometheus"},
-      "fieldConfig": {
-        "defaults": {
-          "color": {"mode": "thresholds"},
-          "links": [{"title": "Drill into Essere", "url": "/d/homelab-services-health?var-service=essere-app", "targetBlank": false}],
-          "mappings": [{"type": "value", "options": {"0": {"color": "red", "index": 0, "text": "DOWN"}, "1": {"color": "green", "index": 1, "text": "UP"}}}],
-          "noValue": "N/A",
-          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
-        },
-        "overrides": []
+      "gridPos": {"h": 10, "w": 20, "x": 4, "y": 1},
+      "id": 21,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "value_and_name",
+        "wideLayout": true
       },
-      "gridPos": {"h": 5, "w": 6, "x": 6, "y": 1},
-      "id": 3,
-      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "Prometheus"}, "expr": "probe_success{job=\"blackbox\", service=\"essere-app\"}", "refId": "A"}],
-      "title": "Essere",
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "Prometheus"},
+          "expr": "sort(probe_success{job=~\"blackbox|blackbox_public\"})",
+          "instant": true,
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ],
+      "title": "All Services",
       "type": "stat"
     },
-    {
-      "datasource": {"type": "prometheus", "uid": "Prometheus"},
-      "fieldConfig": {
-        "defaults": {
-          "color": {"mode": "thresholds"},
-          "links": [{"title": "Drill into Directus", "url": "/d/homelab-services-health?var-service=essere-directus", "targetBlank": false}],
-          "mappings": [{"type": "value", "options": {"0": {"color": "red", "index": 0, "text": "DOWN"}, "1": {"color": "green", "index": 1, "text": "UP"}}}],
-          "noValue": "N/A",
-          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
-        },
-        "overrides": []
-      },
-      "gridPos": {"h": 5, "w": 6, "x": 12, "y": 1},
-      "id": 4,
-      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "Prometheus"}, "expr": "probe_success{job=\"blackbox\", service=\"essere-directus\"}", "refId": "A"}],
-      "title": "Directus (CMS)",
-      "type": "stat"
-    },
-    {
-      "datasource": {"type": "prometheus", "uid": "Prometheus"},
-      "fieldConfig": {
-        "defaults": {
-          "color": {"mode": "thresholds"},
-          "links": [{"title": "Drill into Jellyfin", "url": "/d/homelab-services-health?var-service=jellyfin", "targetBlank": false}],
-          "mappings": [{"type": "value", "options": {"0": {"color": "red", "index": 0, "text": "DOWN"}, "1": {"color": "green", "index": 1, "text": "UP"}}}],
-          "noValue": "N/A",
-          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
-        },
-        "overrides": []
-      },
-      "gridPos": {"h": 5, "w": 6, "x": 18, "y": 1},
-      "id": 5,
-      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "Prometheus"}, "expr": "probe_success{job=\"blackbox\", service=\"jellyfin\"}", "refId": "A"}],
-      "title": "Jellyfin",
-      "type": "stat"
-    },
-    {
-      "datasource": {"type": "prometheus", "uid": "Prometheus"},
-      "fieldConfig": {
-        "defaults": {
-          "color": {"mode": "thresholds"},
-          "links": [{"title": "Drill into Immich", "url": "/d/homelab-services-health?var-service=immich", "targetBlank": false}],
-          "mappings": [{"type": "value", "options": {"0": {"color": "red", "index": 0, "text": "DOWN"}, "1": {"color": "green", "index": 1, "text": "UP"}}}],
-          "noValue": "N/A",
-          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
-        },
-        "overrides": []
-      },
-      "gridPos": {"h": 5, "w": 6, "x": 0, "y": 6},
-      "id": 6,
-      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "Prometheus"}, "expr": "probe_success{job=\"blackbox\", service=\"immich\"}", "refId": "A"}],
-      "title": "Immich",
-      "type": "stat"
-    },
-    {
-      "datasource": {"type": "prometheus", "uid": "Prometheus"},
-      "fieldConfig": {
-        "defaults": {
-          "color": {"mode": "thresholds"},
-          "links": [{"title": "Drill into Book Orbit", "url": "/d/homelab-services-health?var-service=book-orbit", "targetBlank": false}],
-          "mappings": [{"type": "value", "options": {"0": {"color": "red", "index": 0, "text": "DOWN"}, "1": {"color": "green", "index": 1, "text": "UP"}}}],
-          "noValue": "N/A",
-          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
-        },
-        "overrides": []
-      },
-      "gridPos": {"h": 5, "w": 6, "x": 6, "y": 6},
-      "id": 7,
-      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "Prometheus"}, "expr": "probe_success{job=\"blackbox\", service=\"book-orbit\"}", "refId": "A"}],
-      "title": "Book Orbit",
-      "type": "stat"
-    },
-    {
-      "datasource": {"type": "prometheus", "uid": "Prometheus"},
-      "fieldConfig": {
-        "defaults": {
-          "color": {"mode": "thresholds"},
-          "links": [{"title": "Drill into Home Assistant", "url": "/d/homelab-services-health?var-service=homeassistant", "targetBlank": false}],
-          "mappings": [{"type": "value", "options": {"0": {"color": "red", "index": 0, "text": "DOWN"}, "1": {"color": "green", "index": 1, "text": "UP"}}}],
-          "noValue": "N/A",
-          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
-        },
-        "overrides": []
-      },
-      "gridPos": {"h": 5, "w": 6, "x": 12, "y": 6},
-      "id": 8,
-      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "Prometheus"}, "expr": "probe_success{job=\"blackbox\", service=\"homeassistant\"}", "refId": "A"}],
-      "title": "Home Assistant",
-      "type": "stat"
-    },
-    {
-      "datasource": {"type": "prometheus", "uid": "Prometheus"},
-      "fieldConfig": {
-        "defaults": {
-          "color": {"mode": "thresholds"},
-          "links": [{"title": "Drill into Homepage", "url": "/d/homelab-services-health?var-service=homepage", "targetBlank": false}],
-          "mappings": [{"type": "value", "options": {"0": {"color": "red", "index": 0, "text": "DOWN"}, "1": {"color": "green", "index": 1, "text": "UP"}}}],
-          "noValue": "N/A",
-          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
-        },
-        "overrides": []
-      },
-      "gridPos": {"h": 5, "w": 6, "x": 18, "y": 6},
-      "id": 9,
-      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "Prometheus"}, "expr": "probe_success{job=\"blackbox\", service=\"homepage\"}", "refId": "A"}],
-      "title": "Homepage",
-      "type": "stat"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 11},
-      "id": 10,
-      "title": "Detail — $service",
-      "type": "row"
-    },
+    {"collapsed": false, "gridPos": {"h": 1, "w": 24, "x": 0, "y": 11}, "id": 10, "title": "Detail — $service", "type": "row"},
     {
       "datasource": {"type": "prometheus", "uid": "Prometheus"},
       "fieldConfig": {
@@ -186,8 +97,22 @@
       },
       "gridPos": {"h": 4, "w": 6, "x": 0, "y": 12},
       "id": 11,
-      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "Prometheus"}, "expr": "probe_success{job=\"blackbox\", service=\"$service\"}", "instant": true, "refId": "A"}],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "Prometheus"},
+          "expr": "probe_success{job=~\"blackbox|blackbox_public\", service=\"$service\"}",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
       "title": "HTTP Probe",
       "type": "stat"
     },
@@ -205,8 +130,22 @@
       },
       "gridPos": {"h": 4, "w": 6, "x": 6, "y": 12},
       "id": 12,
-      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "Prometheus"}, "expr": "probe_duration_seconds{job=\"blackbox\", service=\"$service\"} * 1000", "instant": true, "refId": "A"}],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "Prometheus"},
+          "expr": "probe_duration_seconds{job=~\"blackbox|blackbox_public\", service=\"$service\"} * 1000",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
       "title": "Response Time",
       "type": "stat"
     },
@@ -237,11 +176,15 @@
       },
       "gridPos": {"h": 4, "w": 12, "x": 12, "y": 12},
       "id": 13,
-      "options": {
-        "legend": {"displayMode": "hidden", "placement": "bottom", "showLegend": false},
-        "tooltip": {"mode": "single", "sort": "none"}
-      },
-      "targets": [{"datasource": {"type": "prometheus", "uid": "Prometheus"}, "expr": "probe_duration_seconds{job=\"blackbox\", service=\"$service\"} * 1000", "legendFormat": "response time", "refId": "A"}],
+      "options": {"legend": {"displayMode": "hidden", "placement": "bottom", "showLegend": false}, "tooltip": {"mode": "single", "sort": "none"}},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "Prometheus"},
+          "expr": "probe_duration_seconds{job=~\"blackbox|blackbox_public\", service=\"$service\"} * 1000",
+          "legendFormat": "response time",
+          "refId": "A"
+        }
+      ],
       "title": "Response Time History",
       "type": "timeseries"
     },
@@ -271,10 +214,7 @@
       },
       "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
       "id": 14,
-      "options": {
-        "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["sum"]},
-        "tooltip": {"mode": "multi", "sort": "desc"}
-      },
+      "options": {"legend": {"displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["sum"]}, "tooltip": {"mode": "multi", "sort": "desc"}},
       "targets": [
         {
           "datasource": {"type": "loki", "uid": "Loki"},
@@ -286,13 +226,7 @@
       "title": "Container Error Log Rate (all hosts)",
       "type": "timeseries"
     },
-    {
-      "collapsed": false,
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 24},
-      "id": 15,
-      "title": "All Services — HTTP Probes",
-      "type": "row"
-    },
+    {"collapsed": false, "gridPos": {"h": 1, "w": 24, "x": 0, "y": 24}, "id": 15, "title": "All Services — HTTP Probes", "type": "row"},
     {
       "datasource": {"type": "prometheus", "uid": "Prometheus"},
       "fieldConfig": {
@@ -326,7 +260,7 @@
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "Prometheus"},
-          "expr": "probe_duration_seconds{job=\"blackbox\"} * 1000",
+          "expr": "probe_duration_seconds{job=~\"blackbox|blackbox_public\"} * 1000",
           "legendFormat": "{{service}}",
           "refId": "A"
         }
@@ -339,12 +273,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {"mode": "thresholds"},
-          "custom": {
-            "align": "center",
-            "cellOptions": {"type": "color-background", "mode": "basic"},
-            "filterable": false,
-            "inspect": false
-          },
+          "custom": {"align": "center", "cellOptions": {"type": "color-background", "mode": "basic"}, "filterable": false, "inspect": false},
           "mappings": [{"type": "value", "options": {"0": {"color": "red", "index": 0, "text": "DOWN"}, "1": {"color": "green", "index": 1, "text": "UP"}}}],
           "noValue": "N/A",
           "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
@@ -356,16 +285,11 @@
       },
       "gridPos": {"h": 8, "w": 10, "x": 14, "y": 25},
       "id": 17,
-      "options": {
-        "cellHeight": "md",
-        "footer": {"show": false},
-        "showHeader": true,
-        "sortBy": [{"desc": false, "displayName": "Status"}]
-      },
+      "options": {"cellHeight": "md", "footer": {"show": false}, "showHeader": true, "sortBy": [{"desc": false, "displayName": "Status"}]},
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "Prometheus"},
-          "expr": "probe_success{job=\"blackbox\"}",
+          "expr": "probe_success{job=~\"blackbox|blackbox_public\"}",
           "format": "table",
           "instant": true,
           "refId": "A"
@@ -373,28 +297,23 @@
       ],
       "title": "Probe Status",
       "transformations": [
-        {"id": "organize", "options": {"excludeByName": {"Time": true, "__name__": true, "instance": true, "job": true}, "renameByName": {"Value": "Status", "service": "Service"}}}
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {"Time": true, "__name__": true, "instance": true, "job": true},
+            "renameByName": {"Value": "Status", "service": "Service"}
+          }
+        }
       ],
       "type": "table"
     },
-    {
-      "collapsed": false,
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 33},
-      "id": 18,
-      "title": "Container Health",
-      "type": "row"
-    },
+    {"collapsed": false, "gridPos": {"h": 1, "w": 24, "x": 0, "y": 33}, "id": 18, "title": "Container Health", "type": "row"},
     {
       "datasource": {"type": "prometheus", "uid": "Prometheus"},
       "fieldConfig": {
         "defaults": {
           "color": {"mode": "thresholds"},
-          "custom": {
-            "align": "auto",
-            "cellOptions": {"type": "auto"},
-            "filterable": true,
-            "inspect": false
-          },
+          "custom": {"align": "auto", "cellOptions": {"type": "auto"}, "filterable": true, "inspect": false},
           "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 90}, {"color": "red", "value": 300}]},
           "unit": "s"
         },
@@ -409,12 +328,7 @@
       },
       "gridPos": {"h": 12, "w": 24, "x": 0, "y": 34},
       "id": 19,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {"show": false},
-        "showHeader": true,
-        "sortBy": [{"desc": true, "displayName": "Seconds Since Last Seen"}]
-      },
+      "options": {"cellHeight": "sm", "footer": {"show": false}, "showHeader": true, "sortBy": [{"desc": true, "displayName": "Seconds Since Last Seen"}]},
       "targets": [
         {
           "datasource": {"type": "prometheus", "uid": "Prometheus"},
@@ -426,7 +340,13 @@
       ],
       "title": "Container Last Seen (seconds ago — red = not reporting)",
       "transformations": [
-        {"id": "organize", "options": {"excludeByName": {"Time": true, "__name__": true, "job": true}, "renameByName": {"Value": "Seconds Since Last Seen", "instance": "Host", "name": "Container"}}}
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {"Time": true, "__name__": true, "job": true},
+            "renameByName": {"Value": "Seconds Since Last Seen", "instance": "Host", "name": "Container"}
+          }
+        }
       ],
       "type": "table"
     }
@@ -439,17 +359,14 @@
       {
         "current": {},
         "datasource": {"type": "prometheus", "uid": "Prometheus"},
-        "definition": "label_values(probe_success{job=\"blackbox\"}, service)",
+        "definition": "label_values(probe_success{job=~\"blackbox|blackbox_public\"}, service)",
         "hide": 0,
         "includeAll": false,
         "label": "Service",
         "multi": false,
         "name": "service",
         "options": [],
-        "query": {
-          "query": "label_values(probe_success{job=\"blackbox\"}, service)",
-          "refId": "StandardVariableQuery"
-        },
+        "query": {"query": "label_values(probe_success{job=~\"blackbox|blackbox_public\"}, service)", "refId": "StandardVariableQuery"},
         "refresh": 2,
         "regex": "",
         "sort": 1,
@@ -462,6 +379,6 @@
   "timezone": "browser",
   "title": "Homelab Services Health",
   "uid": "homelab-services-health",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }

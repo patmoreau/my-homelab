@@ -8,3 +8,26 @@ modules:
       method: GET
       follow_redirects: true
       preferred_ip_protocol: "ip4"
+  # Appliance web UIs (PVE, PBS, NAS, router) serve self-signed certs. Verification is off
+  # here; the targets carry cert_check: off so the TLS-expiry alert ignores them.
+  http_2xx_insecure:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: []  # defaults to 2xx
+      method: GET
+      follow_redirects: true
+      preferred_ip_protocol: "ip4"
+      tls_config:
+        insecure_skip_verify: true
+  # Transmission's web UI sits behind basic auth; a 401 proves the daemon is answering.
+  http_2xx_or_401:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200, 401]
+      method: GET
+      follow_redirects: true
+      preferred_ip_protocol: "ip4"

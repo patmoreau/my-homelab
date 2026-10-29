@@ -43,6 +43,17 @@ Host-level how-tos (GPU passthrough, VLANs, NFS mapping, the Proxmox host setup)
 | Add a vault secret                    | `ansible/README.md` vault table |
 | Add a host to inventory               | `ansible/README.md`             |
 
+## Monitoring Rule (Always Apply)
+
+> **Every new service must be monitored on the Grafana "Homelab Services Health" board.**
+> Add a blackbox probe for it in `ansible/roles/prometheus/templates/prometheus.yml.j2`
+> (job `blackbox` for the container's LAN endpoint; also `blackbox_public` if it is reached
+> through the Cloudflare tunnel) with a `service:` label, using its health endpoint where it
+> has one. The board's "All Services" panel and homepage's "Services Health" down-count pick
+> up every probe on their own; do not hand-add per-service tiles. Add the probe to the
+> `ansible/README.md` probe tables in the same change, and check the target answers 2xx from
+> `lxc-monitoring` before committing.
+
 ## Ansible Linting (Always Apply)
 
 > Before committing any change under `ansible/`, run `cd ansible && ansible-lint` and

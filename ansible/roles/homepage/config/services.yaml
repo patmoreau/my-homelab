@@ -253,6 +253,22 @@
     # browser cookie, so they must not go through the authenticated router: siteMonitor
     # uses the /api/health path exempted in traefik conf.d/grafana.yaml, and the widget
     # talks straight to lxc-monitoring, bypassing Traefik entirely.
+    # Counts failing blackbox probes (internal + public), the same series as the "Services
+    # Down" panel on the Homelab Services Health dashboard the tile links to.
+    - Services Health:
+        icon: mdi-heart-pulse
+        href: https://grafana.moreaulab.ca/d/homelab-services-health
+        description: Failing service probes
+        widget:
+          type: prometheusmetric
+          url: https://prometheus.moreaulab.ca
+          refreshInterval: 30000
+          metrics:
+            - label: Down
+              query: count(probe_success{job=~"blackbox|blackbox_public"} == 0) or vector(0)
+            - label: Monitored
+              query: count(probe_success{job=~"blackbox|blackbox_public"})
+
     - Grafana:
         icon: grafana.png
         href: https://grafana.moreaulab.ca

@@ -732,10 +732,32 @@ The `blackbox_exporter` role probes the following HTTP endpoints every 15 s and 
 | Homepage | `http://192.168.8.44:3000` |
 | Umami | `http://192.168.8.42:3001` |
 | Grafana | `https://grafana.moreaulab.ca` |
+| Filestash | `http://192.168.8.41:8334` |
+| Transmission | `http://192.168.8.41:9091/transmission/web/` (401 counts as up: basic auth) |
+| Service watcher | `http://192.168.8.41:3000/api/qnap` |
+| Matter Hub | `http://192.168.8.47:8482` |
+| Prometheus | `http://192.168.8.43:9090/-/healthy` |
+| Traefik | `http://192.168.8.40:8082/metrics` (no ping endpoint enabled) |
+| oauth2-proxy | `http://192.168.8.40:4180/ping` |
+| Holefeeder API | `http://192.168.8.49:5001/healthz` |
+| Holefeeder web | `http://192.168.8.49:5000` |
+| PowerSync | `http://192.168.8.49:8080/probes/liveness` |
+| PVE | `https://192.168.8.10:8006` (self-signed, `cert_check: off`) |
+| PBS | `https://192.168.8.48:8007` (self-signed, `cert_check: off`) |
+| NAS | `https://192.168.8.109` (self-signed, `cert_check: off`) |
+| Router | `https://192.168.8.1` (self-signed, `cert_check: off`) |
 
 Grafana is the one target probed over **https**, so that `probe_ssl_earliest_cert_expiry`
 exists for the `moreaulab.ca` wildcard. Every `*.moreaulab.ca` host is issued by the same
 Traefik cloudflare resolver, so monitoring one covers the renewal for all of them.
+
+The appliance UIs (PVE, PBS, NAS, router) use the `http_2xx_insecure` module and carry
+`cert_check: off`, so the `TLS certificate expiring` alert skips their self-signed certs.
+
+The Homelab Services Health board's **All Services** panel draws one tile per probe from both
+jobs, and **Services Down** counts the failing ones; homepage's **Services Health** tile shows
+the same count. Neither lists services by hand, so a new probe appears on both with no
+dashboard edit.
 
 A second job, `blackbox_public`, probes the **public** URLs instead of container IPs:
 
@@ -743,11 +765,16 @@ A second job, `blackbox_public`, probes the **public** URLs instead of container
 |---------|-----------------|
 | Essere site | `https://essere.ca` |
 | Essere admin | `https://admin.essere.ca` |
+| Holefeeder (tunnel check) | `https://holefeeder.drifterapps.app/gateway/healthz` |
 
 The split matters. The internal job only proves a container is listening; it stays green
 when the Cloudflare tunnel, a Traefik router, or the TLS cert is what actually broke. Only
 `blackbox_public` exercises the full path a visitor takes, so the `Public site unreachable`
 alert is scoped to that job.
+
+`*.moreaulab.ca` resolves to Traefik inside the house (split DNS), so a public probe of a
+moreaulab.ca host never crosses the tunnel. `drifterapps.app` resolves to Cloudflare, which
+makes the Holefeeder probe the in-house check that cloudflared is carrying traffic.
 
 ## Site analytics (Umami)
 

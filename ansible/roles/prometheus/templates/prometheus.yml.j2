@@ -98,6 +98,61 @@ scrape_configs:
       - targets: ['https://grafana.moreaulab.ca/api/health']
         labels:
           service: 'grafana'
+      - targets: ['http://{{ hostvars["lxc-media"]["ansible_host"] }}:8334']
+        labels:
+          service: 'filestash'
+      - targets: ['http://{{ hostvars["lxc-media"]["ansible_host"] }}:9091/transmission/web/']
+        labels:
+          service: 'transmission'
+          __param_module: 'http_2xx_or_401'
+      - targets: ['http://{{ hostvars["lxc-media"]["ansible_host"] }}:{{ hostvars["lxc-media"].get("service_watcher_port", 3000) }}/api/qnap']
+        labels:
+          service: 'service-watcher'
+      - targets: ['http://{{ hostvars["lxc-homeassistant"]["ansible_host"] }}:8482']
+        labels:
+          service: 'matter-hub'
+      - targets: ['http://{{ hostvars["lxc-monitoring"]["ansible_host"] }}:9090/-/healthy']
+        labels:
+          service: 'prometheus'
+      # Traefik has no ping endpoint enabled; its metrics entrypoint answering proves the
+      # process is up without exposing anything new.
+      - targets: ['http://{{ hostvars["lxc-gateway"]["ansible_host"] }}:8082/metrics']
+        labels:
+          service: 'traefik'
+      - targets: ['http://{{ hostvars["lxc-gateway"]["ansible_host"] }}:{{ oauth2_proxy_port }}/ping']
+        labels:
+          service: 'oauth2-proxy'
+      - targets: ['http://{{ hostvars["lxc-holefeeder"]["ansible_host"] }}:5001/healthz']
+        labels:
+          service: 'holefeeder-api'
+      - targets: ['http://{{ hostvars["lxc-holefeeder"]["ansible_host"] }}:5000']
+        labels:
+          service: 'holefeeder-web'
+      - targets: ['http://{{ hostvars["lxc-holefeeder"]["ansible_host"] }}:8080/probes/liveness']
+        labels:
+          service: 'powersync'
+      # Appliance UIs with self-signed certs: verification off, and cert_check: off keeps
+      # them out of the TLS-expiry alert.
+      - targets: ['https://{{ hostvars["pve-homelab"]["ansible_host"] }}:8006']
+        labels:
+          service: 'pve'
+          cert_check: 'off'
+          __param_module: 'http_2xx_insecure'
+      - targets: ['https://{{ hostvars["lxc-pbs"]["ansible_host"] }}:8007']
+        labels:
+          service: 'pbs'
+          cert_check: 'off'
+          __param_module: 'http_2xx_insecure'
+      - targets: ['https://{{ hostvars["nas"]["ansible_host"] }}']
+        labels:
+          service: 'nas'
+          cert_check: 'off'
+          __param_module: 'http_2xx_insecure'
+      - targets: ['https://{{ hostvars["router"]["ansible_host"] }}']
+        labels:
+          service: 'router'
+          cert_check: 'off'
+          __param_module: 'http_2xx_insecure'
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -121,6 +176,12 @@ scrape_configs:
       - targets: ['https://admin.essere.ca']
         labels:
           service: 'essere-admin-public'
+      # *.moreaulab.ca resolves to Traefik inside the house (split DNS), so a probe of those
+      # never touches the tunnel. drifterapps.app resolves to Cloudflare, so this one is the
+      # in-house check that cloudflared is carrying traffic.
+      - targets: ['https://holefeeder.drifterapps.app/gateway/healthz']
+        labels:
+          service: 'holefeeder-public'
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target

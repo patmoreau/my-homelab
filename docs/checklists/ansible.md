@@ -134,6 +134,20 @@ Identify which host(s) should run this role:
     - <name>
 ```
 
+### Step 4b — Monitor the service
+
+Follow the [Monitoring Rule](../../AGENTS.md#monitoring-rule-always-apply): add a blackbox
+probe with a `service:` label to `roles/prometheus/templates/prometheus.yml.j2`. Pick the
+module by what the endpoint returns:
+
+| Endpoint | Module |
+| -------- | ------ |
+| Plain 2xx (the default) | job default, no label needed |
+| Basic-auth UI answering 401 | `__param_module: 'http_2xx_or_401'` |
+| Self-signed HTTPS appliance UI | `__param_module: 'http_2xx_insecure'` plus `cert_check: 'off'` |
+
+The Grafana board and the homepage down-count need no edit; they list every probe.
+
 ### Step 5 — Add vault secrets (if applicable)
 
 If the role needs secrets:
