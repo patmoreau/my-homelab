@@ -9,6 +9,7 @@
     src: blackbox.yml.j2
     dest: '{{ docker_compose_dir }}/blackbox_exporter/blackbox.yml'
     mode: '0644'
+  register: blackbox_config
 
 - name: Deploy via Podman Quadlet
   ansible.builtin.include_tasks: podman.yaml

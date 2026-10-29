@@ -14,5 +14,6 @@
 - name: Start blackbox_exporter
   ansible.builtin.systemd:
     name: blackbox_exporter.service
-    state: "{{ 'restarted' if blackbox_quadlet.changed else 'started' }}"
+    # blackbox_exporter reads blackbox.yml only at startup, so a module change needs a restart.
+    state: "{{ 'restarted' if (blackbox_quadlet.changed or blackbox_config.changed) else 'started' }}"
     daemon_reload: true
