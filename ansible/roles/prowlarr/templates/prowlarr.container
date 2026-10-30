@@ -6,7 +6,7 @@ After=radarr.service
 
 [Container]
 ContainerName=prowlarr
-Image=lscr.io/linuxserver/prowlarr:2.6.5.5623-ls165
+Image=lscr.io/linuxserver/prowlarr:2.7.0.5723-ls166
 IP=10.88.0.247
 PublishPort=9696:9696
 EnvironmentFile=/opt/docker/prowlarr/prowlarr.env
