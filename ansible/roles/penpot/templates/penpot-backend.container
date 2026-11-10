@@ -6,7 +6,7 @@ BindsTo=penpot-postgres.service
 
 [Container]
 ContainerName=penpot-backend
-Image=penpotapp/backend:2.18.5
+Image=penpotapp/backend:2.19.0
 Network=container:penpot-postgres
 Volume=/data/penpot/assets:/opt/data/objects
 EnvironmentFile=/opt/docker/penpot/penpot.env
