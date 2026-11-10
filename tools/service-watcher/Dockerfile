@@ -1,4 +1,4 @@
-FROM node:24-alpine
+FROM node:26-alpine
 
 # Install OpenSSH client for QNAP connectivity
 RUN apk add --no-cache openssh-client
