@@ -8,7 +8,6 @@
     - "{{ docker_compose_dir }}/holefeeder/powersync"
     - /data/postgres
     - /data/dataprotection/api
-    - /data/dataprotection/web
 
 - name: Log in to GHCR so auto-update can pull the private images
   ansible.builtin.command:
@@ -45,7 +44,6 @@
   loop:
     - postgres
     - api
-    - web
     - powersync
     - db-migrator
 

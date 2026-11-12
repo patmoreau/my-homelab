@@ -1,5 +1,5 @@
 # lxc-holefeeder runs rootful Podman. The holefeeder app deploys as Quadlet units
-# (roles/holefeeder): postgres owns the netns and publishes api(5001)/web(5000)/
+# (roles/holefeeder): postgres owns the netns and publishes api(5001)/web(5000->80)/
 # powersync(8080); the others join it and reach the DB on 127.0.0.1. Images for api/web
 # come from ghcr on a rolling tag and update via `podman auto-update`.
 

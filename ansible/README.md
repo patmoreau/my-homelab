@@ -740,7 +740,7 @@ The `blackbox_exporter` role probes the following HTTP endpoints every 15 s and 
 | Traefik | `http://192.168.8.40:8082/metrics` (no ping endpoint enabled) |
 | oauth2-proxy | `http://192.168.8.40:4180/ping` |
 | Holefeeder API | `http://192.168.8.49:5001/healthz` |
-| Holefeeder web | `http://192.168.8.49:5000` |
+| Holefeeder web | `http://192.168.8.49:5000/healthz` |
 | PowerSync | `http://192.168.8.49:8080/probes/liveness` |
 | PVE | `https://192.168.8.10:8006` (self-signed, `cert_check: off`) |
 | PBS | `https://192.168.8.48:8007` (self-signed, `cert_check: off`) |
@@ -1036,7 +1036,7 @@ repo's CI (`ghcr.io/patmoreau/holefeeder`). Responsibilities are split:
   digests and restarts only the units that changed.
 - **Ingress** — public traffic enters through the existing `cloudflared` tunnel on
   `lxc-gateway` → central Traefik (`conf.d/holefeeder.yaml`) → published ports on the LXC
-  (`web` 5000, `api` 5001, `powersync` 8080). The tunnel's public hostnames
+  (`web` 5000 → nginx :80, `api` 5001, `powersync` 8080). The tunnel's public hostnames
   (`holefeeder`, `holefeeder-admin`, `powersync` on `drifterapps.app`) are configured in
   the Cloudflare Zero Trust dashboard. Traefik issues edge-origin certs via the
   `cloudflare` DNS-01 resolver, so `vault_cloudflare_api_key` must have DNS edit rights on

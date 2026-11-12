@@ -4,11 +4,11 @@ Description=Holefeeder PostgreSQL
 [Container]
 ContainerName=holefeeder_postgres
 Image=postgres:18
-# Owns the shared netns for all holefeeder services; publishes api (5001), web (5000) and
-# powersync (8080). Everything reaches the DB over 127.0.0.1 (no aardvark DNS / .pod on 4.9).
+# Owns the shared netns for all holefeeder services; publishes api (5001), web (5000 -> nginx
+# on :80) and powersync (8080). Everything reaches the DB over 127.0.0.1 (no aardvark DNS / .pod on 4.9).
 IP=10.88.0.241
 PublishPort=5001:5001
-PublishPort=5000:5000
+PublishPort=5000:80
 PublishPort=8080:8080
 Volume=/data/postgres:/var/lib/postgresql
 Volume=/opt/docker/holefeeder/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh:ro

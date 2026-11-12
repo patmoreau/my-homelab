@@ -125,7 +125,7 @@ scrape_configs:
       - targets: ['http://{{ hostvars["lxc-holefeeder"]["ansible_host"] }}:5001/healthz']
         labels:
           service: 'holefeeder-api'
-      - targets: ['http://{{ hostvars["lxc-holefeeder"]["ansible_host"] }}:5000']
+      - targets: ['http://{{ hostvars["lxc-holefeeder"]["ansible_host"] }}:5000/healthz']
         labels:
           service: 'holefeeder-web'
       - targets: ['http://{{ hostvars["lxc-holefeeder"]["ansible_host"] }}:8080/probes/liveness']

@@ -11,9 +11,9 @@ http:
       middlewares:
         - holefeeder-strip-gateway
 
-    # Web (Angular SPA) — everything else on the public host, plus the admin health-check UI
+    # Web (React SPA on nginx) — everything else on the public host
     holefeeder-web:
-      rule: "(Host(`holefeeder.drifterapps.app`) && !PathPrefix(`/gateway`)) || (Host(`holefeeder-admin.drifterapps.app`) && PathPrefix(`/hc-ui`))"
+      rule: "(Host(`holefeeder.drifterapps.app`) && !PathPrefix(`/gateway`))"
       entryPoints:
         - websecure
       tls:
