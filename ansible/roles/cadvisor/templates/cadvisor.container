@@ -6,7 +6,7 @@ ContainerName=cadvisor
 # Upstream publishes to ghcr.io from v0.53.0 on; gcr.io/cadvisor/cadvisor is the legacy
 # mirror, frozen at v0.55.1, and Renovate cannot look it up any more ("no-result"), so
 # cadvisor silently stopped getting update PRs. Same version, canonical registry.
-Image=ghcr.io/google/cadvisor:v0.61.0
+Image=ghcr.io/google/cadvisor:v0.61.1
 # Host networking, not a published port on the bridge. The pinned IP this used to carry
 # kept the port-DNAT rule valid across a recreate, but it also meant a leaked netns kept
 # answering ARP for that exact address — which is how one ansible run left cAdvisor
