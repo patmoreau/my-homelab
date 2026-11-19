@@ -13,12 +13,6 @@
     state: present
     timeout: 60
 
-- name: Install HACS via installation script in the container
-  ansible.builtin.command: "podman exec homeassistant bash -c \"wget -O - https://get.hacs.xyz | bash -\""
-  args:
-    creates: /data/config/custom_components/hacs
-  register: homeassistant_hacs_install
-
 # Home Assistant migrated the `http:` YAML config into its own storage entry and
 # now ignores the block (removed entirely in 2027.2). Trusted proxies are managed
 # from Settings > System > Network, so drop the block we used to write.
@@ -68,7 +62,7 @@
 - name: Set whether Home Assistant needs a restart
   ansible.builtin.set_fact:
     homeassistant_restart: >-
-      {{ homeassistant_config.changed or homeassistant_hacs_install.changed
+      {{ homeassistant_config.changed
          or homeassistant_system_log_config.changed
          or homeassistant_automations_config.changed
          or homeassistant_automations.changed }}
