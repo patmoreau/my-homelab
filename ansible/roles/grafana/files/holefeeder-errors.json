@@ -1,0 +1,282 @@
+{
+  "uid": "holefeeder-errors",
+  "title": "Holefeeder API Errors",
+  "tags": [
+    "holefeeder",
+    "logs"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "refresh": "1m",
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Errors in range",
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "queryType": "instant",
+          "editorMode": "code",
+          "expr": "sum(count_over_time({container=\"holefeeder_api\"} |~ `\"@l\"\\s*:\\s*\"(Error|Fatal)\"` [$__range])) or vector(0)"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "type": "table",
+      "title": "Top errors (by message template)",
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 18,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "queryType": "instant",
+          "editorMode": "code",
+          "expr": "sum by (mt) (count_over_time({container=\"holefeeder_api\"} |~ `\"@l\"\\s*:\\s*\"(Error|Fatal)\"` | json mt=`[\"@mt\"]` [$__range]))"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "reducers": [
+              "lastNotNull"
+            ],
+            "mode": "seriesToRows"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Field": "Message template",
+              "Last *": "Count"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Count",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Errors over time",
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "queryType": "range",
+          "editorMode": "code",
+          "expr": "sum by (mt) (count_over_time({container=\"holefeeder_api\"} |~ `\"@l\"\\s*:\\s*\"(Error|Fatal)\"` | json mt=`[\"@mt\"]` [$__interval]))",
+          "legendFormat": "{{mt}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "normal"
+            }
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "HTTP 5xx by path",
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "queryType": "range",
+          "editorMode": "code",
+          "expr": "sum by (path) (count_over_time({container=\"holefeeder_api\"} |= `RequestLoggingMiddleware` | json status=`[\"StatusCode\"]`, path=`[\"RequestPath\"]` | status >= 500 [$__interval]))",
+          "legendFormat": "{{path}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "normal"
+            }
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "logs",
+      "title": "Error log (expand a row for all fields)",
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "gridPos": {
+        "h": 16,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "queryType": "range",
+          "editorMode": "code",
+          "expr": "{container=\"holefeeder_api\"} |~ `\"@l\"\\s*:\\s*\"(Error|Fatal)\"` | json mt=`[\"@mt\"]`, x=`[\"@x\"]`, trace=`[\"@tr\"]`, source=`[\"SourceContext\"]`, path=`[\"RequestPath\"]` | line_format `{{.mt}}{{if .x}} | {{.x}}{{end}}`"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending",
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "showLabels": false,
+        "showCommonLabels": false,
+        "prettifyLogMessage": false
+      }
+    }
+  ],
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  }
+}

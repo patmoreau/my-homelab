@@ -658,7 +658,7 @@ rebuild of that container would lose it.
 |------|------|---------|
 | `prometheus` | lxc-monitoring | Metrics collection |
 | `loki` | lxc-monitoring | Log aggregation |
-| `grafana` | lxc-monitoring | Dashboards (includes "Homelab Services Health" and "Alerts Overview"); alert state history pushed to Loki |
+| `grafana` | lxc-monitoring | Dashboards (includes "Homelab Services Health", "Alerts Overview" and "Holefeeder API Errors"); alert state history pushed to Loki |
 | `pve_exporter` | lxc-monitoring | Proxmox metrics (port 9221, host networking) |
 | `blackbox_exporter` | lxc-monitoring | HTTP health probing for all services (port 9115) |
 | `umami` | lxc-essere | Cookieless web analytics for essere.ca (port 3001) |
@@ -688,7 +688,7 @@ the role restarts it on change). There is no Alertmanager.
 
 | File | Contents |
 |------|----------|
-| `alerting-rules.yml.j2` | Three groups. **Disk**: `/data volume above 80%` fires when any LXC's `/data` is over 80% full for 15 min — one rule covers every host, `node_exporter` labels the series by instance. **Availability**: `Public site unreachable` (a `blackbox_public` probe failing for 5 min), `Service not responding` (a `blackbox` probe failing for 5 min), `TLS certificate expiring within 14 days` and `Prometheus cannot scrape a target` (any `up` series 0 for 10 min — a dead exporter is invisible to a probe). **Backups**: `PBS backup job failed` and `PBS backup has not run in 36 hours`. |
+| `alerting-rules.yml.j2` | Four groups. **Disk**: `/data volume above 80%` fires when any LXC's `/data` is over 80% full for 15 min — one rule covers every host, `node_exporter` labels the series by instance. **Availability**: `Public site unreachable` (a `blackbox_public` probe failing for 5 min), `Service not responding` (a `blackbox` probe failing for 5 min), `TLS certificate expiring within 14 days` and `Prometheus cannot scrape a target` (any `up` series 0 for 10 min — a dead exporter is invisible to a probe). **Backups**: `PBS backup job failed` and `PBS backup has not run in 36 hours`. **Application Errors**: `Holefeeder API logging errors` fires on any `Error`/`Fatal` line from `holefeeder_api` in Loki (last 5 min), one instance per Serilog message template (`@mt`), `noDataState: OK` since a quiet log has no series. |
 | `alerting-contact-points.yml.j2` | Single webhook contact point pointing at Home Assistant |
 | `alerting-policies.yml.j2` | Default route — provisioning a policy tree replaces Grafana's built-in one, so all alerts go to that contact point |
 

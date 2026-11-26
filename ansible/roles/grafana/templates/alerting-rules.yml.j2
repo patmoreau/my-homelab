@@ -455,3 +455,49 @@ groups:
                     type: gt
                     params:
                       - 36
+
+  - orgId: 1
+    name: Application Errors
+    folder: Homelab Alerts
+    interval: 1m
+    rules:
+      # Holefeeder.Api logs Serilog compact JSON (CLEF): "@l" is the level, "@mt" the
+      # message template. Grouping by the template gives one alert instance per distinct
+      # kind of error, so the phone gets one push per problem rather than per log line,
+      # and the 12h repeat_interval reminds while it keeps happening. A quiet log returns
+      # no series at all, which is the healthy state — hence noDataState: OK.
+      - uid: holefeeder-api-errors
+        title: Holefeeder API logging errors
+        condition: C
+        for: 0s
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: {% raw %}'{{ $labels.container }}: {{ $labels.mt }}'{% endraw %}
+
+          description: {% raw %}'{{ $labels.container }} logged "{{ $labels.mt }}" {{ printf "%.0f" $values.A.Value }} time(s) in the last 5 min. Details and stack traces on the "Holefeeder API Errors" dashboard.'{% endraw %}
+
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: Loki
+            model:
+              refId: A
+              queryType: instant
+              editorMode: code
+              expr: 'sum by (container, mt) (count_over_time({container="holefeeder_api"} |~ `"@l"\s*:\s*"(Error|Fatal)"` | json mt=`["@mt"]` [5m]))'
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
