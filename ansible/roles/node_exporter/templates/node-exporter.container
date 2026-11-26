@@ -3,7 +3,7 @@ Description=Prometheus node exporter
 
 [Container]
 ContainerName=node-exporter
-Image=prom/node-exporter:v1.12.1
+Image=prom/node-exporter:v1.13.1
 Network=host
 PodmanArgs=--pid=host
 Volume=/proc:/host/proc:ro
